@@ -1,78 +1,94 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Search, Building } from 'lucide-react';
+import { Search, Building, Sparkles, TrendingUp, Users, Briefcase } from 'lucide-react';
 import { CheckCircle } from 'lucide-react';
 
 const stats = [
-  { value: '10k+', label: 'Active Jobs' },
-  { value: '5k+', label: 'Companies' },
-  { value: '50k+', label: 'Job Seekers' },
+  { value: '10k+', label: 'Active Jobs', icon: Briefcase },
+  { value: '5k+', label: 'Companies', icon: Building },
+  { value: '50k+', label: 'Job Seekers', icon: Users },
 ];
 
 const features = ['Free to use', 'Verified employers', 'Secure platform'];
 
 export default function HeroSection() {
   return (
-    <section className="min-h-screen  bg-slate-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
+    <section className="relative overflow-hidden py-20">
+      {/* Gradient Background - Only for Hero Section */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-blue-600 to-purple-700">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float"></div>
+          <div className="absolute top-40 right-10 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float" style={{ animationDelay: '4s' }}></div>
+        </div>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
-          <div className="space-y-6">
+          <div className="space-y-6 animate-slide-up">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-sm">
-              <span className="text-purple-600">📈</span>
-              <span className="text-sm text-gray-700 dark:text-gray-300">#1 Job Platform </span>
+            <div className="inline-flex items-center gap-3 glass px-6 py-3 rounded-full hover-lift mt-4">
+              <Sparkles className="text-purple-500 animate-pulse" size={20} />
+              <span className="text-sm font-semibold text-gradient-primary">#1 Job Platform</span>
+              <TrendingUp className="text-green-500" size={16} />
             </div>
 
             {/* Heading */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
-              Find Your Dream Job at{' '}
-              <span className="text-blue-600">Hire</span>
-              <span className="text-red-500">Heaven</span>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight">
+              <span className="block text-gray-900 dark:text-white mb-2">Find Your</span>
+              <span className="block text-gradient-primary">Dream Job</span>
+              <span className="block text-3xl md:text-4xl lg:text-5xl mt-2">
+                at <span className="text-gradient-accent">HireHeaven</span>
+              </span>
             </h1>
 
             {/* Description */}
-            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-lg">
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl leading-relaxed">
               Connect with top employers and discover opportunities that match your skills. 
               Whether you&apos;re a job seeker or recruiter, we&apos;ve got you covered with powerful 
-              tools and seamless experience.
+              AI-powered tools and a seamless experience that transforms your career journey.
             </p>
 
             {/* Stats */}
-            <div className="flex gap-8">
-              {stats.map(({ value, label }) => (
-                <div key={label}>
-                  <div className="text-2xl md:text-3xl font-bold text-blue-600">{value}</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">{label}</div>
+            <div className="grid grid-cols-3 gap-4 py-4">
+              {stats.map(({ value, label, icon: Icon }) => (
+                <div key={label} className="text-center group">
+                  <div className="glass-dark rounded-xl p-4 hover-lift">
+                    <Icon className="mx-auto mb-2 text-purple-500 group-hover:text-purple-600 transition-colors" size={20} />
+                    <div className="text-xl font-black text-gradient-primary">{value}</div>
+                    <div className="text-xs font-medium text-gray-600 dark:text-gray-400">{label}</div>
+                  </div>
                 </div>
               ))}
             </div>
 
             {/* Buttons */}
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-3">
               <Link
                 href="/jobs"
-                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                className="btn-primary group flex items-center gap-2 text-base px-6 py-3"
               >
-                <Search size={18} />
+                <Search size={18} className="group-hover:rotate-12 transition-transform" />
                 Browse Jobs
-                <span>→</span>
+                <span className="group-hover:translate-x-1 transition-transform">→</span>
               </Link>
               <Link
                 href="/about"
-                className="inline-flex items-center gap-2 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-lg font-medium border border-gray-200 dark:border-gray-600 transition-colors"
+                className="btn-secondary group flex items-center gap-2 text-base px-6 py-3"
               >
-                <Building size={18} />
+                <Building size={18} className="group-hover:scale-110 transition-transform" />
                 Learn More
               </Link>
             </div>
 
             {/* Features */}
-            <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
-              {features.map((feature) => (
-                <div key={feature} className="flex items-center gap-1">
-                  <CheckCircle size={16} className="text-blue-500" />
-                  <span>{feature}</span>
+            <div className="flex flex-wrap gap-3 pt-2">
+              {features.map((feature, index) => (
+                <div key={feature} className="flex items-center gap-2 glass px-3 py-1.5 rounded-full hover-lift text-sm" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <CheckCircle size={16} className="text-green-500 animate-pulse" />
+                  <span className="font-medium text-gray-700 dark:text-gray-300">{feature}</span>
                 </div>
               ))}
             </div>
@@ -80,18 +96,36 @@ export default function HeroSection() {
 
           {/* Right Image */}
           <div className="relative hidden lg:block">
-            <div className="relative w-[75%] aspect-3/4 rounded-2xl overflow-hidden shadow-2xl ml-auto">
+            <div className="relative w-[75%] aspect-4/5 rounded-2xl overflow-hidden shadow-2xl ml-auto animate-float hover-lift">
               <Image
-                src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=500&h=650&fit=crop"
+                src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=500&fit=crop"
                 alt="Professional man"
                 fill
                 className="object-cover"
                 priority
               />
+              {/* Overlay Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-purple-600/20 to-transparent"></div>
             </div>
+            
+            {/* Floating Cards */}
+            <div className="absolute top-8 -left-6 glass-dark rounded-xl p-3 animate-pulse-glow hover-lift">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs font-semibold">Live Jobs</span>
+              </div>
+            </div>
+            
+            <div className="absolute bottom-16 -right-6 glass rounded-xl p-3 animate-slide-up hover-lift" style={{ animationDelay: '0.5s' }}>
+              <div className="text-center">
+                <div className="text-lg font-black text-gradient-primary">98%</div>
+                <div className="text-xs font-medium text-gray-600 dark:text-gray-400">Success Rate</div>
+              </div>
+            </div>
+
             {/* Decorative elements */}
-            <div className="absolute -top-4 -right-4 w-24 h-24 bg-blue-100 dark:bg-blue-900/30 rounded-full -z-10" />
-            <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-red-100 dark:bg-red-900/30 rounded-full -z-10" />
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full opacity-20 blur-xl animate-float"></div>
+            <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full opacity-20 blur-xl animate-float" style={{ animationDelay: '3s' }}></div>
           </div>
         </div>
       </div>

@@ -1,15 +1,41 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Poppins, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import ReduxProvider from "@/providers/ReduxProvider";
 import ThemeProvider from "@/providers/ThemeProvider";
 import Navbar from "@/components/Navbar";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ 
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap"
+});
+
+const poppins = Poppins({ 
+  weight: ["400", "500", "600", "700", "800", "900"],
+  subsets: ["latin"],
+  variable: "--font-poppins",
+  display: "swap"
+});
+
+const spaceGrotesk = Space_Grotesk({ 
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+  display: "swap"
+});
 
 export const metadata: Metadata = {
   title: "HireHeaven - Find Your Dream Job",
-  description: "#1 Job Platform in India - Connect with top employers",
+  description: "#1 AI-Powered Job Platform in India - Connect with top employers and transform your career with advanced AI tools",
+  keywords: ["jobs", "career", "AI", "resume analyzer", "career guidance", "hiring", "recruitment"],
+  authors: [{ name: "HireHeaven Team" }],
+  openGraph: {
+    title: "HireHeaven - AI-Powered Job Platform",
+    description: "Find your dream job with AI-powered career guidance and resume optimization",
+    type: "website",
+    locale: "en_IN",
+  },
 };
 
 export default function RootLayout({
@@ -18,12 +44,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${poppins.variable} ${spaceGrotesk.variable}`}>
       <body className={`${inter.className} antialiased`}>
         <ReduxProvider>
           <ThemeProvider>
             <Navbar />
-            {children}
+            <main>
+              {children}
+            </main>
           </ThemeProvider>
         </ReduxProvider>
       </body>
