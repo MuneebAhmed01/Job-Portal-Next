@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { JobsModule } from './jobs/jobs.module';
+import { CareerGuidanceModule } from './career-guidance/career-guidance.module';
 import { Job } from './jobs/entities/job.entity';
 
 @Module({
@@ -17,6 +18,7 @@ import { Job } from './jobs/entities/job.entity';
       ssl: { rejectUnauthorized: false },
     }),
     JobsModule,
+    CareerGuidanceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

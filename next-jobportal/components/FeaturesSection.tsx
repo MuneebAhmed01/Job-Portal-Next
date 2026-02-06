@@ -1,5 +1,8 @@
+"use client";
 import Link from 'next/link';
 import { Sparkles, FileText, ArrowRight, Brain, Target, Zap } from 'lucide-react';
+import { useState } from 'react';
+import CareerGuidanceOverlay from './CareerGuidanceOverlay';
 
 const features = [
   {
@@ -25,8 +28,11 @@ const features = [
 ];
 
 export default function FeaturesSection() {
+  const [isCareerOverlayOpen, setIsCareerOverlayOpen] = useState(false);
+
   return (
-    <div className="relative mt-20">
+    <>
+      <div className="relative mt-20">
       {/* Background Pattern */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-float"></div>
@@ -87,14 +93,25 @@ export default function FeaturesSection() {
                   </div>
 
                   {/* Button */}
-                  <Link
-                    href={href}
-                    className={`btn-primary group inline-flex items-center gap-3 text-lg px-8 py-4 bg-gradient-to-r ${gradient}`}
-                  >
-                    <Icon size={20} className="group-hover:rotate-12 transition-transform" />
-                    {buttonText}
-                    <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                  </Link>
+                  {index === 0 ? (
+                    <button
+                      onClick={() => setIsCareerOverlayOpen(true)}
+                      className={`btn-primary group inline-flex items-center gap-3 text-base px-6 py-3 bg-gradient-to-r ${gradient}`}
+                    >
+                      <Icon size={18} className="group-hover:rotate-12 transition-transform" />
+                      {buttonText}
+                      <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  ) : (
+                    <Link
+                      href={href}
+                      className={`btn-primary group inline-flex items-center gap-3 text-base px-6 py-3 bg-gradient-to-r ${gradient}`}
+                    >
+                      <Icon size={18} className="group-hover:rotate-12 transition-transform" />
+                      {buttonText}
+                      <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  )}
                 </div>
 
                 {/* Visual Element */}
@@ -139,5 +156,12 @@ export default function FeaturesSection() {
         ))}
       </div>
     </div>
+    
+    {/* Career Guidance Overlay */}
+    <CareerGuidanceOverlay 
+      isOpen={isCareerOverlayOpen} 
+      onClose={() => setIsCareerOverlayOpen(false)} 
+    />
+    </>
   );
 }
