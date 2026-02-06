@@ -1,9 +1,23 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { JobsModule } from './jobs/jobs.module';
+import { Job } from './jobs/entities/job.entity';
 
 @Module({
-  imports: [],
+  imports: [
+    ConfigModule.forRoot(),
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      url: process.env.DATABASE_URL,
+      entities: [Job],
+      synchronize: true,
+      ssl: { rejectUnauthorized: false },
+    }),
+    JobsModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
