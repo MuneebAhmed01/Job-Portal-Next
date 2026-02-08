@@ -3,6 +3,7 @@ import { Inter, Poppins, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import ReduxProvider from "@/providers/ReduxProvider";
 import ThemeProvider from "@/providers/ThemeProvider";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 
 const inter = Inter({ 
@@ -48,10 +49,12 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <ReduxProvider>
           <ThemeProvider>
-            <Navbar />
-            <main>
-              {children}
-            </main>
+            <AuthProvider>
+              <Navbar />
+              <main>
+                {children}
+              </main>
+            </AuthProvider>
           </ThemeProvider>
         </ReduxProvider>
       </body>

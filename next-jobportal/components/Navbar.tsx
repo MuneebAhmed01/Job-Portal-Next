@@ -5,6 +5,9 @@ import { Home, Briefcase, Info, Sun, Moon, Menu, X, User } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { toggleTheme } from '@/store/slices/themeSlice';
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import AuthOverlay from './AuthOverlay';
+import ProfileOverlay from './ProfileOverlay';
 
 const navLinks = [
   { href: '/', label: 'Home', icon: Home },
@@ -15,25 +18,25 @@ const navLinks = [
 export default function Navbar() {
   const dispatch = useAppDispatch();
   const isDark = useAppSelector((state) => state.theme.isDark);
+  const { user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       const windowHeight = window.innerHeight;
       
-      // Keep navbar fixed for first 100vh (hero section), then enable hide/show behavior
       if (currentScrollY > windowHeight) {
-        // Hide navbar when scrolling down, show when scrolling up (after hero section)
         if (currentScrollY > lastScrollY) {
           setIsVisible(false);
         } else {
           setIsVisible(true);
         }
       } else {
-        // Always show navbar when within first 100vh
         setIsVisible(true);
       }
       
@@ -79,15 +82,26 @@ export default function Navbar() {
 
             {/* Right Section */}
             <div className="flex items-center gap-4">
-              {/* Profile Avatar */}
-              <div className="hidden sm:block">
-                <div className="relative group">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-black cursor-pointer hover-lift">
-                    <User size={20} />
+              {/* Auth/Profile Button */}
+              {user ? (
+                <button
+                  onClick={() => setIsProfileOpen(true)}
+                  className="hidden sm:flex items-center gap-2 glass px-4 py-2 rounded-xl hover-lift text-white font-medium"
+                >
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                    <User size={16} />
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
-                </div>
-              </div>
+                  <span>{user.name.split(' ')[0]}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsAuthOpen(true)}
+                  className="hidden sm:flex items-center gap-2 glass px-4 py-2 rounded-xl hover-lift text-white font-medium"
+                >
+                  <User size={18} />
+                  <span>Sign In</span>
+                </button>
+              )}
 
               {/* Theme Toggle */}
               <button
@@ -138,20 +152,44 @@ export default function Navbar() {
                 </Link>
               ))}
               
-              {/* Mobile Profile */}
-              <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/10 transition-all duration-300">
-                <div className="relative">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-black">
-                    <User size={18} />
+              {/* Mobile Auth/Profile Button */}
+              {user ? (
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsProfileOpen(true);
+                  }}
+                  className="w-full flex items-center gap-4 p-3 rounded-xl glass text-white font-medium"
+                >
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                    <User size={20} />
                   </div>
-                  <div className="absolute -bottom-0 -right-0 w-3 h-3 bg-green-500 rounded-full border border-white dark:border-gray-900"></div>
-                </div>
-                <span className="font-medium text-gray-600 dark:text-gray-300">Profile</span>
-              </div>
+                  <span className="text-lg">{user.name}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsAuthOpen(true);
+                  }}
+                  className="w-full flex items-center gap-4 p-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium"
+                >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                    <User size={20} />
+                  </div>
+                  <span className="text-lg">Sign In / Sign Up</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
       </nav>
+
+      {/* Auth Overlay */}
+      <AuthOverlay isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+      
+      {/* Profile Overlay */}
+      <ProfileOverlay isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (

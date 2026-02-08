@@ -146,7 +146,10 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
 
   if (!isOpen || !user) return null;
 
-  const isEmployer = user.role === 'HIRE_TALENT';
+  const isEmployer = user?.role === 'HIRE_TALENT';
+  
+  console.log('ProfileOverlay - User:', user);
+  console.log('ProfileOverlay - isEmployer:', isEmployer);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
