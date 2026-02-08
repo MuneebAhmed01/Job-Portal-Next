@@ -1,19 +1,35 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request, Param } from '@nestjs/common';
 import { JobsService } from './jobs.service';
-import { CreateJobDto } from './dto/create-job.dto';
-import { Job } from './entities/job.entity';
+import type { CreateJobDto } from './dto/create-job.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('jobs')
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
   @Post()
-  create(@Body() createJobDto: CreateJobDto): Promise<Job> {
-    return this.jobsService.create(createJobDto);
+  @UseGuards(JwtAuthGuard)
+  create(@Body() createJobDto: CreateJobDto, @Request() req: any) {
+    const employerId = req.user.sub;
+    return this.jobsService.create(createJobDto, employerId);
   }
 
   @Get()
-  findAll(): Promise<Job[]> {
-    return this.jobsService.findAll();
+  @UseGuards(JwtAuthGuard)
+  findByEmployer(@Request() req: any) {
+    const employerId = req.user.sub;
+    return this.jobsService.findByEmployer(employerId);
+  }
+
+  @Get('all')
+  findAll() {
+    return this.jobsService.findAllPublic();
+  }
+
+  @Get(':id/applicants')
+  @UseGuards(JwtAuthGuard)
+  findApplicants(@Param('id') id: string, @Request() req: any) {
+    const employerId = req.user.sub;
+    return this.jobsService.findApplicants(id, employerId);
   }
 }
