@@ -1,23 +1,10 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { z } from 'zod';
 
-export class CreateJobDto {
-  @IsString()
-  @IsNotEmpty()
-  title: string;
+export const createJobSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
+  skills: z.string().min(1, 'Skills are required'),
+  budget: z.string().optional()
+});
 
-  @IsString()
-  @IsNotEmpty()
-  company: string;
-
-  @IsString()
-  @IsNotEmpty()
-  location: string;
-
-  @IsString()
-  @IsNotEmpty()
-  salary: string;
-
-  @IsString()
-  @IsNotEmpty()
-  description: string;
-}
+export type CreateJobDto = z.infer<typeof createJobSchema>;
