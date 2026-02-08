@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Sparkles, FileText, ArrowRight, Brain, Target, Zap } from 'lucide-react';
 import { useState } from 'react';
 import CareerGuidanceOverlay from './CareerGuidanceOverlay';
+import ResumeAnalyzerOverlay from './ResumeAnalyzerOverlay';
 
 const features = [
   {
@@ -29,6 +30,7 @@ const features = [
 
 export default function FeaturesSection() {
   const [isCareerOverlayOpen, setIsCareerOverlayOpen] = useState(false);
+  const [isResumeOverlayOpen, setIsResumeOverlayOpen] = useState(false);
 
   return (
     <>
@@ -102,6 +104,15 @@ export default function FeaturesSection() {
                       {buttonText}
                       <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                     </button>
+                  ) : index === 1 ? (
+                    <button
+                      onClick={() => setIsResumeOverlayOpen(true)}
+                      className={`btn-primary group inline-flex items-center gap-3 text-base px-6 py-3 bg-gradient-to-r ${gradient}`}
+                    >
+                      <Icon size={18} className="group-hover:rotate-12 transition-transform" />
+                      {buttonText}
+                      <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                    </button>
                   ) : (
                     <Link
                       href={href}
@@ -161,6 +172,12 @@ export default function FeaturesSection() {
     <CareerGuidanceOverlay 
       isOpen={isCareerOverlayOpen} 
       onClose={() => setIsCareerOverlayOpen(false)} 
+    />
+    
+    {/* Resume Analyzer Overlay */}
+    <ResumeAnalyzerOverlay 
+      isOpen={isResumeOverlayOpen} 
+      onClose={() => setIsResumeOverlayOpen(false)} 
     />
     </>
   );
