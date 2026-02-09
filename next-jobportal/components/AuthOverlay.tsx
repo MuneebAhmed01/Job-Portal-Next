@@ -214,7 +214,6 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
                       onChange={handleFileChange}
                       className="hidden"
                       id="resume-upload"
-                      required={isSignup}
                     />
                     <label
                       htmlFor="resume-upload"
