@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Plus, Sparkles, Briefcase, Target, Award, ChevronRight } from 'lucide-react';
+import { X, Plus, Sparkles, Briefcase, Target, Award, ChevronRight, BookOpen, TrendingUp, Lightbulb, CheckCircle2, Star } from 'lucide-react';
 
 interface Skill {
   id: string;
@@ -18,6 +18,23 @@ interface CareerAnalysis {
     keyResponsibilities: string[];
     whyItFits: string;
     relevantJobTitles: string[];
+    matchScore: number;
+    category: string;
+  }[];
+  skillsToEnhance: {
+    category: string;
+    skills: {
+      name: string;
+      priority: 'high' | 'medium' | 'low';
+      reason: string;
+    }[];
+  }[];
+  learningApproach: {
+    title: string;
+    steps: {
+      action: string;
+      description: string;
+    }[];
   }[];
 }
 
@@ -91,6 +108,15 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
     setTimeout(resetAnalysis, 300);
   };
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'text-red-400 bg-red-500/10 border-red-500/20';
+      case 'medium': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
+      case 'low': return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
+      default: return 'text-gray-400 bg-gray-500/10';
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -106,7 +132,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
               <Sparkles className="text-white" size={20} />
             </div>
             <div>
@@ -142,7 +168,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                   />
                   <button
                     onClick={addSkill}
-                    className="px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white font-medium hover-lift flex items-center gap-2"
+                    className="px-4 py-3 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl text-white font-medium hover-lift flex items-center gap-2"
                   >
                     <Plus size={18} />
                     Add
@@ -180,7 +206,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
               <button
                 onClick={analyzeSkills}
                 disabled={isLoading || skills.length === 0}
-                className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                className="w-full py-4 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
               >
                 {isLoading ? (
                   <>
@@ -199,7 +225,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
             <div className="space-y-8">
               {/* Results Header */}
               <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-linear-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Award className="text-white" size={32} />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">Your Career Analysis</h3>
@@ -215,32 +241,35 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                 <p className="text-gray-300 leading-relaxed">{analysis.careerSummary}</p>
               </div>
 
-              {/* Career Category */}
-              <div className="flex items-center justify-between glass rounded-xl p-4">
-                <div>
-                  <p className="text-sm text-gray-400">Career Category</p>
-                  <p className="text-lg font-bold text-white">{analysis.careerCategory}</p>
-                </div>
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                  <Target className="text-white" size={20} />
-                </div>
-              </div>
-
-              {/* Recommended Career Paths */}
+              {/* Recommended Career Paths - Multiple Options */}
               <div>
-                <h4 className="text-lg font-bold text-white mb-4">Recommended Career Paths</h4>
+                <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <TrendingUp size={20} className="text-purple-400" />
+                  Recommended Career Paths
+                </h4>
                 <div className="space-y-4">
-                  {analysis.recommendedCareerPaths.map((path, index) => (
+                  {analysis.recommendedCareerPaths.slice(0, 3).map((path, index) => (
                     <div key={index} className="glass rounded-xl p-6 hover-lift">
                       <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h5 className="text-lg font-bold text-white">{path.title}</h5>
-                          <p className="text-gray-400 text-sm mt-1">{path.description}</p>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h5 className="text-lg font-bold text-white">{path.title}</h5>
+                            <span className="text-xs glass px-2 py-1 rounded-full text-gray-400">
+                              {path.category}
+                            </span>
+                          </div>
+                          <p className="text-gray-400 text-sm">{path.description}</p>
                         </div>
-                        <ChevronRight className="text-purple-400 mt-1" size={20} />
+                        <div className="flex items-center gap-2 ml-4">
+                          <div className="text-right">
+                            <span className="text-2xl font-bold text-green-400">{path.matchScore}%</span>
+                            <p className="text-xs text-gray-500">match</p>
+                          </div>
+                          <ChevronRight className="text-purple-400" size={20} />
+                        </div>
                       </div>
                       
-                      <div className="space-y-3">
+                      <div className="space-y-3 mt-4">
                         <div>
                           <p className="text-sm font-medium text-purple-400 mb-2">Key Responsibilities</p>
                           <ul className="space-y-1">
@@ -253,8 +282,8 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                           </ul>
                         </div>
                         
-                        <div>
-                          <p className="text-sm font-medium text-green-400 mb-2">Why This Fits You</p>
+                        <div className="glass-dark rounded-lg p-3">
+                          <p className="text-sm font-medium text-green-400 mb-1">Why This Fits You</p>
                           <p className="text-sm text-gray-300">{path.whyItFits}</p>
                         </div>
                         
@@ -274,8 +303,78 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                 </div>
               </div>
 
+              {/* Skills to Enhance */}
+              {analysis.skillsToEnhance && analysis.skillsToEnhance.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <Star size={20} className="text-yellow-400" />
+                    Skills to Enhance Your Career
+                  </h4>
+                  <div className="space-y-4">
+                    {analysis.skillsToEnhance.map((category, catIndex) => (
+                      <div key={catIndex} className="glass rounded-xl p-5">
+                        <h5 className="text-sm font-medium text-purple-400 mb-3">{category.category}</h5>
+                        <div className="space-y-2">
+                          {category.skills.map((skill, skillIndex) => (
+                            <div 
+                              key={skillIndex} 
+                              className={`flex items-start gap-3 p-3 rounded-lg border ${getPriorityColor(skill.priority)}`}
+                            >
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-white">{skill.name}</span>
+                                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                    skill.priority === 'high' ? 'bg-red-500/20 text-red-400' :
+                                    skill.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                                    'bg-blue-500/20 text-blue-400'
+                                  }`}>
+                                    {skill.priority}
+                                  </span>
+                                </div>
+                                <p className="text-sm mt-1 opacity-80">{skill.reason}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Learning Approach */}
+              {analysis.learningApproach && analysis.learningApproach.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <BookOpen size={20} className="text-blue-400" />
+                    How to Approach Learning and Career Growth
+                  </h4>
+                  <div className="space-y-4">
+                    {analysis.learningApproach.map((approach, index) => (
+                      <div key={index} className="glass rounded-xl p-5">
+                        <h5 className="font-bold text-white mb-3 flex items-center gap-2">
+                          <Lightbulb size={18} className="text-yellow-400" />
+                          {approach.title}
+                        </h5>
+                        <div className="space-y-3">
+                          {approach.steps.map((step, stepIndex) => (
+                            <div key={stepIndex} className="flex items-start gap-3">
+                              <CheckCircle2 size={18} className="text-green-400 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="text-sm font-medium text-white">{step.action}</p>
+                                <p className="text-sm text-gray-400">{step.description}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Action Buttons */}
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-4 border-t border-white/10">
                 <button
                   onClick={resetAnalysis}
                   className="flex-1 py-3 glass border border-white/20 rounded-xl text-white font-medium hover-lift"
@@ -284,7 +383,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                 </button>
                 <button
                   onClick={closeOverlay}
-                  className="flex-1 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white font-medium hover-lift"
+                  className="flex-1 py-3 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl text-white font-medium hover-lift"
                 >
                   Got it!
                 </button>
