@@ -80,15 +80,26 @@ export default function Navbar() {
             <div className="flex items-center gap-4">
               {/* Auth/Profile Button */}
               {user ? (
-                <button
-                  onClick={() => setIsProfileOpen(true)}
-                  className="hidden sm:flex items-center gap-2 glass px-4 py-2 rounded-xl hover-lift text-white font-medium"
-                >
-                  <div className="w-8 h-8 bg-linear-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                    <User size={16} />
-                  </div>
-                  <span>{user.name.split(' ')[0]}</span>
-                </button>
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="hidden sm:flex items-center gap-2 glass px-4 py-2 rounded-xl hover-lift text-white font-medium"
+                  >
+                    <div className="w-8 h-8 bg-linear-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                      <User size={16} />
+                    </div>
+                    <span>Dashboard</span>
+                  </Link>
+                  <button
+                    onClick={() => setIsProfileOpen(true)}
+                    className="hidden sm:flex items-center gap-2 glass px-4 py-2 rounded-xl hover-lift text-white font-medium"
+                  >
+                    <div className="w-8 h-8 bg-linear-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
+                      <User size={16} />
+                    </div>
+                    <span>Profile</span>
+                  </button>
+                </>
               ) : (
                 <button
                   onClick={() => setIsAuthOpen(true)}
@@ -135,18 +146,30 @@ export default function Navbar() {
               
               {/* Mobile Auth/Profile Button */}
               {user ? (
-                <button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    setIsProfileOpen(true);
-                  }}
-                  className="w-full flex items-center gap-4 p-3 rounded-xl glass text-white font-medium"
-                >
-                  <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                    <User size={20} />
-                  </div>
-                  <span className="text-lg">{user.name}</span>
-                </button>
+                <>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full flex items-center gap-4 p-3 rounded-xl glass text-white font-medium"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                      <User size={20} />
+                    </div>
+                    <span className="text-lg">Dashboard</span>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsProfileOpen(true);
+                    }}
+                    className="w-full flex items-center gap-4 p-3 rounded-xl glass text-white font-medium"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                      <User size={20} />
+                    </div>
+                    <span className="text-lg">Profile</span>
+                  </button>
+                </>
               ) : (
                 <button
                   onClick={() => {

@@ -63,12 +63,8 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
         login(data.user, data.token);
         onClose();
         
-        // Redirect based on role
-        if (data.user.role === 'HIRE_TALENT') {
-          router.push('/employer');
-        } else {
-          router.push('/jobs');
-        }
+        // Redirect to dashboard (role-based rendering will handle UI)
+        router.push('/dashboard');
       } else {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/signin`, {
           method: 'POST',
@@ -89,12 +85,8 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
         login(data.user, data.token);
         onClose();
         
-        // Redirect based on role
-        if (data.user.role === 'HIRE_TALENT') {
-          router.push('/employer');
-        } else {
-          router.push('/jobs');
-        }
+        // Redirect to dashboard (role-based rendering will handle UI)
+        router.push('/dashboard');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed');

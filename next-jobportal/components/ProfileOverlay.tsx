@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { X, User, LogOut, FileText, Plus, Briefcase, ChevronLeft, MapPin, IndianRupee, Users, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -117,6 +118,14 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
               {activeTab === 'post-job' && 'Post a New Job'}
               {activeTab === 'my-jobs' && 'My Posted Jobs'}
             </h2>
+            {activeTab === 'profile' && (
+              <Link
+                href="/dashboard"
+                className="p-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors text-white text-sm"
+              >
+                View Dashboard
+              </Link>
+            )}
           </div>
           <button onClick={onClose} className="w-10 h-10 rounded-xl glass hover-lift flex items-center justify-center">
             <X className="text-gray-400" size={20} />

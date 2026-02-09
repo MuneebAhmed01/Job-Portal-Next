@@ -80,7 +80,7 @@ export default function JobDetailOverlay({ job, onClose }: JobDetailOverlayProps
             )}
             {job.salary && (
               <div className="flex items-center gap-2 text-gray-400">
-                <IndianRupee size={18} />
+                 
                 <span>{job.salary}</span>
               </div>
             )}
