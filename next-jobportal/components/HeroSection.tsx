@@ -14,13 +14,13 @@ const features = ['Free to use', 'Verified employers', 'Secure platform'];
 export default function HeroSection() {
   return (
     <section className="relative overflow-hidden py-20">
-      {/* Gradient Background - Only for Hero Section */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-blue-600 to-purple-700">
-        {/* Animated Background Elements */}
+      {/* Dark Gradient Background - Matching App Theme */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900">
+        {/* Animated Background Elements - Darker Theme */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float"></div>
-          <div className="absolute top-40 right-10 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float" style={{ animationDelay: '2s' }}></div>
-          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float" style={{ animationDelay: '4s' }}></div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/20 rounded-full mix-blend-screen filter blur-xl opacity-50 animate-float"></div>
+          <div className="absolute top-40 right-10 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-xl opacity-50 animate-float" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500/20 rounded-full mix-blend-screen filter blur-xl opacity-50 animate-float" style={{ animationDelay: '4s' }}></div>
         </div>
       </div>
 
@@ -37,7 +37,7 @@ export default function HeroSection() {
 
             {/* Heading */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight">
-              <span className="block text-gray-900 dark:text-white mb-2">Find Your</span>
+              <span className="block text-white mb-2">Find Your</span>
               <span className="block text-gradient-primary">Dream Job</span>
               <span className="block text-3xl md:text-4xl lg:text-5xl mt-2">
                 at <span className="text-gradient-accent">HireHeaven</span>
@@ -45,7 +45,7 @@ export default function HeroSection() {
             </h1>
 
             {/* Description */}
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl leading-relaxed">
+            <p className="text-lg text-gray-300 max-w-2xl leading-relaxed">
               Connect with top employers and discover opportunities that match your skills. 
               Whether you&apos;re a job seeker or recruiter, we&apos;ve got you covered with powerful 
               AI-powered tools and a seamless experience that transforms your career journey.
