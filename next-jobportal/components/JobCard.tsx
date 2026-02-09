@@ -13,7 +13,7 @@ export default function JobCard({ job }: JobCardProps) {
 
   return (
     <>
-      <div className="bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+      <div className="bg-linear-to-b rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
       <div className="flex justify-between items-start mb-4">
         <div>
           <h3 className="text-xl font-semibold text-white">
@@ -23,7 +23,7 @@ export default function JobCard({ job }: JobCardProps) {
             {job.company}
           </p>
         </div>
-        <span className="bg-green-900 text-green-200 text-sm px-3 py-1 rounded-full">
+        <span className="bg-linear-to-t900 text-green-200 text-sm px-3 py-1 rounded-full">
           {job.salary}
         </span>
       </div>

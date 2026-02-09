@@ -128,7 +128,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
           {activeTab === 'profile' && (
             <div className="space-y-6">
               <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-20 h-20 bg-linear-to-tbr from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <User className="text-white" size={40} />
                 </div>
                 <h3 className="text-xl font-bold text-white">{user.name}</h3>
@@ -159,7 +159,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                   <>
                     <button
                       onClick={() => setActiveTab('post-job')}
-                      className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift flex items-center justify-center gap-2"
+                      className="w-full py-3 bg-linear-to-tr from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift flex items-center justify-center gap-2"
                     >
                       <Plus size={20} />
                       Post a New Job
@@ -181,7 +181,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                       onClose();
                       router.push('/jobs');
                     }}
-                    className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift flex items-center justify-center gap-2"
+                    className="w-full py-3 bg-linear-to-tr from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift flex items-center justify-center gap-2"
                   >
                     <Briefcase size={20} />
                     Browse Available Jobs
@@ -281,7 +281,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-linear-to-tr from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>

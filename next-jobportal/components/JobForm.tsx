@@ -45,7 +45,7 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-linear-to-b rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Post a New Job</h2>
       
       {error && (
@@ -65,7 +65,7 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
             value={formData.title}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-linear-to-t-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             placeholder="e.g. Senior Developer"
           />
         </div>
@@ -80,7 +80,7 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
             value={formData.company}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-linear-to-t-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             placeholder="e.g. TechCorp Inc."
           />
         </div>
@@ -95,7 +95,7 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
             value={formData.location}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-linear-to-t-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             placeholder="e.g. New York, NY or Remote"
           />
         </div>
@@ -110,7 +110,7 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
             value={formData.salary}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-linear-to-t-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             placeholder="e.g. $80,000 - $100,000"
           />
         </div>
@@ -126,7 +126,7 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
           onChange={handleChange}
           required
           rows={4}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-linear-to-t-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
           placeholder="Describe the job responsibilities and requirements..."
         />
       </div>

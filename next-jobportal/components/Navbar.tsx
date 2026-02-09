@@ -50,12 +50,12 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                 <span className="text-white font-black text-xl">H</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-black text-gradient-primary">Hire</span>
-                <span className="text-xl font-black text-gradient-accent -mt-1">Heaven</span>
+                <span className="text-xl font-black text-linear-to-tprimary">Hire</span>
+                <span className="text-xl font-black text-linear-to-taccent -mt-1">Heaven</span>
               </div>
             </Link>
 
@@ -71,7 +71,7 @@ export default function Navbar() {
                     <Icon size={20} className="group-hover:scale-110 transition-transform" />
                   </div>
                   <span className="font-medium group-hover:text-white">{label}</span>
-                  <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 group-hover:w-full transition-all duration-300"></div>
+                  <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-linear-to-r from-purple-500 to-pink-500 group-hover:w-full transition-all duration-300"></div>
                 </Link>
               ))}
             </div>
@@ -84,7 +84,7 @@ export default function Navbar() {
                   onClick={() => setIsProfileOpen(true)}
                   className="hidden sm:flex items-center gap-2 glass px-4 py-2 rounded-xl hover-lift text-white font-medium"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-linear-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                     <User size={16} />
                   </div>
                   <span>{user.name.split(' ')[0]}</span>
@@ -142,7 +142,7 @@ export default function Navbar() {
                   }}
                   className="w-full flex items-center gap-4 p-3 rounded-xl glass text-white font-medium"
                 >
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                     <User size={20} />
                   </div>
                   <span className="text-lg">{user.name}</span>
@@ -153,7 +153,7 @@ export default function Navbar() {
                     setIsMobileMenuOpen(false);
                     setIsAuthOpen(true);
                   }}
-                  className="w-full flex items-center gap-4 p-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium"
+                  className="w-full flex items-center gap-4 p-3 rounded-xl bg-linear-to-r from-purple-500 to-pink-500 text-white font-medium"
                 >
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center">
                     <User size={20} />

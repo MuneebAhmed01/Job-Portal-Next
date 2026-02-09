@@ -173,7 +173,7 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map(({ icon: Icon, title, description }) => (
               <div key={title} className="text-center p-6 rounded-xl hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
-                <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl mb-4">
+                <div className="inline-flex items-center justify-center w-14 h-14 bg-linear-to-br from-blue-500 to-indigo-600 rounded-xl mb-4">
                   <Icon className="w-7 h-7 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
@@ -219,7 +219,7 @@ export default function AboutPage() {
       <Testimonials />
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+      <section className="py-20 bg-linear-to-r from-blue-600 to-indigo-700 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
             Ready to Find Your Dream Job?

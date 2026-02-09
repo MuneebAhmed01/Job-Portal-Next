@@ -113,7 +113,7 @@ export default function JobDetailOverlay({ job, onClose }: JobDetailOverlayProps
 
           {/* Success Message */}
           {applied && (
-            <div className="mb-4 p-3 bg-green-900 text-green-200 rounded-lg">
+            <div className="mb-4 p-3 bg-linear-to-t900 text-green-200 rounded-lg">
               You have successfully applied for this job! Your resume has been sent to the employer.
             </div>
           )}
@@ -124,7 +124,7 @@ export default function JobDetailOverlay({ job, onClose }: JobDetailOverlayProps
           {applied ? (
             <button
               disabled
-              className="w-full py-3 bg-green-600 text-white rounded-xl font-semibold cursor-default"
+              className="w-full py-3 bg-linear-to-t600 text-white rounded-xl font-semibold cursor-default"
             >
               Applied Successfully
             </button>
@@ -132,7 +132,7 @@ export default function JobDetailOverlay({ job, onClose }: JobDetailOverlayProps
             <button
               onClick={handleApply}
               disabled={applying}
-              className="w-full py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-linear-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {applying ? 'Applying...' : 'Apply Now'}
             </button>

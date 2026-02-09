@@ -31,14 +31,14 @@ export default function HeroSection() {
             {/* Badge */}
             <div className="inline-flex items-center gap-3 glass px-6 py-3 rounded-full hover-lift mt-4">
               <Sparkles className="text-purple-500 animate-pulse" size={20} />
-              <span className="text-sm font-semibold text-gradient-primary">#1 Job Platform</span>
+              <span className="text-sm font-semibold text-linear-to-primary">#1 Job Platform</span>
               <TrendingUp className="text-green-500" size={16} />
             </div>
 
             {/* Heading */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight">
               <span className="block text-white mb-2">Find Your</span>
-              <span className="block text-gradient-primary">Dream Job</span>
+              <span className="block text-linear-to-primary">Dream Job</span>
               <span className="block text-3xl md:text-4xl lg:text-5xl mt-2">
                 at <span className="text-gradient-accent">HireHeaven</span>
               </span>
@@ -57,7 +57,7 @@ export default function HeroSection() {
                 <div key={label} className="text-center group">
                   <div className="glass-dark rounded-xl p-4 hover-lift">
                     <Icon className="mx-auto mb-2 text-purple-500 group-hover:text-purple-600 transition-colors" size={20} />
-                    <div className="text-xl font-black text-gradient-primary">{value}</div>
+                    <div className="text-xl font-black text-linear-to-primary">{value}</div>
                     <div className="text-xs font-medium text-gray-600 dark:text-gray-400">{label}</div>
                   </div>
                 </div>
@@ -105,7 +105,7 @@ export default function HeroSection() {
                 priority
               />
               {/* Overlay Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-purple-600/20 to-transparent"></div>
+              <div className="absolute inset-0 bg-linear-to-t from-purple-600/20 to-transparent"></div>
             </div>
             
             {/* Floating Cards */}
@@ -118,14 +118,14 @@ export default function HeroSection() {
             
             <div className="absolute bottom-16 -right-6 glass rounded-xl p-3 animate-slide-up hover-lift" style={{ animationDelay: '0.5s' }}>
               <div className="text-center">
-                <div className="text-lg font-black text-gradient-primary">98%</div>
+                <div className="text-lg font-black text-linear-to-primary">98%</div>
                 <div className="text-xs font-medium text-gray-600 dark:text-gray-400">Success Rate</div>
               </div>
             </div>
 
             {/* Decorative elements */}
-            <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full opacity-20 blur-xl animate-float"></div>
-            <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full opacity-20 blur-xl animate-float" style={{ animationDelay: '3s' }}></div>
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-linear-to-br from-purple-400 to-pink-400 rounded-full opacity-20 blur-xl animate-float"></div>
+            <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-linear-to-br from-blue-400 to-cyan-400 rounded-full opacity-20 blur-xl animate-float" style={{ animationDelay: '3s' }}></div>
           </div>
         </div>
       </div>

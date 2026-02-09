@@ -117,7 +117,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-linear-to-tbr from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
               <FileText className="text-white" size={20} />
             </div>
             <div>
@@ -151,7 +151,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
                   htmlFor="resume-upload"
                   className="cursor-pointer flex flex-col items-center gap-4"
                 >
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center">
+                  <div className="w-16 h-16 bg-linear-to-tbr from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center">
                     <Upload className="text-white" size={32} />
                   </div>
                   <div>
@@ -174,7 +174,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
               <button
                 onClick={analyzeResume}
                 disabled={!selectedFile || uploadState !== 'idle'}
-                className="w-full py-4 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl text-white font-bold hover-lift disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                className="w-full py-4 bg-linear-to-tr from-blue-500 to-cyan-500 rounded-xl text-white font-bold hover-lift disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
               >
                 {uploadState === 'uploading' ? (
                   <>
@@ -198,7 +198,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
             <div className="space-y-8">
               {/* Results Header */}
               <div className="text-center">
-                <div className={`w-24 h-24 bg-gradient-to-br ${getScoreBgColor(analysis.atsScore)} rounded-3xl flex items-center justify-center mx-auto mb-4`}>
+                <div className={`w-24 h-24 bg-linear-to-tbr ${getScoreBgColor(analysis.atsScore)} rounded-3xl flex items-center justify-center mx-auto mb-4`}>
                   <span className="text-3xl font-black text-white">{analysis.atsScore}</span>
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">ATS Compatibility Score</h3>
@@ -260,7 +260,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
                   <ul className="space-y-2">
                     {analysis.strengths.map((strength, index) => (
                       <li key={index} className="text-gray-300 flex items-start gap-2">
-                        <span className="w-1.5 h-1.5 bg-green-400 rounded-full mt-2 flex-shrink-0" />
+                        <span className="w-1.5 h-1.5 bg-green-400 rounded-full mt-2 shrink-0" />
                         {strength}
                       </li>
                     ))}
@@ -285,7 +285,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
                         <ul className="space-y-1">
                           {analysis.improvements.structure.map((item, index) => (
                             <li key={index} className="text-gray-300 text-sm flex items-start gap-2">
-                              <span className="w-1 h-1 bg-purple-400 rounded-full mt-1.5 flex-shrink-0" />
+                              <span className="w-1 h-1 bg-purple-400 rounded-full mt-1.5 shrink-0" />
                               {item}
                             </li>
                           ))}
@@ -299,7 +299,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
                         <ul className="space-y-1">
                           {analysis.improvements.content.map((item, index) => (
                             <li key={index} className="text-gray-300 text-sm flex items-start gap-2">
-                              <span className="w-1 h-1 bg-blue-400 rounded-full mt-1.5 flex-shrink-0" />
+                              <span className="w-1 h-1 bg-blue-400 rounded-full mt-1.5 shrink-0" />
                               {item}
                             </li>
                           ))}
@@ -313,7 +313,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
                         <ul className="space-y-1">
                           {analysis.improvements.keywords.map((item, index) => (
                             <li key={index} className="text-gray-300 text-sm flex items-start gap-2">
-                              <span className="w-1 h-1 bg-green-400 rounded-full mt-1.5 flex-shrink-0" />
+                              <span className="w-1 h-1 bg-green-400 rounded-full mt-1.5 shrink-0" />
                               {item}
                             </li>
                           ))}
@@ -335,7 +335,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
                 </button>
                 <button
                   onClick={closeOverlay}
-                  className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl text-white font-medium hover-lift"
+                  className="flex-1 py-3 bg-linear-to-tr from-blue-500 to-cyan-500 rounded-xl text-white font-medium hover-lift"
                 >
                   Got it!
                 </button>

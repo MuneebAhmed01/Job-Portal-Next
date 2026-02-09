@@ -144,7 +144,7 @@ export default function EmployerDashboard() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift disabled:opacity-50"
+                className="w-full py-3 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift disabled:opacity-50"
               >
                 {loading ? 'Creating...' : 'Post Job'}
               </button>
@@ -202,7 +202,7 @@ export default function EmployerDashboard() {
                           href={`/applicant/${applicant.id}`}
                           className="flex items-center gap-4 p-4 glass rounded-xl hover-lift"
                         >
-                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                          <div className="w-10 h-10 bg-linear-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                             <Users className="text-white" size={18} />
                           </div>
                           <div className="flex-1">

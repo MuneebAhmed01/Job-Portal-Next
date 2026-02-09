@@ -132,7 +132,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-linear-to-tbr from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
               <Sparkles className="text-white" size={20} />
             </div>
             <div>
@@ -168,7 +168,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                   />
                   <button
                     onClick={addSkill}
-                    className="px-4 py-3 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl text-white font-medium hover-lift flex items-center gap-2"
+                    className="px-4 py-3 bg-linear-to-tr from-purple-500 to-pink-500 rounded-xl text-white font-medium hover-lift flex items-center gap-2"
                   >
                     <Plus size={18} />
                     Add
@@ -206,7 +206,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
               <button
                 onClick={analyzeSkills}
                 disabled={isLoading || skills.length === 0}
-                className="w-full py-4 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                className="w-full py-4 bg-linear-to-tr from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
               >
                 {isLoading ? (
                   <>
@@ -225,7 +225,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
             <div className="space-y-8">
               {/* Results Header */}
               <div className="text-center">
-                <div className="w-16 h-16 bg-linear-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-linear-to-tbr from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Award className="text-white" size={32} />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">Your Career Analysis</h3>
@@ -275,7 +275,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                           <ul className="space-y-1">
                             {path.keyResponsibilities.map((responsibility, idx) => (
                               <li key={idx} className="text-sm text-gray-300 flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-1.5 flex-shrink-0" />
+                                <span className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-1.5 shrink-0" />
                                 {responsibility}
                               </li>
                             ))}
@@ -359,7 +359,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                         <div className="space-y-3">
                           {approach.steps.map((step, stepIndex) => (
                             <div key={stepIndex} className="flex items-start gap-3">
-                              <CheckCircle2 size={18} className="text-green-400 mt-0.5 flex-shrink-0" />
+                              <CheckCircle2 size={18} className="text-green-400 mt-0.5 shrink-0" />
                               <div>
                                 <p className="text-sm font-medium text-white">{step.action}</p>
                                 <p className="text-sm text-gray-400">{step.description}</p>
@@ -383,7 +383,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                 </button>
                 <button
                   onClick={closeOverlay}
-                  className="flex-1 py-3 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl text-white font-medium hover-lift"
+                  className="flex-1 py-3 bg-linear-to-tr from-purple-500 to-pink-500 rounded-xl text-white font-medium hover-lift"
                 >
                   Got it!
                 </button>
