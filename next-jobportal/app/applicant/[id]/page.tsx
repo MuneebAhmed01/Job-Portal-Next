@@ -79,7 +79,7 @@ export default function ApplicantBioPage() {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="glass-dark rounded-2xl p-8">
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-20 h-20 bg-linear-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <User className="text-white" size={40} />
             </div>
             <h1 className="text-3xl font-bold text-white mb-2">{applicant.name}</h1>
@@ -114,7 +114,7 @@ export default function ApplicantBioPage() {
 
             <button
               onClick={downloadResume}
-              className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift flex items-center justify-center gap-3"
+              className="w-full py-4 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift flex items-center justify-center gap-3"
             >
               <Download size={20} />
               Download Resume

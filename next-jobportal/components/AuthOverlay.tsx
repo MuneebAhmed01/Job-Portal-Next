@@ -122,7 +122,7 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
       <div className="relative glass-dark rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-slide-up">
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
               <User className="text-white" size={20} />
             </div>
             <div>

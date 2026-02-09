@@ -15,7 +15,7 @@ export default function HeroSection() {
   return (
     <section className="relative overflow-hidden py-20">
       {/* Dark Gradient Background - Matching App Theme */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900">
+      <div className="absolute inset-0 bg-linear-to-br from-slate-900 via-purple-900/20 to-slate-900">
         {/* Animated Background Elements - Darker Theme */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/20 rounded-full mix-blend-screen filter blur-xl opacity-50 animate-float"></div>

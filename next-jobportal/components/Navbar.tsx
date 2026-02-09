@@ -1,9 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, Briefcase, Info, Sun, Moon, Menu, X, User } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { toggleTheme } from '@/store/slices/themeSlice';
+import { Home, Briefcase, Info, Menu, X, User } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthOverlay from './AuthOverlay';
@@ -16,8 +14,6 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  const dispatch = useAppDispatch();
-  const isDark = useAppSelector((state) => state.theme.isDark);
   const { user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -69,7 +65,7 @@ export default function Navbar() {
                 <Link
                   key={href}
                   href={href}
-                  className="group flex items-center gap-3 text-gray-600 dark:text-gray-300 hover:text-white transition-all duration-300 relative"
+                  className="group flex items-center gap-3 text-gray-300 hover:text-white transition-all duration-300 relative"
                 >
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center group-hover:bg-white/10 transition-all duration-300">
                     <Icon size={20} className="group-hover:scale-110 transition-transform" />
@@ -103,21 +99,6 @@ export default function Navbar() {
                 </button>
               )}
 
-              {/* Theme Toggle */}
-              <button
-                onClick={() => dispatch(toggleTheme())}
-                className="group w-12 h-12 rounded-xl glass hover-lift flex items-center justify-center transition-all duration-300"
-                aria-label="Toggle theme"
-              >
-                <div className="relative">
-                  {isDark ? (
-                    <Sun size={20} className="text-yellow-500 group-hover:rotate-180 transition-transform duration-500" />
-                  ) : (
-                    <Moon size={20} className="text-gray-700 group-hover:rotate-12 transition-transform" />
-                  )}
-                </div>
-              </button>
-
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -125,9 +106,9 @@ export default function Navbar() {
                 aria-label="Toggle menu"
               >
                 {isMobileMenuOpen ? (
-                  <X size={20} className="text-gray-700 dark:text-gray-300" />
+                  <X size={20} className="text-gray-300" />
                 ) : (
-                  <Menu size={20} className="text-gray-700 dark:text-gray-300" />
+                  <Menu size={20} className="text-gray-300" />
                 )}
               </button>
             </div>
@@ -143,7 +124,7 @@ export default function Navbar() {
                   key={href}
                   href={href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-4 text-gray-600 dark:text-gray-300 hover:text-white transition-all duration-300 p-3 rounded-xl hover:bg-white/10"
+                  className="flex items-center gap-4 text-gray-300 hover:text-white transition-all duration-300 p-3 rounded-xl hover:bg-white/10"
                 >
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center">
                     <Icon size={20} />
