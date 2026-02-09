@@ -100,4 +100,31 @@ export class JobsService {
     }
     return job.applicants || [];
   }
+
+  applyToJob(jobId: string, userId: string, user: any) {
+    const job = this.jobs.find(j => j.id === jobId);
+    if (!job) {
+      throw new NotFoundException('Job not found');
+    }
+    
+    // Check if already applied
+    const alreadyApplied = job.applicants.find((a: any) => a.id === userId);
+    if (alreadyApplied) {
+      throw new ForbiddenException('You have already applied for this job');
+    }
+    
+    // Add applicant
+    const applicant = {
+      id: userId,
+      name: user.email?.split('@')[0] || 'Applicant',
+      email: user.email,
+      phone: user.phone || '',
+      bio: user.bio || '',
+      resumePath: user.resumePath || '',
+      appliedAt: new Date()
+    };
+    
+    job.applicants.push(applicant);
+    return { message: 'Application submitted successfully', applicant };
+  }
 }

@@ -26,10 +26,11 @@ export class JobsController {
     return this.jobsService.findAllPublic();
   }
 
-  @Get(':id/applicants')
+  @Post(':id/apply')
   @UseGuards(JwtAuthGuard)
-  findApplicants(@Param('id') id: string, @Request() req: any) {
-    const employerId = req.user.sub;
-    return this.jobsService.findApplicants(id, employerId);
+  async applyToJob(@Param('id') id: string, @Request() req: any) {
+    const userId = req.user.sub;
+    const user = req.user;
+    return this.jobsService.applyToJob(id, userId, user);
   }
 }

@@ -1,18 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, User, LogOut, Briefcase, FileText, MapPin, IndianRupee, Users, ChevronLeft, Download, Plus, Loader2 } from 'lucide-react';
+import { X, User, LogOut, FileText, Plus, Briefcase, ChevronLeft, MapPin, IndianRupee, Users, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-
-interface Applicant {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  bio?: string;
-  resumePath?: string;
-}
 
 interface Job {
   id: string;
@@ -22,7 +13,7 @@ interface Job {
   salary: string;
   type: string;
   createdAt: string;
-  applicants: Applicant[];
+  applicants: any[];
 }
 
 interface ProfileOverlayProps {
@@ -35,6 +26,8 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
   const { user, token, logout } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [myJobs, setMyJobs] = useState<Job[]>([]);
+  const [activeTab, setActiveTab] = useState<'profile' | 'post-job' | 'my-jobs'>('profile');
   
   const [jobForm, setJobForm] = useState({
     title: '',
@@ -44,21 +37,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
     type: 'FULL_TIME'
   });
 
-  const [myJobs, setMyJobs] = useState<Job[]>([]);
-  const [availableJobs, setAvailableJobs] = useState<Job[]>([]);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
-  const [activeTab, setActiveTab] = useState<'profile' | 'post-job' | 'my-jobs' | 'jobs' | 'applicants' | 'applicant-detail'>('profile');
-
-  useEffect(() => {
-    if (isOpen && user) {
-      if (user.role === 'HIRE_TALENT') {
-        fetchMyJobs();
-      } else {
-        fetchAvailableJobs();
-      }
-    }
-  }, [isOpen, user]);
+  const isEmployer = user?.role === 'HIRE_TALENT';
 
   const fetchMyJobs = async () => {
     try {
@@ -71,36 +50,6 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
       }
     } catch (err) {
       console.error('Failed to fetch jobs');
-    }
-  };
-
-  const fetchAvailableJobs = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs/all`);
-      if (response.ok) {
-        const data = await response.json();
-        setAvailableJobs(data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch jobs');
-    }
-  };
-
-  const fetchApplicants = async (jobId: string) => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs/${jobId}/applicants`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const applicants = await response.json();
-        const updatedJob = myJobs.find(j => j.id === jobId);
-        if (updatedJob) {
-          setSelectedJob({ ...updatedJob, applicants });
-          setActiveTab('applicants');
-        }
-      }
-    } catch (err) {
-      console.error('Failed to fetch applicants');
     }
   };
 
@@ -140,16 +89,13 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
     router.push('/');
   };
 
-  const handleDownloadResume = (applicantId: string) => {
-    window.open(`${process.env.NEXT_PUBLIC_API_URL}/applicants/${applicantId}/resume`, '_blank');
+  const handleDownloadResume = () => {
+    if (user?.id) {
+      window.open(`${process.env.NEXT_PUBLIC_API_URL}/applicants/${user.id}/resume`, '_blank');
+    }
   };
 
   if (!isOpen || !user) return null;
-
-  const isEmployer = user?.role === 'HIRE_TALENT';
-  
-  console.log('ProfileOverlay - User:', user);
-  console.log('ProfileOverlay - isEmployer:', isEmployer);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -158,25 +104,9 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
       <div className="relative glass-dark rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-slide-up">
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div className="flex items-center gap-4">
-            {(activeTab === 'post-job' || activeTab === 'my-jobs' || activeTab === 'jobs') && (
+            {(activeTab === 'post-job' || activeTab === 'my-jobs') && (
               <button 
                 onClick={() => setActiveTab('profile')}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <ChevronLeft className="text-gray-400" size={20} />
-              </button>
-            )}
-            {activeTab === 'applicants' && (
-              <button 
-                onClick={() => setActiveTab('my-jobs')}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <ChevronLeft className="text-gray-400" size={20} />
-              </button>
-            )}
-            {activeTab === 'applicant-detail' && (
-              <button 
-                onClick={() => setActiveTab('applicants')}
                 className="p-2 hover:bg-white/10 rounded-lg transition-colors"
               >
                 <ChevronLeft className="text-gray-400" size={20} />
@@ -186,9 +116,6 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
               {activeTab === 'profile' && 'My Profile'}
               {activeTab === 'post-job' && 'Post a New Job'}
               {activeTab === 'my-jobs' && 'My Posted Jobs'}
-              {activeTab === 'jobs' && 'Available Jobs'}
-              {activeTab === 'applicants' && `Applicants: ${selectedJob?.title}`}
-              {activeTab === 'applicant-detail' && 'Applicant Profile'}
             </h2>
           </div>
           <button onClick={onClose} className="w-10 h-10 rounded-xl glass hover-lift flex items-center justify-center">
@@ -238,26 +165,32 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                       Post a New Job
                     </button>
                     <button
-                      onClick={() => setActiveTab('my-jobs')}
+                      onClick={() => {
+                        fetchMyJobs();
+                        setActiveTab('my-jobs');
+                      }}
                       className="w-full py-3 glass rounded-xl text-white font-medium hover-lift flex items-center justify-center gap-2"
                     >
                       <Briefcase size={20} />
-                      View My Jobs ({myJobs.length})
+                      View My Jobs
                     </button>
                   </>
                 ) : (
                   <button
-                    onClick={() => setActiveTab('jobs')}
+                    onClick={() => {
+                      onClose();
+                      router.push('/jobs');
+                    }}
                     className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift flex items-center justify-center gap-2"
                   >
                     <Briefcase size={20} />
-                    Browse Available Jobs ({availableJobs.length})
+                    Browse Available Jobs
                   </button>
                 )}
 
                 {user.resumePath && (
                   <button
-                    onClick={() => handleDownloadResume(user.id)}
+                    onClick={handleDownloadResume}
                     className="w-full py-3 glass rounded-xl text-white font-medium hover-lift flex items-center justify-center gap-2"
                   >
                     <FileText size={20} />
@@ -378,9 +311,8 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
               ) : (
                 myJobs.map((job) => (
                   <div 
-                    key={job.id} 
-                    onClick={() => fetchApplicants(job.id)}
-                    className="p-4 glass rounded-xl cursor-pointer hover:bg-white/5 transition-colors"
+                    key={job.id}
+                    className="p-4 glass rounded-xl"
                   >
                     <div className="flex items-start justify-between">
                       <div>
@@ -409,115 +341,6 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                     </div>
                   </div>
                 ))
-              )}
-            </div>
-          )}
-
-          {activeTab === 'jobs' && !isEmployer && (
-            <div className="space-y-4">
-              {availableJobs.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
-                  <Briefcase size={48} className="mx-auto mb-4 opacity-50" />
-                  <p>No jobs available at the moment</p>
-                </div>
-              ) : (
-                availableJobs.map((job) => (
-                  <div 
-                    key={job.id}
-                    className="p-4 glass rounded-xl"
-                  >
-                    <h3 className="font-bold text-white">{job.title}</h3>
-                    <p className="text-gray-400 text-sm mt-1">{job.description.slice(0, 100)}...</p>
-                    <div className="flex items-center gap-4 mt-3 text-sm text-gray-400">
-                      {job.location && (
-                        <span className="flex items-center gap-1">
-                          <MapPin size={14} />
-                          {job.location}
-                        </span>
-                      )}
-                      {job.salary && (
-                        <span className="flex items-center gap-1">
-                          <IndianRupee size={14} />
-                          {job.salary}
-                        </span>
-                      )}
-                      <span className="glass px-2 py-0.5 rounded">{job.type}</span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-
-          {activeTab === 'applicants' && selectedJob && (
-            <div className="space-y-4">
-              {selectedJob.applicants?.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
-                  <Users size={48} className="mx-auto mb-4 opacity-50" />
-                  <p>No applicants yet</p>
-                </div>
-              ) : (
-                selectedJob.applicants?.map((applicant) => (
-                  <div 
-                    key={applicant.id}
-                    onClick={() => {
-                      setSelectedApplicant(applicant);
-                      setActiveTab('applicant-detail');
-                    }}
-                    className="p-4 glass rounded-xl cursor-pointer hover:bg-white/5 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                        <User className="text-white" size={24} />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold text-white">{applicant.name}</h3>
-                        <p className="text-gray-400 text-sm">{applicant.email}</p>
-                      </div>
-                      <button className="px-3 py-1.5 bg-purple-500/20 text-purple-400 rounded-lg text-sm">
-                        View Profile
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-
-          {activeTab === 'applicant-detail' && selectedApplicant && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <User className="text-white" size={40} />
-                </div>
-                <h3 className="text-xl font-bold text-white">{selectedApplicant.name}</h3>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <div className="p-4 glass rounded-xl">
-                  <p className="text-sm text-gray-400 mb-1">Email</p>
-                  <p className="text-white">{selectedApplicant.email}</p>
-                </div>
-                <div className="p-4 glass rounded-xl">
-                  <p className="text-sm text-gray-400 mb-1">Phone</p>
-                  <p className="text-white">{selectedApplicant.phone}</p>
-                </div>
-                {selectedApplicant.bio && (
-                  <div className="p-4 glass rounded-xl">
-                    <p className="text-sm text-gray-400 mb-1">Bio</p>
-                    <p className="text-white">{selectedApplicant.bio}</p>
-                  </div>
-                )}
-              </div>
-
-              {selectedApplicant.resumePath && (
-                <button
-                  onClick={() => handleDownloadResume(selectedApplicant.id)}
-                  className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift flex items-center justify-center gap-2"
-                >
-                  <Download size={20} />
-                  Download Resume
-                </button>
               )}
             </div>
           )}

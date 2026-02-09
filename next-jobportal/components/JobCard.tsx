@@ -1,12 +1,19 @@
+'use client';
+
+import { useState } from 'react';
 import { Job } from '@/types/job';
+import JobDetailOverlay from './JobDetailOverlay';
 
 interface JobCardProps {
   job: Job;
 }
 
 export default function JobCard({ job }: JobCardProps) {
+  const [showDetails, setShowDetails] = useState(false);
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+    <>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
       <div className="flex justify-between items-start mb-4">
         <div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -33,11 +40,22 @@ export default function JobCard({ job }: JobCardProps) {
         {job.description}
       </p>
       
-      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
         <span className="text-xs text-gray-500 dark:text-gray-400">
           Posted {new Date(job.createdAt).toLocaleDateString()}
         </span>
+        <button
+          onClick={() => setShowDetails(true)}
+          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors"
+        >
+          View Details
+        </button>
       </div>
     </div>
-  );
+
+    {showDetails && (
+      <JobDetailOverlay job={job} onClose={() => setShowDetails(false)} />
+    )}
+  </>
+);
 }
