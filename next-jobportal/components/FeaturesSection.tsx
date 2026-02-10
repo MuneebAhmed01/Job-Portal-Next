@@ -40,7 +40,7 @@ export default function FeaturesSection() {
             key={title}
             className={`py-28 relative ${
               index % 2 === 1
-                ? "bg-gradient-to-b from-transparent via-white/[0.02] to-transparent"
+                ? "bg-linear-to-b from-transparent via-white/[0.02] to-transparent"
                 : ""
             }`}
           >

@@ -15,24 +15,30 @@ export default function HeroSection() {
     <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden text-white">
       
       {/* unified global gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]" />
+      <div className="absolute inset-0 bg-linear-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]" />
 
       {/* bottom fade into features */}
-      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-b from-transparent to-[#020617]" />
+      <div className="absolute bottom-0 left-0 right-0 h-40 bg-linear-to-b from-transparent to-[#020617]" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
         
         {/* heading */}
-        <h1 className="font-black leading-[0.95] tracking-tight uppercase">
-          <span className="block text-4xl md:text-6xl lg:text-[90px]">
-            Find the Job
-          </span>
-          <span className="block text-4xl md:text-6xl lg:text-[90px]">
-            That Fits Your
-          </span>
-          <span className="block text-4xl md:text-6xl lg:text-[90px]">
-            Lifestyle
-          </span>
+        <h1 className="mt-3 font-black leading-[0.95] tracking-tight uppercase">
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-4xl md:text-6xl lg:text-[90px]">
+              ✦ Find the Job
+            </span>
+          </div>
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <span className="text-4xl md:text-6xl lg:text-[90px]">
+              That Fits Your
+            </span>
+          </div>
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <span className="text-4xl md:text-6xl lg:text-[90px]">
+              Lifestyle
+            </span>
+          </div>
         </h1>
 
         {/* description */}
