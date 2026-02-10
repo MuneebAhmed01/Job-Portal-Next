@@ -34,8 +34,28 @@ export default function EmployeeDashboard() {
 
 
   const fetchSavedJobs = async () => {
-    // Saved jobs functionality not implemented yet
-    setSavedJobs([]);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:3002/jobs/saved', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        console.log('Saved jobs data:', data);
+        // Extract job data from saved jobs
+        const jobsData = data.map((savedJob: any) => ({
+          ...savedJob.job,
+          saved: true,
+          savedAt: savedJob.savedAt
+        }));
+        console.log('Processed saved jobs:', jobsData);
+        setSavedJobs(jobsData);
+      }
+    } catch (error) {
+      console.error('Failed to fetch saved jobs:', error);
+    }
   };
 
   const fetchAppliedJobs = async () => {
@@ -53,7 +73,31 @@ export default function EmployeeDashboard() {
           appliedAt: application.appliedAt,
           applicationId: application.id,
         }));
-        setAppliedJobs(jobsWithApplicationInfo);
+        
+        // Check which applied jobs are also saved
+        const savedRes = await fetch('http://localhost:3002/jobs/saved', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (savedRes.ok) {
+          const savedData = await savedRes.json();
+          const savedJobIds = savedData.map((savedJob: any) => savedJob.jobId);
+          console.log('Saved job IDs:', savedJobIds);
+          console.log('Applied jobs before marking:', jobsWithApplicationInfo);
+          
+          // Mark applied jobs as saved if they exist in saved jobs
+          const jobsWithSavedStatus = jobsWithApplicationInfo.map((job: any) => ({
+            ...job,
+            saved: savedJobIds.includes(job.id)
+          }));
+          
+          console.log('Applied jobs after marking:', jobsWithSavedStatus);
+          setAppliedJobs(jobsWithSavedStatus);
+        } else {
+          setAppliedJobs(jobsWithApplicationInfo);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch applied jobs:', error);
@@ -83,7 +127,41 @@ export default function EmployeeDashboard() {
   };
 
 
+  const handleSaveChange = (jobId: string, saved: boolean) => {
+    console.log('Save state changed:', { jobId, saved });
+    
+    // Update saved jobs list
+    if (saved) {
+      // Add to saved jobs if not already there
+      setSavedJobs(prev => {
+        const jobExists = prev.find(job => job.id === jobId);
+        if (!jobExists) {
+          // Find the job in applied jobs and add it to saved jobs
+          const appliedJob = appliedJobs.find(job => job.id === jobId);
+          if (appliedJob) {
+            return [...prev, { ...appliedJob, saved: true }];
+          }
+        }
+        return prev;
+      });
+    } else {
+      // Remove from saved jobs
+      setSavedJobs(prev => prev.filter(job => job.id !== jobId));
+    }
+
+    // Update applied jobs list to reflect save status
+    setAppliedJobs(prev => prev.map(job => 
+      job.id === jobId ? { ...job, saved } : job
+    ));
+
+    // Update the selected job if it's currently open
+    if (selectedJob && selectedJob.id === jobId) {
+      setSelectedJob(prev => prev ? { ...prev, saved } : null);
+    }
+  };
+
   const handleViewDetails = (job: Job) => {
+    console.log('Opening job details:', job);
     setSelectedJob(job);
     setShowJobDetail(true);
   };
@@ -278,7 +356,8 @@ export default function EmployeeDashboard() {
       {showJobDetail && selectedJob && (
         <JobDetailOverlay 
           job={selectedJob} 
-          onClose={handleCloseJobDetail} 
+          onClose={handleCloseJobDetail}
+          onSaveChange={handleSaveChange}
         />
       )}
     </div>

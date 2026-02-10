@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, MapPin, IndianRupee, Building2, Clock, Calendar, Heart } from 'lucide-react';
 import { Job } from '@/types/job';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,14 +8,20 @@ import { useAuth } from '@/contexts/AuthContext';
 interface JobDetailOverlayProps {
   job: Job;
   onClose: () => void;
+  onSaveChange?: (jobId: string, saved: boolean) => void;
 }
 
-export default function JobDetailOverlay({ job, onClose }: JobDetailOverlayProps) {
+export default function JobDetailOverlay({ job, onClose, onSaveChange }: JobDetailOverlayProps) {
   const { user, token } = useAuth();
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
   const [saved, setSaved] = useState(job.saved || false);
   const [error, setError] = useState('');
+
+  // Sync saved state with job prop when it changes
+  useEffect(() => {
+    setSaved(job.saved || false);
+  }, [job.saved]);
 
   const handleSaveJob = async () => {
     if (!user) {
@@ -24,7 +30,7 @@ export default function JobDetailOverlay({ job, onClose }: JobDetailOverlayProps
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs/${job.id}/save`, {
+      const response = await fetch(`http://localhost:3002/jobs/${job.id}/save`, {
         method: saved ? 'DELETE' : 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -39,6 +45,10 @@ export default function JobDetailOverlay({ job, onClose }: JobDetailOverlayProps
 
       setSaved(!saved);
       setError('');
+      // Notify parent component of save state change
+      if (onSaveChange) {
+        onSaveChange(job.id, !saved);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : (saved ? 'Failed to unsave job' : 'Failed to save job'));
     }
@@ -54,7 +64,7 @@ export default function JobDetailOverlay({ job, onClose }: JobDetailOverlayProps
     setError('');
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs/${job.id}/apply`, {
+      const response = await fetch(`http://localhost:3002/jobs/${job.id}/apply`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -86,14 +96,14 @@ export default function JobDetailOverlay({ job, onClose }: JobDetailOverlayProps
           <div className="flex items-center gap-2">
             <button
               onClick={handleSaveJob}
-              className={`p-2 rounded-lg transition-colors ${
-                saved
-                  ? 'bg-red-600 text-white'
-                  : 'bg-gray-700 text-gray-400 hover:text-red-400'
-              }`}
+              className="p-2 rounded-lg transition-colors bg-gray-700 hover:bg-gray-600"
               title={saved ? 'Unsave job' : 'Save job'}
             >
-              <Heart size={20} fill={saved ? 'currentColor' : 'none'} />
+              <Heart 
+                size={20} 
+                fill={saved ? 'currentColor' : 'none'}
+                className={saved ? 'text-red-500' : 'text-gray-400 hover:text-red-400'}
+              />
             </button>
             <button 
               onClick={onClose}

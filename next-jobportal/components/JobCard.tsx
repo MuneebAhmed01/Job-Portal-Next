@@ -6,9 +6,10 @@ import JobDetailOverlay from './JobDetailOverlay';
 
 interface JobCardProps {
   job: Job;
+  onSaveChange?: (jobId: string, saved: boolean) => void;
 }
 
-export default function JobCard({ job }: JobCardProps) {
+export default function JobCard({ job, onSaveChange }: JobCardProps) {
   const [showDetails, setShowDetails] = useState(false);
 
   return (
@@ -54,7 +55,11 @@ export default function JobCard({ job }: JobCardProps) {
     </div>
 
     {showDetails && (
-      <JobDetailOverlay job={job} onClose={() => setShowDetails(false)} />
+      <JobDetailOverlay 
+        job={job} 
+        onClose={() => setShowDetails(false)}
+        onSaveChange={onSaveChange}
+      />
     )}
   </>
 );

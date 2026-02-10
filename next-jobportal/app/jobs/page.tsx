@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import JobCard from '@/components/JobCard';
 import { Job } from '@/types/job';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function JobsPage() {
+  const { user, token } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -15,7 +17,32 @@ export default function JobsPage() {
       const res = await fetch(`${apiUrl}/jobs/all`);
       if (!res.ok) throw new Error('Failed to fetch jobs');
       const data = await res.json();
-      setJobs(data);
+      
+      // If user is logged in, fetch saved jobs to mark jobs as saved
+      if (user && token) {
+        const savedRes = await fetch(`${apiUrl}/jobs/saved`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (savedRes.ok) {
+          const savedData = await savedRes.json();
+          const savedJobIds = savedData.map((savedJob: any) => savedJob.jobId);
+          
+          // Mark jobs as saved if they exist in saved jobs
+          const jobsWithSavedStatus = data.map((job: any) => ({
+            ...job,
+            saved: savedJobIds.includes(job.id)
+          }));
+          
+          setJobs(jobsWithSavedStatus);
+        } else {
+          setJobs(data);
+        }
+      } else {
+        setJobs(data);
+      }
     } catch (err) {
       setError('Failed to load jobs. Make sure the backend is running.');
     } finally {
@@ -25,7 +52,14 @@ export default function JobsPage() {
 
   useEffect(() => {
     fetchJobs();
-  }, []);
+  }, [user, token]);
+
+  const handleSaveChange = (jobId: string, saved: boolean) => {
+    // Update the jobs list to reflect save status
+    setJobs(prev => prev.map(job => 
+      job.id === jobId ? { ...job, saved } : job
+    ));
+  };
 
   return (
     <main className="min-h-screen pt-20 bg-slate-50 dark:bg-gray-900">
@@ -48,7 +82,7 @@ export default function JobsPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobs.map((job) => (
-            <JobCard key={job.id} job={job} />
+            <JobCard key={job.id} job={job} onSaveChange={handleSaveChange} />
           ))}
         </div>
       </div>

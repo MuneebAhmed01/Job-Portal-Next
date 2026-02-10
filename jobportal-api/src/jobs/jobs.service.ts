@@ -113,4 +113,80 @@ export class JobsService {
       },
     });
   }
+
+  async saveJob(jobId: string, userId: string) {
+    const job = await (this.prisma as any).job.findUnique({
+      where: { id: jobId },
+    });
+    
+    if (!job) {
+      throw new NotFoundException('Job not found');
+    }
+    
+    // Check if already saved
+    const existingSavedJob = await (this.prisma as any).savedJob.findFirst({
+      where: {
+        jobId,
+        userId,
+      },
+    });
+    
+    if (existingSavedJob) {
+      throw new ForbiddenException('Job already saved');
+    }
+    
+    // Create saved job
+    const savedJob = await (this.prisma as any).savedJob.create({
+      data: {
+        jobId,
+        userId,
+      },
+    });
+    
+    return { message: 'Job saved successfully', savedJob };
+  }
+
+  async unsaveJob(jobId: string, userId: string) {
+    const savedJob = await (this.prisma as any).savedJob.findFirst({
+      where: {
+        jobId,
+        userId,
+      },
+    });
+    
+    if (!savedJob) {
+      throw new NotFoundException('Saved job not found');
+    }
+    
+    await (this.prisma as any).savedJob.delete({
+      where: {
+        id: savedJob.id,
+      },
+    });
+    
+    return { message: 'Job unsaved successfully' };
+  }
+
+  async findUserSavedJobs(userId: string) {
+    return (this.prisma as any).savedJob.findMany({
+      where: { userId },
+      include: {
+        job: {
+          select: {
+            id: true,
+            title: true,
+            company: true,
+            location: true,
+            salary: true,
+            type: true,
+            description: true,
+            createdAt: true,
+          },
+        },
+      },
+      orderBy: {
+        savedAt: 'desc',
+      },
+    });
+  }
 }
