@@ -50,7 +50,7 @@ export default function RootLayout({
         <ReduxProvider>
           <ThemeProvider>
             <AuthProvider>
-              <Navbar />
+              
               <main>
                 {children}
               </main>

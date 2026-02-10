@@ -1,207 +1,50 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { Home, Briefcase, Info, Menu, X, User } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import AuthOverlay from './AuthOverlay';
-import ProfileOverlay from './ProfileOverlay';
-
-const navLinks = [
-  { href: '/', label: 'Home', icon: Home },
-  { href: '/jobs', label: 'Jobs', icon: Briefcase },
-  { href: '/about', label: 'About', icon: Info },
-];
+import Link from "next/link";
 
 export default function Navbar() {
-  const { user } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const windowHeight = window.innerHeight;
-      
-      if (currentScrollY > windowHeight) {
-        if (currentScrollY > lastScrollY) {
-          setIsVisible(false);
-        } else {
-          setIsVisible(true);
-        }
-      } else {
-        setIsVisible(true);
-      }
-      
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
-
   return (
-    <>
-      <nav className={`fixed top-0 left-0 right-0 z-50 glass-dark border-b border-white/10 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <span className="text-white font-black text-xl">H</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xl font-black text-linear-to-tprimary">Hire</span>
-                <span className="text-xl font-black text-linear-to-taccent -mt-1">Heaven</span>
-              </div>
-            </Link>
-
-            {/* Desktop Nav Links */}
-            <div className="hidden lg:flex items-center gap-8">
-              {navLinks.map(({ href, label, icon: Icon }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className="group flex items-center gap-3 text-gray-300 hover:text-white transition-all duration-300 relative"
-                >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center group-hover:bg-white/10 transition-all duration-300">
-                    <Icon size={20} className="group-hover:scale-110 transition-transform" />
-                  </div>
-                  <span className="font-medium group-hover:text-white">{label}</span>
-                  <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-linear-to-r from-purple-500 to-pink-500 group-hover:w-full transition-all duration-300"></div>
-                </Link>
-              ))}
-            </div>
-
-            {/* Right Section */}
-            <div className="flex items-center gap-4">
-              {/* Auth/Profile Button */}
-              {user ? (
-                <>
-                  <Link
-                    href="/dashboard"
-                    className="hidden sm:flex items-center gap-2 glass px-4 py-2 rounded-xl hover-lift text-white font-medium"
-                  >
-                    <div className="w-8 h-8 bg-linear-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                      <User size={16} />
-                    </div>
-                    <span>Dashboard</span>
-                  </Link>
-                  <button
-                    onClick={() => setIsProfileOpen(true)}
-                    className="hidden sm:flex items-center gap-2 glass px-4 py-2 rounded-xl hover-lift text-white font-medium"
-                  >
-                    <div className="w-8 h-8 bg-linear-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
-                      <User size={16} />
-                    </div>
-                    <span>Profile</span>
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => setIsAuthOpen(true)}
-                  className="hidden sm:flex items-center gap-2 glass px-4 py-2 rounded-xl hover-lift text-white font-medium"
-                >
-                  <User size={18} />
-                  <span>Sign In</span>
-                </button>
-              )}
-
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden w-12 h-12 rounded-xl glass hover-lift flex items-center justify-center transition-all duration-300"
-                aria-label="Toggle menu"
-              >
-                {isMobileMenuOpen ? (
-                  <X size={20} className="text-gray-300" />
-                ) : (
-                  <Menu size={20} className="text-gray-300" />
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        <div className={`lg:hidden transition-all duration-300 ${isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-          <div className="glass-dark border-t border-white/10">
-            <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-4">
-              {navLinks.map(({ href, label, icon: Icon }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-4 text-gray-300 hover:text-white transition-all duration-300 p-3 rounded-xl hover:bg-white/10"
-                >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-                    <Icon size={20} />
-                  </div>
-                  <span className="font-medium text-lg">{label}</span>
-                </Link>
-              ))}
-              
-              {/* Mobile Auth/Profile Button */}
-              {user ? (
-                <>
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full flex items-center gap-4 p-3 rounded-xl glass text-white font-medium"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                      <User size={20} />
-                    </div>
-                    <span className="text-lg">Dashboard</span>
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      setIsProfileOpen(true);
-                    }}
-                    className="w-full flex items-center gap-4 p-3 rounded-xl glass text-white font-medium"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                      <User size={20} />
-                    </div>
-                    <span className="text-lg">Profile</span>
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    setIsAuthOpen(true);
-                  }}
-                  className="w-full flex items-center gap-4 p-3 rounded-xl bg-linear-to-r from-purple-500 to-pink-500 text-white font-medium"
-                >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-                    <User size={20} />
-                  </div>
-                  <span className="text-lg">Sign In / Sign Up</span>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Auth Overlay */}
-      <AuthOverlay isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+    <header className="relative w-full">
       
-      {/* Profile Overlay */}
-      <ProfileOverlay isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+      {/* gradient mask */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#020617] via-[#0b0f19] to-transparent" />
 
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-    </>
+      <div className="relative max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+        
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 flex items-center justify-center">
+            ✦
+          </div>
+          <span className="text-white font-semibold text-xl tracking-wide">
+            Free-Lance
+          </span>
+        </div>
+
+        <nav className="hidden md:flex items-center gap-10 text-white/80 text-sm font-medium">
+          <Link href="#">Home</Link>
+          <Link href="#">Explore</Link>
+          <Link href="#">Hire Freelance</Link>
+          <Link href="#">Post a Job</Link>
+          <Link href="#">About</Link>
+        </nav>
+
+        <div className="flex items-center gap-4 text-sm">
+          <button className="text-white/70 hover:text-white transition">
+            EN
+          </button>
+
+          <Link href="#" className="text-white/80 hover:text-white">
+            Log in
+          </Link>
+
+          <Link
+            href="#"
+            className="px-4 py-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-medium transition"
+          >
+            Sign Up
+          </Link>
+        </div>
+      </div>
+    </header>
   );
 }
