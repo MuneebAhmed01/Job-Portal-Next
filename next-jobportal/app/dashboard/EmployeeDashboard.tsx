@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Briefcase, MapPin, DollarSign, Calendar, Search, Filter, Heart, ExternalLink, FileText, TrendingUp } from 'lucide-react';
+import { Briefcase, MapPin, DollarSign, Heart, ExternalLink, FileText, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
+import JobDetailOverlay from '@/components/JobDetailOverlay';
 
 interface Job {
   id: string;
@@ -20,33 +21,17 @@ interface Job {
 
 export default function EmployeeDashboard() {
   const { user } = useAuth();
-  const [jobs, setJobs] = useState<Job[]>([]);
   const [savedJobs, setSavedJobs] = useState<Job[]>([]);
   const [appliedJobs, setAppliedJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'browse' | 'saved' | 'applied'>('browse');
-  const [selectedJobType, setSelectedJobType] = useState('all');
+  const [activeTab, setActiveTab] = useState<'saved' | 'applied'>('saved');
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [showJobDetail, setShowJobDetail] = useState(false);
 
   useEffect(() => {
-    fetchJobs();
     fetchSavedJobs();
     fetchAppliedJobs();
   }, []);
 
-  const fetchJobs = async () => {
-    try {
-      const res = await fetch('http://localhost:3002/jobs/all');
-      if (res.ok) {
-        const data = await res.json();
-        setJobs(data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch jobs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchSavedJobs = async () => {
     // Saved jobs functionality not implemented yet
@@ -90,9 +75,6 @@ export default function EmployeeDashboard() {
       });
 
       if (res.ok) {
-        setJobs(jobs.map(job => 
-          job.id === jobId ? { ...job, applied: true } : job
-        ));
         fetchAppliedJobs();
       }
     } catch (error) {
@@ -100,13 +82,16 @@ export default function EmployeeDashboard() {
     }
   };
 
-  const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         job.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedJobType === 'all' || job.type === selectedJobType;
-    return matchesSearch && matchesType;
-  });
+
+  const handleViewDetails = (job: Job) => {
+    setSelectedJob(job);
+    setShowJobDetail(true);
+  };
+
+  const handleCloseJobDetail = () => {
+    setShowJobDetail(false);
+    setSelectedJob(null);
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -140,17 +125,7 @@ export default function EmployeeDashboard() {
 
       {/* Stats */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gray-800 rounded-xl p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm">Available Jobs</p>
-                <p className="text-2xl font-bold mt-1">{jobs.length}</p>
-              </div>
-              <Briefcase className="text-purple-500" size={24} />
-            </div>
-          </div>
-          
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-gray-800 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -173,51 +148,10 @@ export default function EmployeeDashboard() {
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gray-800 rounded-xl p-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="Search jobs by title, company, or keywords..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Filter size={20} className="text-gray-400" />
-              <select
-                value={selectedJobType}
-                onChange={(e) => setSelectedJobType(e.target.value)}
-                className="bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:border-purple-500 focus:outline-none"
-              >
-                <option value="all">All Types</option>
-                <option value="FULL_TIME">Full Time</option>
-                <option value="PART_TIME">Part Time</option>
-                <option value="CONTRACT">Contract</option>
-                <option value="INTERNSHIP">Internship</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Tabs */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div className="flex gap-4 border-b border-gray-700">
-          <button
-            onClick={() => setActiveTab('browse')}
-            className={`pb-3 px-1 border-b-2 transition-colors ${
-              activeTab === 'browse'
-                ? 'border-purple-500 text-purple-500'
-                : 'border-transparent text-gray-400 hover:text-white'
-            }`}
-          >
-            Browse Jobs ({filteredJobs.length})
-          </button>
           <button
             onClick={() => setActiveTab('saved')}
             className={`pb-3 px-1 border-b-2 transition-colors ${
@@ -243,81 +177,7 @@ export default function EmployeeDashboard() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'browse' ? (
-          <div className="space-y-4">
-            {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
-              </div>
-            ) : filteredJobs.length === 0 ? (
-              <div className="text-center py-12">
-                <Briefcase className="text-gray-600 mx-auto mb-4" size={48} />
-                <h3 className="text-xl font-semibold text-white mb-2">No jobs found</h3>
-                <p className="text-gray-400">Try adjusting your search or filters</p>
-              </div>
-            ) : (
-              filteredJobs.map((job) => (
-                <div key={job.id} className="bg-gray-800 rounded-xl p-6 hover:bg-gray-750 transition-colors">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-xl font-semibold text-white mb-2">{job.title}</h3>
-                      <p className="text-purple-400 font-medium mb-2">{job.company}</p>
-                      <div className="flex items-center gap-4 text-gray-400 text-sm">
-                        <span className="flex items-center gap-1">
-                          <MapPin size={16} />
-                          {job.location}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <DollarSign size={16} />
-                          {job.salary}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar size={16} />
-                          {job.type}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleSaveJob(job.id)}
-                        className={`p-2 rounded-lg transition-colors ${
-                          job.saved 
-                            ? 'bg-red-600 text-white' 
-                            : 'bg-gray-700 text-gray-400 hover:text-red-400'
-                        }`}
-                      >
-                        <Heart size={20} fill={job.saved ? 'currentColor' : 'none'} />
-                      </button>
-                    </div>
-                  </div>
-                  <p className="text-gray-300 line-clamp-2 mb-4">{job.description}</p>
-                  <div className="flex items-center justify-between">
-                    <p className="text-gray-500 text-sm">
-                      Posted {new Date(job.createdAt).toLocaleDateString()}
-                    </p>
-                    <div className="flex gap-3">
-                      {job.applied ? (
-                        <button className="bg-green-600 px-4 py-2 rounded-lg cursor-not-allowed" disabled>
-                          Applied
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleApplyJob(job.id)}
-                          className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors"
-                        >
-                          Apply Now
-                        </button>
-                      )}
-                      <button className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors">
-                        View Details
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        ) : activeTab === 'saved' ? (
+        {activeTab === 'saved' ? (
           <div className="space-y-4">
             {savedJobs.length === 0 ? (
               <div className="text-center py-12">
@@ -352,7 +212,10 @@ export default function EmployeeDashboard() {
                     <button className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors">
                       Apply Now
                     </button>
-                    <button className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors">
+                    <button 
+                      onClick={() => handleViewDetails(job)}
+                      className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors"
+                    >
                       View Details
                     </button>
                   </div>
@@ -397,7 +260,10 @@ export default function EmployeeDashboard() {
                     <p className="text-gray-500 text-sm">
                       Applied {new Date(job.createdAt).toLocaleDateString()}
                     </p>
-                    <button className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors">
+                    <button 
+                      onClick={() => handleViewDetails(job)}
+                      className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors"
+                    >
                       View Details
                     </button>
                   </div>
@@ -407,6 +273,14 @@ export default function EmployeeDashboard() {
           </div>
         )}
       </div>
+      
+      {/* Job Detail Overlay */}
+      {showJobDetail && selectedJob && (
+        <JobDetailOverlay 
+          job={selectedJob} 
+          onClose={handleCloseJobDetail} 
+        />
+      )}
     </div>
   );
 }

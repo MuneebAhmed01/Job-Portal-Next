@@ -7,4 +7,5 @@ export interface Job {
   description: string;
   type: string;
   createdAt: string;
+  saved?: boolean;
 }

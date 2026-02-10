@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, MapPin, IndianRupee, Building2, Clock, Calendar } from 'lucide-react';
+import { X, MapPin, IndianRupee, Building2, Clock, Calendar, Heart } from 'lucide-react';
 import { Job } from '@/types/job';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -14,7 +14,35 @@ export default function JobDetailOverlay({ job, onClose }: JobDetailOverlayProps
   const { user, token } = useAuth();
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
+  const [saved, setSaved] = useState(job.saved || false);
   const [error, setError] = useState('');
+
+  const handleSaveJob = async () => {
+    if (!user) {
+      setError('Please sign in to save jobs');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs/${job.id}/save`, {
+        method: saved ? 'DELETE' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || (saved ? 'Failed to unsave job' : 'Failed to save job'));
+      }
+
+      setSaved(!saved);
+      setError('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : (saved ? 'Failed to unsave job' : 'Failed to save job'));
+    }
+  };
 
   const handleApply = async () => {
     if (!user) {
@@ -55,12 +83,25 @@ export default function JobDetailOverlay({ job, onClose }: JobDetailOverlayProps
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <h2 className="text-2xl font-bold text-white">{job.title}</h2>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-gray-700 rounded-full transition-colors"
-          >
-            <X className="text-gray-400" size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSaveJob}
+              className={`p-2 rounded-lg transition-colors ${
+                saved
+                  ? 'bg-red-600 text-white'
+                  : 'bg-gray-700 text-gray-400 hover:text-red-400'
+              }`}
+              title={saved ? 'Unsave job' : 'Save job'}
+            >
+              <Heart size={20} fill={saved ? 'currentColor' : 'none'} />
+            </button>
+            <button 
+              onClick={onClose}
+              className="p-2 hover:bg-gray-700 rounded-full transition-colors"
+            >
+              <X className="text-gray-400" size={24} />
+            </button>
+          </div>
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
