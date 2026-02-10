@@ -42,7 +42,7 @@ export default function EmployerDashboard() {
 
   const fetchMyJobs = async () => {
     try {
-      const res = await fetch('http://localhost:3002/jobs/my-jobs', {
+      const res = await fetch('http://localhost:3002/jobs', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }

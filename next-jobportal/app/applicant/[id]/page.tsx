@@ -84,7 +84,7 @@ export default function ApplicantBioPage() {
             </div>
             <h1 className="text-3xl font-bold text-white mb-2">{applicant.name}</h1>
             <span className="glass px-4 py-1 rounded-full text-sm text-gray-300">
-              {applicant.role === 'FIND_JOB' ? 'Job Seeker' : 'Employer'}
+              {applicant.role === 'USER' ? 'Job Seeker' : 'Employer'}
             </span>
           </div>
 

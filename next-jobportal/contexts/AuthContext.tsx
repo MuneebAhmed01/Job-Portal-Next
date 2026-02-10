@@ -6,7 +6,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: 'FIND_JOB' | 'HIRE_TALENT';
+  role: 'USER' | 'EMPLOYER' | 'ADMIN';
   phone: string;
   bio?: string;
   resumePath?: string;

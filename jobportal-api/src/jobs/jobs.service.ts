@@ -1,130 +1,116 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
+import { PrismaService } from '../lib/prisma/prisma.service';
 
 @Injectable()
 export class JobsService {
-  private jobs: any[] = [
-    {
-      id: '1',
-      title: 'Senior Software Engineer',
-      description: 'We are looking for an experienced software engineer to join our team. You will be responsible for building scalable web applications using modern technologies.',
-      location: 'New York, USA',
-      salary: '$80k-$140k/year',
-      type: 'FULL_TIME',
-      employerId: 'employer-1',
-      createdAt: new Date('2026-02-01'),
-      applicants: []
-    },
-    {
-      id: '2',
-      title: 'Frontend Developer',
-      description: 'Join our growing team as a frontend developer. Work with React, Next.js, and modern CSS frameworks to build beautiful user interfaces.',
-      location: 'San Francisco, USA (Remote)',
-      salary: '$50k-$90k/year',
-      type: 'FULL_TIME',
-      employerId: 'employer-1',
-      createdAt: new Date('2026-02-03'),
-      applicants: []
-    },
-    {
-      id: '3',
-      title: 'UX Designer Intern',
-      description: 'Looking for a creative UX designer intern to help with user research, wireframing, and prototyping. Great opportunity to learn and grow.',
-      location: 'London, UK',
-      salary: '$2k-$3k/month',
-      type: 'INTERNSHIP',
-      employerId: 'employer-2',
-      createdAt: new Date('2026-02-05'),
-      applicants: []
-    },
-    {
-      id: '4',
-      title: 'Full Stack Developer',
-      description: 'Seeking a full stack developer proficient in Node.js, React, and PostgreSQL. Experience with cloud platforms is a plus.',
-      location: 'Remote',
-      salary: '$70k-$120k/year',
-      type: 'FULL_TIME',
-      employerId: 'employer-2',
-      createdAt: new Date('2026-02-06'),
-      applicants: []
-    },
-    {
-      id: '5',
-      title: 'DevOps Engineer',
-      description: 'Join our infrastructure team to build and maintain CI/CD pipelines, manage cloud resources, and ensure system reliability.',
-      location: 'Austin, USA',
-      salary: '$60k-$100k/year',
-      type: 'FULL_TIME',
-      employerId: 'employer-3',
-      createdAt: new Date('2026-02-07'),
-      applicants: []
-    }
-  ];
+  constructor(private prisma: PrismaService) {}
 
-  create(createJobDto: CreateJobDto, employerId: string) {
-    const job = {
-      id: Date.now().toString(),
-      ...createJobDto,
-      employerId,
-      createdAt: new Date(),
-      applicants: []
-    };
-    
-    this.jobs.push(job);
+  async create(createJobDto: CreateJobDto, employerId: string) {
+    const job = await (this.prisma as any).job.create({
+      data: {
+        ...createJobDto,
+        employerId,
+      },
+    });
     return job;
   }
 
-  findByEmployer(employerId: string) {
-    return this.jobs.filter(job => job.employerId === employerId);
+  async findByEmployer(employerId: string) {
+    return (this.prisma as any).job.findMany({
+      where: { employerId },
+    });
   }
 
-  findAllPublic() {
-    return this.jobs.map(job => ({
-      id: job.id,
-      title: job.title,
-      description: job.description,
-      location: job.location,
-      salary: job.salary,
-      type: job.type,
-      createdAt: job.createdAt
-    }));
+  async findAllPublic() {
+    return (this.prisma as any).job.findMany({
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        location: true,
+        salary: true,
+        type: true,
+        createdAt: true,
+      },
+    });
   }
 
-  findApplicants(jobId: string, employerId: string) {
-    const job = this.jobs.find(j => j.id === jobId);
+  async findApplicants(jobId: string, employerId: string) {
+    const job = await (this.prisma as any).job.findUnique({
+      where: { id: jobId },
+    });
+    
     if (!job) {
       throw new NotFoundException('Job not found');
     }
+    
     if (job.employerId !== employerId) {
       throw new ForbiddenException('You can only view applicants for your own jobs');
     }
-    return job.applicants || [];
+    
+    return (this.prisma as any).jobApplication.findMany({
+      where: { jobId },
+    });
   }
 
-  applyToJob(jobId: string, userId: string, user: any) {
-    const job = this.jobs.find(j => j.id === jobId);
+  async applyToJob(jobId: string, userId: string, user: any) {
+    const job = await (this.prisma as any).job.findUnique({
+      where: { id: jobId },
+    });
+    
     if (!job) {
       throw new NotFoundException('Job not found');
     }
     
     // Check if already applied
-    const alreadyApplied = job.applicants.find((a: any) => a.id === userId);
-    if (alreadyApplied) {
+    const existingApplication = await (this.prisma as any).jobApplication.findFirst({
+      where: {
+        jobId,
+        userId,
+      },
+    });
+    
+    if (existingApplication) {
       throw new ForbiddenException('You have already applied for this job');
     }
     
-    // Add applicant
-    const applicant = {
-      id: userId,
-      name: user.email?.split('@')[0] || 'Applicant',
-      email: user.email,
-      phone: user.phone || '',
-      bio: user.bio || '',
-      resumePath: user.resumePath || '',
-      appliedAt: new Date()
-    };
+    // Create application
+    const application = await (this.prisma as any).jobApplication.create({
+      data: {
+        jobId,
+        userId,
+        name: user.email?.split('@')[0] || 'Applicant',
+        email: user.email,
+        phone: user.phone || '',
+        bio: user.bio || '',
+        resumePath: user.resumePath || '',
+      },
+    });
     
-    job.applicants.push(applicant);
-    return { message: 'Application submitted successfully', applicant };
+    return { message: 'Application submitted successfully', application };
+  }
+
+  async findUserApplications(userId: string) {
+    return (this.prisma as any).jobApplication.findMany({
+      where: { userId },
+      include: {
+        job: {
+          select: {
+            id: true,
+            title: true,
+            company: true,
+            location: true,
+            salary: true,
+            type: true,
+            description: true,
+            createdAt: true,
+          },
+        },
+      },
+      orderBy: {
+        appliedAt: 'desc',
+      },
+    });
   }
 }

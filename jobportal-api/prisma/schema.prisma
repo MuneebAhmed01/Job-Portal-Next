@@ -6,9 +6,104 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output   = "../src/lib/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  jobsCreated  Job[]            @relation("JobCreator")
+  applications JobApplication[] @relation("JobApplicant")
+  savedJobs    SavedJob[]       @relation("JobSaver")
+
+  @@map("users")
+}
+
+model Job {
+  id          String   @id @default(cuid())
+  title       String
+  company     String
+  location    String
+  salary      String
+  type        String
+  description String
+  employerId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  applications JobApplication[] @relation("JobApplications")
+  creator      User?            @relation("JobCreator", fields: [employerId], references: [id])
+  savedBy      SavedJob[]       @relation("SavedJobs")
+
+  @@map("jobs")
+}
+
+model JobApplication {
+  id         String   @id @default(cuid())
+  jobId      String
+  userId     String
+  name       String
+  email      String
+  phone      String?
+  bio        String?
+  resumePath String?
+  appliedAt  DateTime @default(now())
+
+  // Relations
+  job       Job  @relation("JobApplications", fields: [jobId], references: [id], onDelete: Cascade)
+  applicant User @relation("JobApplicant", fields: [userId], references: [id])
+
+  @@map("job_applications")
+}
+
+model SavedJob {
+  id      String   @id @default(cuid())
+  jobId   String
+  userId  String
+  savedAt DateTime @default(now())
+
+  // Relations
+  job  Job  @relation("SavedJobs", fields: [jobId], references: [id], onDelete: Cascade)
+  user User @relation("JobSaver", fields: [userId], references: [id])
+
+  @@unique([jobId, userId]) // Prevent duplicate saves
+  @@map("saved_jobs")
+}
+
+model UserLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String // "user_created", "user_updated", "user_login", etc.
+  message   String?
+  createdAt DateTime @default(now())
+
+  @@map("user_logs")
+}
+
+model EmployerLog {
+  id         String   @id @default(cuid())
+  employerId String
+  action     String // "employer_created", "job_posted", "job_updated", etc.
+  message    String?
+  createdAt  DateTime @default(now())
+
+  @@map("employer_logs")
+}
+
+enum UserRole {
+  USER
+  EMPLOYER
+  ADMIN
 }

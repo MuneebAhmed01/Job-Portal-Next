@@ -33,4 +33,11 @@ export class JobsController {
     const user = req.user;
     return this.jobsService.applyToJob(id, userId, user);
   }
+
+  @Get('my-applications')
+  @UseGuards(JwtAuthGuard)
+  async getMyApplications(@Request() req: any) {
+    const userId = req.user.sub;
+    return this.jobsService.findUserApplications(userId);
+  }
 }

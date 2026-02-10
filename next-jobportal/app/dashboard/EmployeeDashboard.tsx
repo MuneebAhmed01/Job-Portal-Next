@@ -36,7 +36,7 @@ export default function EmployeeDashboard() {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch('http://localhost:3002/jobs');
+      const res = await fetch('http://localhost:3002/jobs/all');
       if (res.ok) {
         const data = await res.json();
         setJobs(data);
@@ -49,31 +49,26 @@ export default function EmployeeDashboard() {
   };
 
   const fetchSavedJobs = async () => {
-    try {
-      const res = await fetch('http://localhost:3002/jobs/saved', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setSavedJobs(data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch saved jobs:', error);
-    }
+    // Saved jobs functionality not implemented yet
+    setSavedJobs([]);
   };
 
   const fetchAppliedJobs = async () => {
     try {
-      const res = await fetch('http://localhost:3002/applications/my-applications', {
+      const res = await fetch('http://localhost:3002/jobs/my-applications', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
       if (res.ok) {
         const data = await res.json();
-        setAppliedJobs(data);
+        // Extract job data from applications
+        const jobsWithApplicationInfo = data.map((application: any) => ({
+          ...application.job,
+          appliedAt: application.appliedAt,
+          applicationId: application.id,
+        }));
+        setAppliedJobs(jobsWithApplicationInfo);
       }
     } catch (error) {
       console.error('Failed to fetch applied jobs:', error);
@@ -81,23 +76,8 @@ export default function EmployeeDashboard() {
   };
 
   const handleSaveJob = async (jobId: string) => {
-    try {
-      const res = await fetch(`http://localhost:3002/jobs/${jobId}/save`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (res.ok) {
-        setJobs(jobs.map(job => 
-          job.id === jobId ? { ...job, saved: !job.saved } : job
-        ));
-        fetchSavedJobs();
-      }
-    } catch (error) {
-      console.error('Failed to save job:', error);
-    }
+    // Saved jobs functionality not implemented yet
+    console.log('Save job functionality not implemented');
   };
 
   const handleApplyJob = async (jobId: string) => {
@@ -160,7 +140,7 @@ export default function EmployeeDashboard() {
 
       {/* Stats */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-gray-800 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -170,6 +150,7 @@ export default function EmployeeDashboard() {
               <Briefcase className="text-purple-500" size={24} />
             </div>
           </div>
+          
           <div className="bg-gray-800 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -179,6 +160,7 @@ export default function EmployeeDashboard() {
               <Heart className="text-red-500" size={24} />
             </div>
           </div>
+          
           <div className="bg-gray-800 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -186,15 +168,6 @@ export default function EmployeeDashboard() {
                 <p className="text-2xl font-bold mt-1">{appliedJobs.length}</p>
               </div>
               <ExternalLink className="text-blue-500" size={24} />
-            </div>
-          </div>
-          <div className="bg-gray-800 rounded-xl p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm">Profile Views</p>
-                <p className="text-2xl font-bold mt-1">47</p>
-              </div>
-              <TrendingUp className="text-green-500" size={24} />
             </div>
           </div>
         </div>

@@ -38,7 +38,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
     type: 'FULL_TIME'
   });
 
-  const isEmployer = user?.role === 'HIRE_TALENT';
+  const isEmployer = user?.role === 'EMPLOYER';
 
   const fetchMyJobs = async () => {
     try {

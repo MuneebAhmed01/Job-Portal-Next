@@ -28,11 +28,11 @@ export default function DashboardPage() {
   }
 
   // Role-based rendering
-  if (user.role === 'HIRE_TALENT') {
+  if (user.role === 'EMPLOYER') {
     return <EmployerDashboard />;
   }
 
-  if (user.role === 'FIND_JOB') {
+  if (user.role === 'USER') {
     return <EmployeeDashboard />;
   }
 

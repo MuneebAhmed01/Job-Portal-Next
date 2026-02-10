@@ -1,4 +1,4 @@
-import { Controller, Post, Body, BadRequestException, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Post, Body, BadRequestException, UseInterceptors, UploadedFile, Get } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
 import type { SignupDto } from './dto/signup.dto';
@@ -23,5 +23,23 @@ export class AuthController {
   @Post('signin')
   async signin(@Body() signinDto: SigninDto) {
     return this.authService.signin(signinDto);
+  }
+
+  @Get('verify-token')
+  async verifyToken(@Body() body: { token: string }) {
+    try {
+      const payload = this.authService.verifyToken(body.token);
+      return {
+        valid: true,
+        payload,
+        message: 'Token is valid'
+      };
+    } catch (error) {
+      return {
+        valid: false,
+        error: error.message,
+        message: 'Token is invalid'
+      };
+    }
   }
 }

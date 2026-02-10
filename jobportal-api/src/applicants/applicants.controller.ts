@@ -1,8 +1,6 @@
 import { Controller, Get, Param, Res, NotFoundException } from '@nestjs/common';
 import type { Response } from 'express';
 import { AuthService } from '../auth/auth.service';
-import * as fs from 'fs';
-import * as path from 'path';
 
 @Controller('applicants')
 export class ApplicantsController {
@@ -20,17 +18,15 @@ export class ApplicantsController {
   @Get(':id/resume')
   async downloadResume(@Param('id') id: string, @Res() res: Response) {
     const user = await this.authService.findUserById(id);
-    if (!user || !user.resumePath) {
-      throw new NotFoundException('Resume not found');
+    if (!user) {
+      throw new NotFoundException('Applicant not found');
     }
-
-    const filePath = path.join(process.cwd(), user.resumePath);
-    if (!fs.existsSync(filePath)) {
-      throw new NotFoundException('Resume file not found');
-    }
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="resume-${user.name}.pdf"`);
-    fs.createReadStream(filePath).pipe(res);
+    
+    // Note: Resume handling would need to be updated based on new user structure
+    // For now, return a message that resume feature needs to be updated
+    return {
+      message: 'Resume download feature needs to be updated for new user structure',
+      userId: id,
+    };
   }
 }
