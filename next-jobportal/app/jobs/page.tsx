@@ -61,6 +61,13 @@ export default function JobsPage() {
     ));
   };
 
+  const handleApplyChange = (jobId: string, applied: boolean) => {
+    // Update the jobs list to reflect apply status
+    setJobs(prev => prev.map(job => 
+      job.id === jobId ? { ...job, applied } : job
+    ));
+  };
+
   return (
     <main className="min-h-screen pt-20 bg-slate-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -82,7 +89,12 @@ export default function JobsPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobs.map((job) => (
-            <JobCard key={job.id} job={job} onSaveChange={handleSaveChange} />
+            <JobCard 
+              key={job.id} 
+              job={job} 
+              onSaveChange={handleSaveChange}
+              onApplyChange={handleApplyChange}
+            />
           ))}
         </div>
       </div>

@@ -9,9 +9,10 @@ interface JobDetailOverlayProps {
   job: Job;
   onClose: () => void;
   onSaveChange?: (jobId: string, saved: boolean) => void;
+  onApplyChange?: (jobId: string, applied: boolean) => void;
 }
 
-export default function JobDetailOverlay({ job, onClose, onSaveChange }: JobDetailOverlayProps) {
+export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyChange }: JobDetailOverlayProps) {
   const { user, token } = useAuth();
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
@@ -22,6 +23,11 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange }: JobDeta
   useEffect(() => {
     setSaved(job.saved || false);
   }, [job.saved]);
+
+  // Sync applied state with job prop when it changes
+  useEffect(() => {
+    setApplied(job.applied || false);
+  }, [job.applied]);
 
   const handleSaveJob = async () => {
     if (!user) {
@@ -78,6 +84,11 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange }: JobDeta
       }
 
       setApplied(true);
+      setError('');
+      // Notify parent component of apply state change
+      if (onApplyChange) {
+        onApplyChange(job.id, true);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to apply');
     } finally {

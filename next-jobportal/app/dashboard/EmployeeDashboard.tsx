@@ -44,11 +44,26 @@ export default function EmployeeDashboard() {
       if (res.ok) {
         const data = await res.json();
         console.log('Saved jobs data:', data);
-        // Extract job data from saved jobs
+        
+        // Also fetch applied jobs to check which saved jobs are also applied
+        const appliedRes = await fetch('http://localhost:3002/jobs/my-applications', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        let appliedJobIds: string[] = [];
+        if (appliedRes.ok) {
+          const appliedData = await appliedRes.json();
+          appliedJobIds = appliedData.map((application: any) => application.jobId);
+        }
+        
+        // Extract job data from saved jobs and mark applied status
         const jobsData = data.map((savedJob: any) => ({
           ...savedJob.job,
           saved: true,
-          savedAt: savedJob.savedAt
+          savedAt: savedJob.savedAt,
+          applied: appliedJobIds.includes(savedJob.jobId)
         }));
         console.log('Processed saved jobs:', jobsData);
         setSavedJobs(jobsData);
@@ -157,6 +172,37 @@ export default function EmployeeDashboard() {
     // Update the selected job if it's currently open
     if (selectedJob && selectedJob.id === jobId) {
       setSelectedJob(prev => prev ? { ...prev, saved } : null);
+    }
+  };
+
+  const handleApplyChange = (jobId: string, applied: boolean) => {
+    // Update saved jobs list to reflect applied status
+    setSavedJobs(prev => prev.map(job => 
+      job.id === jobId ? { ...job, applied } : job
+    ));
+
+    // Update applied jobs list
+    if (applied) {
+      // Add to applied jobs if not already there
+      setAppliedJobs(prev => {
+        const jobExists = prev.find(job => job.id === jobId);
+        if (!jobExists) {
+          // Find the job in saved jobs and add it to applied jobs
+          const savedJob = savedJobs.find(job => job.id === jobId);
+          if (savedJob) {
+            return [...prev, { ...savedJob, applied: true }];
+          }
+        }
+        return prev;
+      });
+    } else {
+      // Remove from applied jobs (this case shouldn't normally happen)
+      setAppliedJobs(prev => prev.filter(job => job.id !== jobId));
+    }
+
+    // Update the selected job if it's currently open
+    if (selectedJob && selectedJob.id === jobId) {
+      setSelectedJob(prev => prev ? { ...prev, applied } : null);
     }
   };
 
@@ -287,9 +333,18 @@ export default function EmployeeDashboard() {
                   </div>
                   <p className="text-gray-300 line-clamp-2 mb-4">{job.description}</p>
                   <div className="flex gap-3">
-                    <button className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors">
-                      Apply Now
-                    </button>
+                    {job.applied ? (
+                      <button className="bg-green-600 px-4 py-2 rounded-lg cursor-not-allowed" disabled>
+                        Applied
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => handleApplyJob(job.id)}
+                        className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors"
+                      >
+                        Apply Now
+                      </button>
+                    )}
                     <button 
                       onClick={() => handleViewDetails(job)}
                       className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors"
@@ -358,6 +413,7 @@ export default function EmployeeDashboard() {
           job={selectedJob} 
           onClose={handleCloseJobDetail}
           onSaveChange={handleSaveChange}
+          onApplyChange={handleApplyChange}
         />
       )}
     </div>

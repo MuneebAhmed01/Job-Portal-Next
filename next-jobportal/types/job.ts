@@ -8,4 +8,5 @@ export interface Job {
   type: string;
   createdAt: string;
   saved?: boolean;
+  applied?: boolean;
 }
