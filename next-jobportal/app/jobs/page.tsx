@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import JobCard from '@/components/JobCard';
 import { Job } from '@/types/job';
 import { useAuth } from '@/contexts/AuthContext';
+import Navbar from '@/components/Navbar';
 
 export default function JobsPage() {
   const { user, token } = useAuth();
@@ -69,35 +70,40 @@ export default function JobsPage() {
   };
 
   return (
-    <main className="min-h-screen pt-20 bg-slate-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">Available Jobs</h1>
-
-        {loading && (
-          <p className="text-gray-600 dark:text-gray-400">Loading jobs...</p>
-        )}
-        
-        {error && (
-          <div className="p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-lg">
-            {error}
-          </div>
-        )}
-        
-        {!loading && !error && jobs.length === 0 && (
-          <p className="text-gray-600 dark:text-gray-400">No jobs available.</p>
-        )}
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {jobs.map((job) => (
-            <JobCard 
-              key={job.id} 
-              job={job} 
-              onSaveChange={handleSaveChange}
-              onApplyChange={handleApplyChange}
-            />
-          ))}
-        </div>
+    <>
+      <div className="relative bg-gradient-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
+        <Navbar />
       </div>
-    </main>
+      <main className="min-h-screen pt-20 bg-slate-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">Available Jobs</h1>
+
+          {loading && (
+            <p className="text-gray-600 dark:text-gray-400">Loading jobs...</p>
+          )}
+          
+          {error && (
+            <div className="p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-lg">
+              {error}
+            </div>
+          )}
+          
+          {!loading && !error && jobs.length === 0 && (
+            <p className="text-gray-600 dark:text-gray-400">No jobs available.</p>
+          )}
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {jobs.map((job) => (
+              <JobCard 
+                key={job.id} 
+                job={job} 
+                onSaveChange={handleSaveChange}
+                onApplyChange={handleApplyChange}
+              />
+            ))}
+          </div>
+        </div>
+      </main>
+    </>
   );
 }

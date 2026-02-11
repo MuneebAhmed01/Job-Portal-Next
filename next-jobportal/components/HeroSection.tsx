@@ -2,12 +2,13 @@ import Link from "next/link";
 import { Search } from "lucide-react";
 
 const companies = [
-  { name: "Adobe", src: "https://cdn.simpleicons.org/adobe" },
-  { name: "Microsoft", src: "https://cdn.simpleicons.org/microsoft" },
-  { name: "Spotify", src: "https://cdn.simpleicons.org/spotify" },
-  { name: "Netflix", src: "https://cdn.simpleicons.org/netflix" },
-  { name: "YouTube", src: "https://cdn.simpleicons.org/youtube" },
-  { name: "GitHub", src: "https://cdn.simpleicons.org/github" },
+  { name: "Adobe", src: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Adobe_Corporate_Logo.png/240px-Adobe_Corporate_Logo.png" },
+  { name: "Microsoft", src: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Microsoft_logo_%282012%29.svg/240px-Microsoft_logo_%282012%29.svg.png" },
+  { name: "Spotify", src: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Spotify_logo_without_text.svg/240px-Spotify_logo_without_text.svg.png" },
+  { name: "Netflix", src: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Netflix_logo.svg/240px-Netflix_logo.svg.png" },
+  { name: "YouTube", src: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/240px-YouTube_full-color_icon_%282017%29.svg.png" },
+  { name: "Google", src: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/240px-Google_2015_logo.svg.png" },
+  { name: "Amazon", src: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/240px-Amazon_logo.svg.png" },
 ];
 
 export default function HeroSection() {
@@ -66,16 +67,43 @@ export default function HeroSection() {
         </div>
 
         {/* logos */}
-        <div className="mt-20 flex flex-wrap justify-center items-center gap-14 opacity-80">
-          {companies.map(c => (
-            <img
-              key={c.name}
-              src={c.src}
-              alt={c.name}
-              className="h-10 md:h-12 w-auto object-contain grayscale hover:grayscale-0 transition"
-            />
-          ))}
+        <div className="mt-20 relative overflow-hidden">
+          <div 
+            className="flex"
+            style={{
+              animation: 'slide-left 20s linear infinite'
+            }}
+          >
+            {[...companies, ...companies].map((c, index) => (
+<div
+  key={`${c.name}-${index}`}
+  className="flex items-center justify-center px-8 shrink-0"
+  style={{ height: "100px", width: "180px" }}
+>
+  <img
+    src={c.src}
+    alt={c.name}
+    className="h-[90px] w-auto object-contain hover:scale-110 transition"
+  />
+</div>
+
+
+            ))}
+          </div>
         </div>
+
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            @keyframes slide-left {
+              0% {
+                transform: translateX(0);
+              }
+              100% {
+                transform: translateX(-50%);
+              }
+            }
+          `
+        }} />
       </div>
     </section>
   );

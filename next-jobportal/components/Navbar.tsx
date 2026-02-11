@@ -47,12 +47,14 @@ export default function Navbar() {
           <div className="flex items-center gap-4 text-sm">
             {user ? (
               <>
-                <Link 
-                  href="/dashboard" 
-                  className="text-white/70 hover:text-white transition"
-                >
-                  Dashboard
-                </Link>
+                <div className="px-6 py-3 rounded-full" style={{ backgroundColor: '#F54900' }}>
+                  <Link 
+                    href="/dashboard" 
+                    className="text-white hover:text-gray-200 transition font-medium"
+                  >
+                    Dashboard
+                  </Link>
+                </div>
                 <button 
                   onClick={() => setIsProfileOpen(true)} 
                   className="text-white/70 hover:text-white transition"
@@ -104,13 +106,15 @@ export default function Navbar() {
               
               {user ? (
                 <>
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setMobileOpen(false)}
-                    className="text-white/80 hover:text-white"
-                  >
-                    Dashboard
-                  </Link>
+                  <div className="px-6 py-3 rounded-full" style={{ backgroundColor: '#F54900' }}>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setMobileOpen(false)}
+                      className="text-white hover:text-gray-200 font-medium"
+                    >
+                      Dashboard
+                    </Link>
+                  </div>
                   <button
                     onClick={() => {
                       setMobileOpen(false);

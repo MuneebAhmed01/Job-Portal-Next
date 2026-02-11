@@ -4,7 +4,6 @@ import "./globals.css";
 import ReduxProvider from "@/providers/ReduxProvider";
 import ThemeProvider from "@/providers/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
-import Navbar from "@/components/Navbar";
 
 const inter = Inter({ 
   subsets: ["latin"],

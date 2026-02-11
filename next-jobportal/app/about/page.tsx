@@ -11,6 +11,7 @@ import {
   Heart
 } from 'lucide-react';
 import Testimonials from '@/components/Testimonials';
+import Navbar from '@/components/Navbar';
 
 const stats = [
   { value: '10K+', label: 'Active Jobs', icon: Briefcase },
@@ -90,19 +91,23 @@ const team = [
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen pt-16">
-      {/* Hero Section */}
-      <section className="bg-linear-to-br from-blue-600 to-indigo-700 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-            About <span className="text-blue-200">Hire</span><span className="text-red-300">Heaven</span>
-          </h1>
-          <p className="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
-            We&apos;re on a mission to revolutionize how people find jobs and how companies find talent. 
-            Our AI-powered platform connects dreams with opportunities.
-          </p>
-        </div>
-      </section>
+    <>
+      <div className="relative bg-gradient-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
+        <Navbar />
+      </div>
+      <main className="min-h-screen pt-16">
+        {/* Hero Section */}
+        <section className="bg-linear-to-br from-blue-600 to-indigo-700 text-white py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+              About <span className="text-blue-200">Hire</span><span className="text-red-300">Heaven</span>
+            </h1>
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
+              We&apos;re on a mission to revolutionize how people find jobs and how companies find talent. 
+              Our AI-powered platform connects dreams with opportunities.
+            </p>
+          </div>
+        </section>
 
       {/* Stats Section */}
       <section className="py-16 bg-white dark:bg-gray-800 -mt-10">
@@ -244,5 +249,6 @@ export default function AboutPage() {
         </div>
       </section>
     </main>
+    </>
   );
 }
