@@ -52,14 +52,11 @@ export class JobsService {
     return (this.prisma as any).jobApplication.findMany({
       where: { jobId },
       include: {
-        user: {
+        applicant: {
           select: {
             id: true,
             name: true,
             email: true,
-            phone: true,
-            bio: true,
-            resumePath: true,
           },
         },
       },
@@ -241,14 +238,11 @@ export class JobsService {
     return (this.prisma as any).jobApplication.findMany({
       where: { jobId },
       include: {
-        user: {
+        applicant: {
           select: {
             id: true,
             name: true,
             email: true,
-            phone: true,
-            bio: true,
-            resumePath: true,
           },
         },
       },
