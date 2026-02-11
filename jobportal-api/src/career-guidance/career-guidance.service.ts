@@ -38,7 +38,7 @@ export class CareerGuidanceService {
     
     return {
       careerSummary: this.generateCareerSummary(primaryCategory, weightedScores),
-      primaryCareerTitle: this.getPrimaryCareerTitle(primaryCategory),
+      primaryCareerTitle: this.getPrimaryCareerTitle(primaryCategory, weightedScores),
       careerCategory: primaryCategory,
       skillBreakdown: this.buildSkillBreakdown(weightedScores),
       recommendedCareerPaths: careerPaths,
@@ -162,19 +162,48 @@ export class CareerGuidanceService {
     for (const score of weightedScores.slice(0, 3)) {
       const categoryPaths = careerPaths[score.category];
       if (categoryPaths) {
-        for (const path of categoryPaths.slice(0, 2)) {
+        // Determine if user qualifies for senior roles
+        const isSenior = this.isSeniorLevel(score);
+        
+        for (const path of categoryPaths.slice(0, 3)) {
+          // Skip senior titles if not qualified
+          if (!isSenior && path.title.includes('Senior')) {
+            continue;
+          }
+          
           if (!addedTitles.has(path.title)) {
-            paths.push({
+            const adjustedPath = {
               ...path,
-              matchScore: Math.min(98, Math.round(path.matchScore * (score.totalWeight / 50)))
-            });
-            addedTitles.add(path.title);
+              title: this.adjustTitleForLevel(path.title, isSenior),
+              matchScore: this.calculateMatchScore(path.matchScore, score, isSenior)
+            };
+            paths.push(adjustedPath);
+            addedTitles.add(adjustedPath.title);
           }
         }
       }
     }
     
     return paths.slice(0, 3);
+  }
+
+  private isSeniorLevel(score: WeightedScore): boolean {
+    // Require at least 3 skills in the same category OR 2 high-weight skills (weight >= 10)
+    const hasMultipleSkills = score.skillCount >= 3;
+    const hasHighWeightSkills = score.matchedSkills.length >= 2 && 
+      score.totalWeight >= 20; // At least 2 skills with weight 10+
+    
+    return hasMultipleSkills || hasHighWeightSkills;
+  }
+
+  private adjustTitleForLevel(originalTitle: string, isSenior: boolean): string {
+    // Always remove "Senior" from titles - never use senior titles
+    return originalTitle.replace('Senior ', '').replace('Senior', '');
+  }
+
+  private calculateMatchScore(baseScore: number, score: WeightedScore, isSenior: boolean): number {
+    // Calculate match score based on skill weight, without seniority adjustments
+    return Math.min(98, Math.round(baseScore * (score.totalWeight / 50)));
   }
 
   private getSkillsToEnhance(
@@ -247,6 +276,7 @@ export class CareerGuidanceService {
     const topCategory = scores[0];
     const skillCount = topCategory.skillCount;
     const totalMatched = scores.reduce((sum, s) => sum + s.skillCount, 0);
+    const isSenior = this.isSeniorLevel(topCategory);
     
     const isCombination = combinationRoles.some(c => c.result === primaryCategory);
     
@@ -259,10 +289,15 @@ export class CareerGuidanceService {
       return `Your primary strength is in ${primaryCategory} with ${skillCount} key skills, but you also show strong capabilities in ${scores[1].category}. This versatility gives you an edge for collaborative, cross-functional roles.`;
     }
     
-    return `Your profile shows strong specialization in ${primaryCategory} with ${skillCount} matched skills. Your expertise in ${topCategory.matchedSkills.slice(0, 3).join(', ')} positions you well for senior-level roles in this domain.`;
+    const positioning = 'provides a solid foundation for growth';
+    
+    return `Your profile shows strong specialization in ${primaryCategory} with ${skillCount} matched skills. Your expertise in ${topCategory.matchedSkills.slice(0, 3).join(', ')} ${positioning} in this domain.`;
   }
 
-  private getPrimaryCareerTitle(primaryCategory: string): string {
-    return careerTitleMap[primaryCategory] || 'Software Developer';
+  private getPrimaryCareerTitle(primaryCategory: string, scores: WeightedScore[]): string {
+    const baseTitle = careerTitleMap[primaryCategory] || 'Software Developer';
+    
+    // Always return base title without "Senior" prefix
+    return baseTitle.replace('Senior ', '').replace('Senior', '');
   }
 }

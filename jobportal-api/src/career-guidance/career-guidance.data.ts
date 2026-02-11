@@ -34,7 +34,7 @@ export const careerCategories: CareerCategory[] = [
     ]
   },
   {
-    name: 'UI/UX Design',
+    name: 'UI/UX Designer',
     weightMultiplier: 1.15,
     skills: [
       { canonical: 'Figma', aliases: ['figma'], weight: 12 },
@@ -53,7 +53,7 @@ export const careerCategories: CareerCategory[] = [
     ]
   },
   {
-    name: 'Graphic Design',
+    name: 'Graphic Designer',
     weightMultiplier: 1.1,
     skills: [
       { canonical: 'Adobe Photoshop', aliases: ['photoshop', 'ps', 'adobe photoshop', 'photo shop'], weight: 12 },
@@ -110,6 +110,7 @@ export const careerCategories: CareerCategory[] = [
       { canonical: 'REST APIs', aliases: ['rest', 'rest api', 'restful', 'api design'], weight: 10 },
       { canonical: 'GraphQL', aliases: ['graphql', 'graph ql', 'apollo'], weight: 9 },
       { canonical: 'gRPC', aliases: ['grpc'], weight: 8 },
+      { canonical: 'Authentication', aliases: ['authentication', 'auth', 'jwt', 'oauth', 'session management', 'login', 'signin'], weight: 10 },
     ]
   },
   {
@@ -253,11 +254,11 @@ export const careerCategories: CareerCategory[] = [
 export const careerPaths: Record<string, CareerPath[]> = {
   'Frontend Development': [
     {
-      title: 'Senior Frontend Developer',
+      title: 'Frontend Developer',
       description: 'Build complex web applications with modern frameworks',
       keyResponsibilities: ['Component architecture', 'Performance optimization', 'State management', 'UI implementation'],
-      whyItFits: 'Your frontend framework expertise qualifies you for senior roles',
-      relevantJobTitles: ['Frontend Developer', 'Senior Frontend Engineer', 'UI Developer', 'React Developer'],
+      whyItFits: 'Your frontend framework expertise qualifies you for development roles',
+      relevantJobTitles: ['Frontend Developer', 'Frontend Engineer', 'UI Developer', 'React Developer'],
       matchScore: 94,
       category: 'Frontend Development'
     },
@@ -282,11 +283,11 @@ export const careerPaths: Record<string, CareerPath[]> = {
   ],
   'Backend Development': [
     {
-      title: 'Senior Backend Developer',
+      title: 'Backend Developer',
       description: 'Build scalable server-side applications',
       keyResponsibilities: ['API development', 'Database design', 'System architecture', 'Performance tuning'],
-      whyItFits: 'Your backend skills are perfect for senior development roles',
-      relevantJobTitles: ['Backend Developer', 'Senior Backend Engineer', 'API Developer', 'Server Developer'],
+      whyItFits: 'Your backend skills are perfect for development roles',
+      relevantJobTitles: ['Backend Developer', 'Backend Engineer', 'API Developer', 'Server Developer'],
       matchScore: 93,
       category: 'Backend Development'
     },
@@ -309,12 +310,41 @@ export const careerPaths: Record<string, CareerPath[]> = {
       category: 'Platform Engineering'
     }
   ],
+  'Full-Stack Development': [
+    {
+      title: 'Full-Stack Developer',
+      description: 'Build complete web applications from frontend to backend',
+      keyResponsibilities: ['Frontend development', 'Backend API design', 'Database architecture', 'Deployment'],
+      whyItFits: 'Your combined frontend and backend skills make you a versatile full-stack developer',
+      relevantJobTitles: ['Full-Stack Developer', 'MERN Stack Developer', 'JavaScript Full-Stack Engineer', 'Web Developer'],
+      matchScore: 95,
+      category: 'Full-Stack Development'
+    },
+    {
+      title: 'Software Engineer',
+      description: 'Develop comprehensive software solutions across the stack',
+      keyResponsibilities: ['Application architecture', 'Full-cycle development', 'Code optimization', 'System integration'],
+      whyItFits: 'Your broad skill set aligns well with general software engineering roles',
+      relevantJobTitles: ['Software Engineer', 'Application Developer', 'Software Developer', 'Full-Stack Engineer'],
+      matchScore: 88,
+      category: 'Software Engineering'
+    },
+    {
+      title: 'Technical Lead',
+      description: 'Lead development teams and technical decisions',
+      keyResponsibilities: ['Technical leadership', 'Architecture decisions', 'Code reviews', 'Team mentoring'],
+      whyItFits: 'Your comprehensive knowledge prepares you for technical leadership',
+      relevantJobTitles: ['Technical Lead', 'Team Lead', 'Engineering Lead', 'Tech Lead'],
+      matchScore: 82,
+      category: 'Technical Leadership'
+    }
+  ],
   'UI/UX Design': [
     {
-      title: 'Senior UI/UX Designer',
+      title: 'UI/UX Designer',
       description: 'Lead design initiatives and create exceptional user experiences',
       keyResponsibilities: ['User research', 'Wireframing and prototyping', 'Design systems', 'Usability testing'],
-      whyItFits: 'Your UI/UX tool expertise positions you for senior design roles',
+      whyItFits: 'Your UI/UX tool expertise positions you for design roles',
       relevantJobTitles: ['UI/UX Designer', 'Product Designer', 'Interaction Designer', 'Experience Designer'],
       matchScore: 95,
       category: 'UI/UX Design'
@@ -362,14 +392,14 @@ export const careerPaths: Record<string, CareerPath[]> = {
       description: 'Analyze complex data and build predictive models',
       keyResponsibilities: ['Statistical analysis', 'Predictive modeling', 'Data visualization', 'Business insights'],
       whyItFits: 'Your data science and ML skills align well with data science roles',
-      relevantJobTitles: ['Data Scientist', 'Senior Data Scientist', 'Lead Data Scientist', 'Quantitative Analyst'],
+      relevantJobTitles: ['Data Scientist', 'Lead Data Scientist', 'Quantitative Analyst'],
       matchScore: 88,
       category: 'AI/ML Engineering'
     }
   ],
   'Graphic Design': [
     {
-      title: 'Senior Graphic Designer',
+      title: 'Graphic Designer',
       description: 'Create visual content for brands and media',
       keyResponsibilities: ['Brand design', 'Marketing materials', 'Digital illustrations', 'Print design'],
       whyItFits: 'Your Adobe Creative Suite skills are ideal for graphic design',
@@ -398,7 +428,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
   ],
   'DevOps & Cloud': [
     {
-      title: 'Senior DevOps Engineer',
+      title: 'DevOps Engineer',
       description: 'Build and maintain CI/CD and cloud infrastructure',
       keyResponsibilities: ['CI/CD pipelines', 'Cloud architecture', 'Infrastructure automation', 'Monitoring'],
       whyItFits: 'Your DevOps and cloud skills are in high demand',
@@ -427,10 +457,10 @@ export const careerPaths: Record<string, CareerPath[]> = {
   ],
   'Mobile Development': [
     {
-      title: 'Senior Mobile Developer',
+      title: 'Mobile Developer',
       description: 'Build native and cross-platform mobile applications',
       keyResponsibilities: ['Mobile app development', 'Performance optimization', 'Native integrations', 'App store deployment'],
-      whyItFits: 'Your mobile development skills qualify you for senior roles',
+      whyItFits: 'Your mobile development skills qualify you for development roles',
       relevantJobTitles: ['Mobile Developer', 'iOS Developer', 'Android Developer', 'React Native Developer'],
       matchScore: 93,
       category: 'Mobile Development'
@@ -440,7 +470,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       description: 'Lead mobile development teams and architecture',
       keyResponsibilities: ['Technical leadership', 'Architecture decisions', 'Code reviews', 'Team mentoring'],
       whyItFits: 'Your mobile expertise prepares you for leadership roles',
-      relevantJobTitles: ['Mobile Tech Lead', 'Senior Mobile Engineer', 'Mobile Architect'],
+      relevantJobTitles: ['Mobile Tech Lead', 'Mobile Engineer', 'Mobile Architect'],
       matchScore: 85,
       category: 'Mobile Development'
     },
@@ -854,6 +884,26 @@ export const learningApproaches: Record<string, { title: string; steps: { action
       ]
     }
   ],
+  'Full-Stack Development': [
+    {
+      title: 'Master Both Frontend and Backend',
+      steps: [
+        { action: 'Integrate Technologies', description: 'Build projects that connect React/Vue with Node.js APIs' },
+        { action: 'Database Design', description: 'Learn SQL and NoSQL database design patterns' },
+        { action: 'API Development', description: 'Create RESTful APIs and GraphQL endpoints' },
+        { action: 'Authentication', description: 'Implement JWT, OAuth, and session management' },
+      ]
+    },
+    {
+      title: 'Build End-to-End Applications',
+      steps: [
+        { action: 'Full Projects', description: 'Create complete apps from database to UI' },
+        { action: 'Deployment', description: 'Deploy both frontend and backend to production' },
+        { action: 'Testing', description: 'Write unit and integration tests for all layers' },
+        { action: 'Performance', description: 'Optimize database queries and frontend rendering' },
+      ]
+    }
+  ],
 };
 
 // Career title mappings
@@ -863,6 +913,7 @@ export const careerTitleMap: Record<string, string> = {
   'Graphic Design': 'Graphic Designer',
   'Frontend Development': 'Frontend Developer',
   'Backend Development': 'Backend Developer',
+  'Full-Stack Development': 'Full-Stack Developer',
   'Database Engineering': 'Database Engineer',
   'DevOps & Cloud': 'DevOps Engineer',
   'Mobile Development': 'Mobile Developer',
