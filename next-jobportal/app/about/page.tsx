@@ -100,7 +100,7 @@ export default function AboutPage() {
         <section className="py-20" style={{ background: 'linear-gradient(to bottom right, #020617, #0b0f19, #0f172a)' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-              About <span className="text-blue-200">Hire</span><span className="text-red-300">Heaven</span>
+              About <span className="text-blue-200">Job</span><span className="text-red-300">Forge</span>
             </h1>
             <p className="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
               We&apos;re on a mission to revolutionize how people find jobs and how companies find talent. 
@@ -136,11 +136,11 @@ export default function AboutPage() {
               </h2>
               <div className="space-y-4 text-gray-300 leading-relaxed">
                 <p>
-                  Founded in 2024, HireHeaven started with a simple observation: the job search process was broken. 
+                  Founded in 2024, JobForge started with a simple observation: the job search process was broken. 
                   Talented individuals were getting lost in the noise, and great companies were struggling to find the right fit.
                 </p>
                 <p>
-                  We built HireHeaven to bridge this gap using cutting-edge AI technology. Our platform doesn&apos;t just list jobs — 
+                  We built JobForge to bridge this gap using cutting-edge AI technology. Our platform doesn&apos;t just list jobs — 
                   it understands your skills, aspirations, and potential, matching you with opportunities where you can truly thrive.
                 </p>
                 <p>
@@ -169,7 +169,7 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Why Choose HireHeaven?
+              Why Choose JobForge?
             </h2>
             <p className="text-gray-300 max-w-2xl mx-auto">
               We combine technology with human insight to deliver the best job search experience
@@ -230,7 +230,7 @@ export default function AboutPage() {
             Ready to Find Your Dream Job?
           </h2>
           <p className="text-xl text-gray-300 mb-8">
-            Join thousands of professionals who&apos;ve transformed their careers with HireHeaven
+            Join thousands of professionals who&apos;ve transformed their careers with JobForge
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a

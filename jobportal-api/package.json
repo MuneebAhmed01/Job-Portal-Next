@@ -1,8 +1,8 @@
 {
-  "name": "jobportal-api",
+  "name": "jobforge-api",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "JobForge API - AI-Powered Job Platform Backend",
+  "author": "JobForge Team",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

@@ -34,7 +34,7 @@ export default function Navbar() {
               ✦
             </div>
             <span className="text-white font-semibold text-xl tracking-wide">
-              Free-Lance
+              JobForge
             </span>
           </div>
 

@@ -27,12 +27,12 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "HireHeaven - Find Your Dream Job",
+  title: "JobForge - Find Your Dream Job",
   description: "#1 AI-Powered Job Platform in India - Connect with top employers and transform your career with advanced AI tools",
   keywords: ["jobs", "career", "AI", "resume analyzer", "career guidance", "hiring", "recruitment"],
-  authors: [{ name: "HireHeaven Team" }],
+  authors: [{ name: "JobForge Team" }],
   openGraph: {
-    title: "HireHeaven - AI-Powered Job Platform",
+    title: "JobForge - AI-Powered Job Platform",
     description: "Find your dream job with AI-powered career guidance and resume optimization",
     type: "website",
     locale: "en_IN",

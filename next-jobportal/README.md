@@ -1,4 +1,13 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JobForge - AI-Powered Job Platform
+
+JobForge is an AI-powered job platform that connects talented professionals with their dream opportunities. Our platform uses advanced AI technology to analyze resumes, provide career guidance, and match candidates with the perfect jobs.
+
+## Features
+
+- 🤖 **AI Resume Analysis**: Get instant feedback on your resume's ATS compatibility
+- 🎯 **Smart Job Matching**: AI-powered recommendations based on your skills and aspirations
+- 📊 **Career Guidance**: Personalized career paths and learning roadmaps
+- 💼 **Verified Employers**: All companies are verified for authenticity and credibility
 
 ## Getting Started
 
@@ -31,6 +40,13 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The easiest way to deploy your JobForge app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Tech Stack
+
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS
+- **Backend**: NestJS, Prisma, PostgreSQL
+- **AI/ML**: Advanced AI algorithms for resume analysis and job matching
+- **Authentication**: JWT-based secure authentication

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Sparkles, FileText, ArrowRight, Brain, Target, Zap } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CareerGuidanceOverlay from "./CareerGuidanceOverlay";
 import ResumeAnalyzerOverlay from "./ResumeAnalyzerOverlay";
 
@@ -31,6 +31,21 @@ export default function FeaturesSection() {
   const [isCareerOverlayOpen, setIsCareerOverlayOpen] = useState(false);
   const [isResumeOverlayOpen, setIsResumeOverlayOpen] = useState(false);
 
+  // Handle hash scrolling for navigation from dashboard
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash) {
+      // Remove the # and scroll to the section
+      const sectionId = hash.substring(1);
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100); // Small delay to ensure DOM is ready
+    }
+  }, []);
+
   return (
     <>
       <div className="relative bg-[#020617] text-white">
@@ -38,6 +53,7 @@ export default function FeaturesSection() {
         {features.map(({ icon: Icon, badge, title, description, buttonText, href }, index) => (
           <section
             key={title}
+            id={index === 0 ? "career-guidance" : "resume-analyzer"}
             className={`py-28 relative ${
               index % 2 === 1
                 ? "bg-linear-to-b from-transparent via-white/[0.02] to-transparent"

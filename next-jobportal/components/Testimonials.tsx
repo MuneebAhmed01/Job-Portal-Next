@@ -11,7 +11,7 @@ const testimonials = [
     role: 'Software Engineer',
     company: 'Google',
     image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
-    content: 'HireHeaven helped me land my dream job at Google. The AI-powered resume analyzer was a game changer - it helped me optimize my resume and increased my callback rate by 3x!',
+    content: 'JobForge helped me land my dream job at Google. The AI-powered resume analyzer was a game changer - it helped me optimize my resume and increased my callback rate by 3x!',
     rating: 5,
   },
   {
@@ -20,7 +20,7 @@ const testimonials = [
     role: 'Product Manager',
     company: 'Microsoft',
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
-    content: 'The career guidance feature gave me clarity on my career path. Within 2 months of using HireHeaven, I transitioned from engineering to product management successfully.',
+    content: 'The career guidance feature gave me clarity on my career path. Within 2 months of using JobForge, I transitioned from engineering to product management successfully.',
     rating: 5,
   },
   {
@@ -29,7 +29,7 @@ const testimonials = [
     role: 'Data Scientist',
     company: 'Amazon',
     image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop',
-    content: 'As a fresher, I was overwhelmed by the job market. HireHeaven\'s personalized recommendations helped me focus on the right opportunities. Now I\'m working at Amazon!',
+    content: 'As a fresher, I was overwhelmed by the job market. JobForge\'s personalized recommendations helped me focus on the right opportunities. Now I\'m working at Amazon!',
     rating: 5,
   },
   {
@@ -76,7 +76,7 @@ export default function Testimonials() {
             What Our Users Say
           </h2>
           <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Join thousands of professionals who found their dream jobs through HireHeaven
+            Join thousands of professionals who found their dream jobs through JobForge
           </p>
         </div>
 

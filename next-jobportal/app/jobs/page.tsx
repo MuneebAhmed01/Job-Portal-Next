@@ -19,28 +19,42 @@ export default function JobsPage() {
       if (!res.ok) throw new Error('Failed to fetch jobs');
       const data = await res.json();
       
-      // If user is logged in, fetch saved jobs to mark jobs as saved
+      // If user is logged in, fetch saved jobs and applied jobs to mark jobs accordingly
       if (user && token) {
-        const savedRes = await fetch(`${apiUrl}/jobs/saved`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        const [savedRes, appliedRes] = await Promise.all([
+          fetch(`${apiUrl}/jobs/saved`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }),
+          fetch(`${apiUrl}/jobs/my-applications`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+        ]);
+        
+        let savedJobIds: string[] = [];
+        let appliedJobIds: string[] = [];
         
         if (savedRes.ok) {
           const savedData = await savedRes.json();
-          const savedJobIds = savedData.map((savedJob: any) => savedJob.jobId);
-          
-          // Mark jobs as saved if they exist in saved jobs
-          const jobsWithSavedStatus = data.map((job: any) => ({
-            ...job,
-            saved: savedJobIds.includes(job.id)
-          }));
-          
-          setJobs(jobsWithSavedStatus);
-        } else {
-          setJobs(data);
+          savedJobIds = savedData.map((savedJob: any) => savedJob.jobId);
         }
+        
+        if (appliedRes.ok) {
+          const appliedData = await appliedRes.json();
+          appliedJobIds = appliedData.map((application: any) => application.jobId);
+        }
+        
+        // Mark jobs as saved and applied if they exist in respective lists
+        const jobsWithStatus = data.map((job: any) => ({
+          ...job,
+          saved: savedJobIds.includes(job.id),
+          applied: appliedJobIds.includes(job.id)
+        }));
+        
+        setJobs(jobsWithStatus);
       } else {
         setJobs(data);
       }

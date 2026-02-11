@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Briefcase, MapPin, DollarSign, Heart, ExternalLink, FileText, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import Link from 'next/link';
 import JobDetailOverlay from '@/components/JobDetailOverlay';
 
 interface Job {
@@ -142,6 +141,19 @@ export default function EmployeeDashboard() {
   };
 
 
+  const handleScrollToSection = (sectionId: string) => {
+    // Navigate to home page first if not already there
+    if (window.location.pathname !== '/') {
+      window.location.href = `/#${sectionId}`;
+    } else {
+      // Smooth scroll to section
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   const handleSaveChange = (jobId: string, saved: boolean) => {
     console.log('Save state changed:', { jobId, saved });
     
@@ -228,20 +240,21 @@ export default function EmployeeDashboard() {
               <p className="text-gray-400 mt-1">Welcome back, {user?.name}</p>
             </div>
             <div className="flex items-center gap-3">
-              <Link 
-                href="/resume-analyzer"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-white hover:bg-white/10" style={{ backgroundColor: '#F54900' }}
+              <button
+                onClick={() => handleScrollToSection('resume-analyzer')}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-white hover:bg-white/10" 
+                style={{ backgroundColor: '#F54900' }}
               >
                 <FileText size={20} />
                 Analyze Resume
-              </Link>
-              <Link 
-                href="/career-guidance"
+              </button>
+              <button 
+                onClick={() => handleScrollToSection('career-guidance')}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-white hover:bg-white/10"
               >
                 <TrendingUp size={20} />
                 Career Guidance
-              </Link>
+              </button>
             </div>
           </div>
         </div>

@@ -34,10 +34,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     if (storedToken && storedUser) {
       try {
+        // Validate token format
+        const tokenParts = storedToken.split('.');
+        if (tokenParts.length !== 3) {
+          throw new Error('Invalid token format');
+        }
+        
+        // Check token expiration
+        const payload = JSON.parse(atob(tokenParts[1]));
+        if (Date.now() > payload.exp * 1000) {
+          throw new Error('Token expired');
+        }
+        
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
       } catch (e) {
-        console.error('Failed to parse user from localStorage');
+        console.error('Invalid or expired token, clearing localStorage:', e);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }
