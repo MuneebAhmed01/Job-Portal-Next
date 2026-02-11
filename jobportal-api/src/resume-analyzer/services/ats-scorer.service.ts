@@ -5,6 +5,7 @@ export interface AtsScoreBreakdown {
   keywords: number;
   structure: number;
   readability: number;
+  jobMatch: number;
 }
 
 export interface AtsAnalysisResult {
@@ -21,6 +22,13 @@ export interface AtsAnalysisResult {
     keywordMatches: string[];
     formattingIssues: string[];
     actionVerbCount: number;
+    jobMatchAnalysis?: {
+      skillMatches: string[];
+      experienceMatches: string[];
+      qualificationMatches: string[];
+      missingKeywords: string[];
+      matchPercentage: number;
+    };
   };
 }
 
@@ -45,7 +53,7 @@ export class AtsScorerService {
     'contact', 'summary', 'objective', 'experience', 'work', 'education', 'skills'
   ];
 
-  analyzeResume(text: string): AtsAnalysisResult {
+  analyzeResume(text: string, jobDescription?: string): AtsAnalysisResult {
     const lowerText = text.toLowerCase();
     
     const analysis = {
@@ -58,12 +66,13 @@ export class AtsScorerService {
       wordCount: text.split(/\s+/).filter(word => word.length > 0).length,
       keywordMatches: this.findKeywords(lowerText),
       formattingIssues: this.checkFormattingIssues(text),
-      actionVerbCount: this.countActionVerbs(lowerText)
+      actionVerbCount: this.countActionVerbs(lowerText),
+      jobMatchAnalysis: jobDescription ? this.analyzeJobMatch(lowerText, jobDescription.toLowerCase()) : undefined
     };
 
     const breakdown = this.calculateScores(analysis);
     const score = Math.round(
-      (breakdown.formatting + breakdown.keywords + breakdown.structure + breakdown.readability) / 4
+      (breakdown.formatting + breakdown.keywords + breakdown.structure + breakdown.readability + breakdown.jobMatch) / 5
     );
 
     return { score, breakdown, analysis };
@@ -114,6 +123,92 @@ export class AtsScorerService {
     return this.actionVerbs.filter(verb => text.includes(verb)).length;
   }
 
+  private analyzeJobMatch(resumeText: string, jobDescription: string) {
+    // Extract keywords from job description
+    const jobKeywords = this.extractJobKeywords(jobDescription);
+    const jobRequirements = this.extractJobRequirements(jobDescription);
+    const jobSkills = this.extractJobSkills(jobDescription);
+
+    // Find matches
+    const skillMatches = jobSkills.filter(skill => resumeText.includes(skill));
+    const experienceMatches = jobRequirements.filter(req => resumeText.includes(req));
+    const qualificationMatches = jobKeywords.filter(keyword => resumeText.includes(keyword));
+
+    // Find missing keywords
+    const allJobKeywords = [...jobSkills, ...jobRequirements, ...jobKeywords];
+    const missingKeywords = allJobKeywords.filter(keyword => !resumeText.includes(keyword));
+
+    // Calculate match percentage
+    const matchPercentage = allJobKeywords.length > 0 
+      ? (skillMatches.length + experienceMatches.length + qualificationMatches.length) / allJobKeywords.length * 100
+      : 0;
+
+    return {
+      skillMatches,
+      experienceMatches,
+      qualificationMatches,
+      missingKeywords,
+      matchPercentage: Math.round(matchPercentage)
+    };
+  }
+
+  private extractJobKeywords(jobDescription: string): string[] {
+    const keywords: string[] = [];
+    
+    // Education keywords
+    const educationKeywords = ['bachelor', 'master', 'phd', 'degree', 'certification', 'diploma'];
+    keywords.push(...educationKeywords.filter(keyword => jobDescription.includes(keyword)));
+    
+    // Experience level keywords
+    const experienceKeywords = ['entry level', 'junior', 'mid-level', 'senior', 'lead', 'manager', 'director'];
+    keywords.push(...experienceKeywords.filter(keyword => jobDescription.includes(keyword)));
+    
+    // Industry keywords
+    const industryKeywords = ['healthcare', 'finance', 'technology', 'retail', 'manufacturing', 'consulting'];
+    keywords.push(...industryKeywords.filter(keyword => jobDescription.includes(keyword)));
+    
+    return keywords;
+  }
+
+  private extractJobRequirements(jobDescription: string): string[] {
+    const requirements: string[] = [];
+    
+    // Years of experience
+    const yearMatches = jobDescription.match(/\d+\+?\s*years?/gi) || [];
+    requirements.push(...yearMatches);
+    
+    // Common requirements
+    const commonRequirements = [
+      'team player', 'communication skills', 'problem solving', 'analytical skills',
+      'leadership', 'project management', 'time management', 'attention to detail',
+      'customer service', 'sales experience', 'budget management', 'strategic planning'
+    ];
+    requirements.push(...commonRequirements.filter(req => jobDescription.includes(req)));
+    
+    return requirements;
+  }
+
+  private extractJobSkills(jobDescription: string): string[] {
+    const skills: string[] = [];
+    
+    // Extract technical keywords from job description
+    const jobWords = jobDescription.split(/\s+/).filter(word => word.length > 2);
+    
+    // Find technical skills from our predefined list
+    skills.push(...this.techKeywords.filter(skill => jobDescription.includes(skill)));
+    
+    // Extract potential skills from job description (capitalized words, technical terms)
+    const potentialSkills = jobWords.filter(word => 
+      /^[A-Z][a-z]+/.test(word) && 
+      word.length > 3 && 
+      !['the', 'and', 'for', 'with', 'you', 'will', 'your', 'that', 'this', 'are', 'have'].includes(word.toLowerCase())
+    );
+    
+    skills.push(...potentialSkills.slice(0, 10)); // Limit to avoid too many false positives
+    
+    return [...new Set(skills)]; // Remove duplicates
+  }
+
   private calculateScores(analysis: AtsAnalysisResult['analysis']): AtsScoreBreakdown {
     // Formatting Score (0-100)
     const formattingDeductions = analysis.formattingIssues.length * 10;
@@ -131,11 +226,15 @@ export class AtsScorerService {
     const actionVerbScore = Math.min(100, (analysis.actionVerbCount / 10) * 100);
     const readabilityScore = (wordScore + actionVerbScore) / 2;
 
+    // Job Match Score (0-100)
+    const jobMatchScore = analysis.jobMatchAnalysis ? analysis.jobMatchAnalysis.matchPercentage : 50;
+
     return {
       formatting: Math.round(formattingScore),
       keywords: Math.round(keywordScore),
       structure: Math.round(structureScore),
-      readability: Math.round(readabilityScore)
+      readability: Math.round(readabilityScore),
+      jobMatch: Math.round(jobMatchScore)
     };
   }
 }

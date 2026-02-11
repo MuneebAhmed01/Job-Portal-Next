@@ -26,8 +26,8 @@ export class ResumeAnalyzerService {
       throw new Error('Resume text is too short or could not be extracted');
     }
 
-    // Perform ATS analysis
-    const atsResult: AtsAnalysisResult = this.atsScorerService.analyzeResume(resumeText);
+    // Perform ATS analysis with job description if provided
+    const atsResult: AtsAnalysisResult = this.atsScorerService.analyzeResume(resumeText, dto.jobDescription);
 
     // Generate AI-powered analysis
     const aiResponse = await this.aiAnalysisService.generateAnalysis(atsResult);

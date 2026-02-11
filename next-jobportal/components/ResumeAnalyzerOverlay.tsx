@@ -11,12 +11,20 @@ interface ResumeAnalysis {
     keywords: number;
     structure: number;
     readability: number;
+    jobMatch: number;
   };
   strengths: string[];
   improvements: {
     structure: string[];
     content: string[];
     keywords: string[];
+  };
+  jobMatchAnalysis?: {
+    skillMatches: string[];
+    experienceMatches: string[];
+    qualificationMatches: string[];
+    missingKeywords: string[];
+    matchPercentage: number;
   };
 }
 
@@ -28,6 +36,8 @@ interface ResumeAnalyzerOverlayProps {
 export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyzerOverlayProps) {
   const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'analyzing'>('idle');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [jobDescription, setJobDescription] = useState('');
+  const [jobTitle, setJobTitle] = useState('');
   const [analysis, setAnalysis] = useState<ResumeAnalysis | null>(null);
   const [error, setError] = useState('');
 
@@ -55,6 +65,14 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
 
     const formData = new FormData();
     formData.append('file', selectedFile);
+    
+    if (jobDescription.trim()) {
+      formData.append('jobDescription', jobDescription);
+    }
+    
+    if (jobTitle.trim()) {
+      formData.append('jobTitle', jobTitle);
+    }
 
     try {
       setUploadState('analyzing');
@@ -81,6 +99,8 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
   const resetAnalysis = () => {
     setAnalysis(null);
     setSelectedFile(null);
+    setJobDescription('');
+    setJobTitle('');
     setUploadState('idle');
     setError('');
   };
@@ -163,6 +183,40 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
                 </label>
               </div>
 
+              {/* Job Information */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Job Title (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={jobTitle}
+                    onChange={(e) => setJobTitle(e.target.value)}
+                    placeholder="e.g. Senior Software Engineer"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500/50 transition-colors"
+                    disabled={uploadState !== 'idle'}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Job Description (Optional - for better ATS matching)
+                  </label>
+                  <textarea
+                    value={jobDescription}
+                    onChange={(e) => setJobDescription(e.target.value)}
+                    placeholder="Paste the job description here to get a more accurate ATS score based on specific requirements..."
+                    rows={6}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500/50 transition-colors resize-none"
+                    disabled={uploadState !== 'idle'}
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Including job description helps match your resume to specific requirements and provides a more accurate ATS score.
+                  </p>
+                </div>
+              </div>
+
               {error && (
                 <div className="glass rounded-xl p-4 flex items-center gap-3 text-red-400">
                   <AlertCircle size={20} />
@@ -222,7 +276,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
               {/* Score Breakdown */}
               <div className="glass rounded-xl p-6">
                 <h4 className="text-lg font-bold text-white mb-4">Score Breakdown</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <div className="text-center">
                     <div className={`text-2xl font-bold ${getScoreColor(analysis.scoreBreakdown.formatting)}`}>
                       {analysis.scoreBreakdown.formatting}
@@ -247,8 +301,96 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
                     </div>
                     <div className="text-sm text-gray-400">Readability</div>
                   </div>
+                  <div className="text-center">
+                    <div className={`text-2xl font-bold ${getScoreColor(analysis.scoreBreakdown.jobMatch)}`}>
+                      {analysis.scoreBreakdown.jobMatch}
+                    </div>
+                    <div className="text-sm text-gray-400">Job Match</div>
+                  </div>
                 </div>
               </div>
+
+              {/* Job Match Analysis */}
+              {analysis.jobMatchAnalysis && (
+                <div className="glass rounded-xl p-6">
+                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <Target className="text-blue-400" size={20} />
+                    Job Description Match Analysis
+                  </h4>
+                  
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-300">Overall Match</span>
+                      <span className={`text-sm font-bold ${getScoreColor(analysis.jobMatchAnalysis.matchPercentage)}`}>
+                        {analysis.jobMatchAnalysis.matchPercentage}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-white/10 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-500 ${
+                          analysis.jobMatchAnalysis.matchPercentage >= 80 ? 'bg-green-500' :
+                          analysis.jobMatchAnalysis.matchPercentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${analysis.jobMatchAnalysis.matchPercentage}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {analysis.jobMatchAnalysis.skillMatches.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-green-400 mb-2">Matching Skills</p>
+                        <div className="flex flex-wrap gap-2">
+                          {analysis.jobMatchAnalysis.skillMatches.map((skill, index) => (
+                            <span key={index} className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full">
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {analysis.jobMatchAnalysis.experienceMatches.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-blue-400 mb-2">Matching Experience</p>
+                        <div className="flex flex-wrap gap-2">
+                          {analysis.jobMatchAnalysis.experienceMatches.map((exp, index) => (
+                            <span key={index} className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full">
+                              {exp}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {analysis.jobMatchAnalysis.qualificationMatches.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-purple-400 mb-2">Matching Qualifications</p>
+                        <div className="flex flex-wrap gap-2">
+                          {analysis.jobMatchAnalysis.qualificationMatches.map((qual, index) => (
+                            <span key={index} className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full">
+                              {qual}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {analysis.jobMatchAnalysis.missingKeywords.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-orange-400 mb-2">Missing Keywords</p>
+                        <div className="flex flex-wrap gap-2">
+                          {analysis.jobMatchAnalysis.missingKeywords.map((keyword, index) => (
+                            <span key={index} className="px-2 py-1 bg-orange-500/20 text-orange-300 text-xs rounded-full">
+                              {keyword}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Strengths */}
               {analysis.strengths.length > 0 && (
