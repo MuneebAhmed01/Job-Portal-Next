@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { Menu, X, User } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import AuthOverlay from "./AuthOverlay";
 import ProfileOverlay from "./ProfileOverlay";
 
 const navLinks = [
@@ -18,7 +17,6 @@ export default function Navbar() {
   const { user } = useAuth();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
@@ -29,8 +27,8 @@ export default function Navbar() {
         
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
           
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 flex items-center justify-center">
+          <div className="flex items-center ">
+            <div className="w-9 h-9 text-xl flex items-center justify-center">
               ✦
             </div>
             <span className="text-white font-semibold text-xl tracking-wide">
@@ -72,18 +70,12 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <button 
-                  onClick={() => setIsAuthOpen(true)}
-                  className="text-white/70 hover:text-white transition"
-                >
+                <Link href="/signin" className="text-white/70 hover:text-white transition">
                   Log in
-                </button>
-                <button
-                  onClick={() => setIsAuthOpen(true)}
-                  className="px-4 py-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-medium transition"
-                >
+                </Link>
+                <Link href="/signup" className="px-4 py-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-medium transition">
                   Sign Up
-                </button>
+                </Link>
               </>
             )}
 
@@ -139,36 +131,18 @@ export default function Navbar() {
                 </>
               ) : (
                 <>
-                  <button
-                    onClick={() => {
-                      setMobileOpen(false);
-                      setIsAuthOpen(true);
-                    }}
-                    className="text-white/80 hover:text-white"
-                  >
+                  <Link href="/signin" className="text-white/80 hover:text-white">
                     Log in
-                  </button>
-                  <button
-                    onClick={() => {
-                      setMobileOpen(false);
-                      setIsAuthOpen(true);
-                    }}
-                    className="px-4 py-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-medium transition"
-                  >
+                  </Link>
+                  <Link href="/signup" className="px-4 py-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-medium transition">
                     Sign Up
-                  </button>
+                  </Link>
                 </>
               )}
             </div>
           </div>
         )}
       </header>
-
-      {/* Auth Overlay */}
-      <AuthOverlay isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
-      
-      {/* Profile Overlay */}
-      <ProfileOverlay isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </>
   );
 }

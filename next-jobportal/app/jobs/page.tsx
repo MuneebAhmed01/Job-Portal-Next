@@ -88,7 +88,7 @@ export default function JobsPage() {
       <div className="relative bg-gradient-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
         <Navbar />
       </div>
-      <main className="min-h-screen pt-20" style={{ background: 'linear-gradient(to bottom right, #020617, #0b0f19, #0f172a)' }}>
+      <main className="min-h-screen " style={{ background: 'linear-gradient(to bottom right, #020617, #0b0f19, #0f172a)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h1 className="text-4xl font-bold text-white mb-8 border-b border-white/20 pb-4">Available Jobs</h1>
 

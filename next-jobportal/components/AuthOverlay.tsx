@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { X, User, Lock, Mail, Phone, FileText, Briefcase, Search, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -13,7 +14,16 @@ interface AuthOverlayProps {
 export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
   const router = useRouter();
   const { login } = useAuth();
-  const [isSignup, setIsSignup] = useState(true);
+  const pathname = usePathname();
+  
+  // Determine if user should see signup or signin form based on current route
+  const getInitialSignupState = () => {
+    if (pathname?.includes('signup')) return true;
+    if (pathname?.includes('signin')) return false;
+    return true; // Default to signup
+  };
+  
+  const [isSignup, setIsSignup] = useState(getInitialSignupState);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -282,12 +292,12 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
           <div className="mt-6 text-center">
             <p className="text-gray-400 text-sm">
               {isSignup ? 'Already have an account?' : "Don't have an account?"}
-              <button
-                onClick={() => setIsSignup(!isSignup)}
+              <Link 
+                href={isSignup ? "/signin" : "/signup"}
                 className="ml-2 text-purple-400 hover:text-purple-300 font-medium"
               >
                 {isSignup ? 'Sign In' : 'Sign Up'}
-              </button>
+              </Link>
             </p>
           </div>
         </div>
