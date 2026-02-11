@@ -34,6 +34,8 @@ export default function EmployerDashboard() {
   const [loading, setLoading] = useState(true);
   const [showJobForm, setShowJobForm] = useState(false);
   const [activeTab, setActiveTab] = useState<'jobs' | 'applicants'>('jobs');
+  const [editingJob, setEditingJob] = useState<Job | null>(null);
+  const [viewingApplicants, setViewingApplicants] = useState<Job | null>(null);
 
   useEffect(() => {
     fetchMyJobs();
@@ -42,7 +44,7 @@ export default function EmployerDashboard() {
 
   const fetchMyJobs = async () => {
     try {
-      const res = await fetch('http://localhost:3002/jobs', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -60,7 +62,11 @@ export default function EmployerDashboard() {
 
   const fetchApplicants = async () => {
     try {
-      const res = await fetch('http://localhost:3002/applications/my-applications', {
+      const url = viewingApplicants 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/jobs/${viewingApplicants.id}/applications`
+        : `${process.env.NEXT_PUBLIC_API_URL}/applications/my-applications`;
+      
+      const res = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -74,9 +80,17 @@ export default function EmployerDashboard() {
     }
   };
 
+  useEffect(() => {
+    fetchMyJobs();
+  }, []);
+
+  useEffect(() => {
+    fetchApplicants();
+  }, [viewingApplicants]);
+
   const handlePostJob = async (jobData: any) => {
     try {
-      const res = await fetch('http://localhost:3002/jobs', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,10 +101,47 @@ export default function EmployerDashboard() {
 
       if (res.ok) {
         setShowJobForm(false);
+        setEditingJob(null);
         fetchMyJobs();
       }
     } catch (error) {
       console.error('Failed to post job:', error);
+    }
+  };
+
+  const handleEditJob = (job: Job) => {
+    setEditingJob(job);
+    setShowJobForm(true);
+  };
+
+  const handleViewApplicants = (job: Job) => {
+    setViewingApplicants(job);
+    setActiveTab('applicants');
+  };
+
+  const handleBackToJobs = () => {
+    setViewingApplicants(null);
+    setActiveTab('jobs');
+  };
+
+  const handleUpdateJob = async (jobData: any) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs/${editingJob?.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(jobData)
+      });
+
+      if (res.ok) {
+        setShowJobForm(false);
+        setEditingJob(null);
+        fetchMyJobs();
+      }
+    } catch (error) {
+      console.error('Failed to update job:', error);
     }
   };
 
@@ -233,10 +284,16 @@ export default function EmployerDashboard() {
                   </div>
                   <p className="text-gray-300 line-clamp-2 mb-4">{job.description}</p>
                   <div className="flex gap-3">
-                    <button className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors">
+                    <button 
+                      onClick={() => handleViewApplicants(job)}
+                      className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors"
+                    >
                       View Applicants
                     </button>
-                    <button className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors">
+                    <button 
+                      onClick={() => handleEditJob(job)}
+                      className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors"
+                    >
                       Edit Job
                     </button>
                   </div>
@@ -246,6 +303,24 @@ export default function EmployerDashboard() {
           </div>
         ) : (
           <div className="space-y-4">
+            {viewingApplicants && (
+              <div className="mb-6 p-4 glass rounded-xl">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">
+                      Applicants for: {viewingApplicants.title}
+                    </h3>
+                    <p className="text-gray-400 text-sm">{viewingApplicants.company}</p>
+                  </div>
+                  <button
+                    onClick={handleBackToJobs}
+                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-white"
+                  >
+                    ← Back to Jobs
+                  </button>
+                </div>
+              </div>
+            )}
             {applicants.length === 0 ? (
               <div className="text-center py-12">
                 <Users className="text-gray-600 mx-auto mb-4" size={48} />
@@ -296,8 +371,17 @@ export default function EmployerDashboard() {
       {showJobForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-6">Post New Job</h2>
-            <JobForm onSubmit={handlePostJob} onCancel={() => setShowJobForm(false)} />
+            <h2 className="text-2xl font-bold mb-6">
+              {editingJob ? 'Edit Job' : 'Post New Job'}
+            </h2>
+            <JobForm 
+              onSubmit={editingJob ? handleUpdateJob : handlePostJob} 
+              onCancel={() => {
+                setShowJobForm(false);
+                setEditingJob(null);
+              }}
+              initialData={editingJob}
+            />
           </div>
         </div>
       )}
@@ -306,7 +390,11 @@ export default function EmployerDashboard() {
 }
 
 // Simple Job Form Component
-function JobForm({ onSubmit, onCancel }: { onSubmit: (data: any) => void; onCancel: () => void }) {
+function JobForm({ onSubmit, onCancel, initialData }: { 
+  onSubmit: (data: any) => void; 
+  onCancel: () => void; 
+  initialData?: Job | null; 
+}) {
   const [formData, setFormData] = useState({
     title: '',
     company: '',
@@ -315,6 +403,29 @@ function JobForm({ onSubmit, onCancel }: { onSubmit: (data: any) => void; onCanc
     type: 'FULL_TIME',
     description: ''
   });
+
+  // Update form when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        title: initialData.title || '',
+        company: initialData.company || '',
+        location: initialData.location || '',
+        salary: initialData.salary || '',
+        type: initialData.type || 'FULL_TIME',
+        description: initialData.description || ''
+      });
+    } else {
+      setFormData({
+        title: '',
+        company: '',
+        location: '',
+        salary: '',
+        type: 'FULL_TIME',
+        description: ''
+      });
+    }
+  }, [initialData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

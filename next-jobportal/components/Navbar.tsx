@@ -143,6 +143,9 @@ export default function Navbar() {
           </div>
         )}
       </header>
+      
+      {/* Profile Overlay */}
+      <ProfileOverlay isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </>
   );
 }

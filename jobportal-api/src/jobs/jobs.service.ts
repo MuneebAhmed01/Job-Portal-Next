@@ -51,6 +51,21 @@ export class JobsService {
     
     return (this.prisma as any).jobApplication.findMany({
       where: { jobId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            bio: true,
+            resumePath: true,
+          },
+        },
+      },
+      orderBy: {
+        appliedAt: 'desc',
+      },
     });
   }
 
@@ -186,6 +201,59 @@ export class JobsService {
       },
       orderBy: {
         savedAt: 'desc',
+      },
+    });
+  }
+
+  async updateJob(id: string, updateJobDto: CreateJobDto, employerId: string) {
+    // First check if job exists and belongs to employer
+    const existingJob = await (this.prisma as any).job.findUnique({
+      where: { id },
+    });
+
+    if (!existingJob) {
+      throw new NotFoundException('Job not found');
+    }
+
+    if (existingJob.employerId !== employerId) {
+      throw new ForbiddenException('You can only update your own jobs');
+    }
+
+    return (this.prisma as any).job.update({
+      where: { id },
+      data: updateJobDto,
+    });
+  }
+
+  async getJobApplications(jobId: string, employerId: string) {
+    const job = await (this.prisma as any).job.findUnique({
+      where: { id: jobId },
+    });
+    
+    if (!job) {
+      throw new NotFoundException('Job not found');
+    }
+    
+    if (job.employerId !== employerId) {
+      throw new ForbiddenException('You can only view applicants for your own jobs');
+    }
+    
+    return (this.prisma as any).jobApplication.findMany({
+      where: { jobId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            bio: true,
+            resumePath: true,
+          },
+        },
+      },
+      orderBy: {
+        appliedAt: 'desc',
       },
     });
   }
