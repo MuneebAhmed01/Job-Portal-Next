@@ -4,6 +4,7 @@ import "./globals.css";
 import ReduxProvider from "@/providers/ReduxProvider";
 import ThemeProvider from "@/providers/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
+import BackToTop from "@/components/BackToTop";
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -53,6 +54,7 @@ export default function RootLayout({
               <main>
                 {children}
               </main>
+              <BackToTop />
             </AuthProvider>
           </ThemeProvider>
         </ReduxProvider>

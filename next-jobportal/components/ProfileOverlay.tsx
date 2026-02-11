@@ -102,7 +102,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative glass-dark rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-slide-up">
+      <div className="relative max-w-4xl w-full max-h-[90vh] overflow-hidden animate-slide-up bg-gray-800">
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div className="flex items-center gap-4">
             {(activeTab === 'post-job' || activeTab === 'my-jobs') && (
@@ -113,21 +113,17 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                 <ChevronLeft className="text-gray-400" size={20} />
               </button>
             )}
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#F54900' }}>
+              <User className="text-white" size={20} />
+            </div>
             <h2 className="text-xl font-bold text-white">
               {activeTab === 'profile' && 'My Profile'}
               {activeTab === 'post-job' && 'Post a New Job'}
               {activeTab === 'my-jobs' && 'My Posted Jobs'}
             </h2>
-            {activeTab === 'profile' && (
-              <Link
-                href="/dashboard"
-                className="p-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors text-white text-sm"
-              >
-                View Dashboard
-              </Link>
-            )}
+          
           </div>
-          <button onClick={onClose} className="w-10 h-10 rounded-xl glass hover-lift flex items-center justify-center">
+          <button onClick={onClose} className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
             <X className="text-gray-400" size={20} />
           </button>
         </div>
@@ -137,7 +133,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
           {activeTab === 'profile' && (
             <div className="space-y-6">
               <div className="text-center">
-                <div className="w-20 h-20 bg-linear-to-tbr from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#F54900' }}>
                   <User className="text-white" size={40} />
                 </div>
                 <h3 className="text-xl font-bold text-white">{user.name}</h3>
@@ -186,11 +182,12 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                   </>
                 ) : (
                   <button
+                  
                     onClick={() => {
                       onClose();
                       router.push('/jobs');
                     }}
-                    className="w-full py-3 bg-linear-to-tr from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift flex items-center justify-center gap-2"
+                    className="w-full py-3 bg-linear-to-br from-[#020617] via-[#0b0f19] to-[#0f172a] rounded-xl text-white font-bold hover-lift flex items-center justify-center gap-2"
                   >
                     <Briefcase size={20} />
                     Browse Available Jobs
@@ -290,7 +287,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-linear-to-tr from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" style={{ backgroundColor: '#F54900' }}
               >
                 {loading ? (
                   <>

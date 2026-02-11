@@ -74,22 +74,22 @@ export default function JobsPage() {
       <div className="relative bg-gradient-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
         <Navbar />
       </div>
-      <main className="min-h-screen pt-20 bg-slate-50 dark:bg-gray-900">
+      <main className="min-h-screen pt-20" style={{ background: 'linear-gradient(to bottom right, #020617, #0b0f19, #0f172a)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">Available Jobs</h1>
+          <h1 className="text-4xl font-bold text-white mb-8 border-b border-white/20 pb-4">Available Jobs</h1>
 
           {loading && (
-            <p className="text-gray-600 dark:text-gray-400">Loading jobs...</p>
+            <p className="text-gray-300">Loading jobs...</p>
           )}
           
           {error && (
-            <div className="p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-lg">
+            <div className="p-4 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400">
               {error}
             </div>
           )}
           
           {!loading && !error && jobs.length === 0 && (
-            <p className="text-gray-600 dark:text-gray-400">No jobs available.</p>
+            <p className="text-gray-300">No jobs available.</p>
           )}
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

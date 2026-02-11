@@ -117,7 +117,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-linear-to-tbr from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#F54900' }}>
               <FileText className="text-white" size={20} />
             </div>
             <div>
@@ -127,7 +127,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
           </div>
           <button
             onClick={closeOverlay}
-            className="w-10 h-10 rounded-xl glass hover-lift flex items-center justify-center transition-colors"
+            className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
           >
             <X className="text-gray-400" size={20} />
           </button>
@@ -138,7 +138,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
           {!analysis ? (
             <div className="space-y-6">
               {/* Upload Area */}
-              <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-purple-500/50 transition-colors">
+              <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-orange-500/50 transition-colors">
                 <input
                   type="file"
                   accept=".pdf"
@@ -213,7 +213,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
               {/* Summary */}
               <div className="glass rounded-xl p-6">
                 <h4 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                  <Award className="text-purple-400" size={20} />
+                  <Award className="text-orange-400" size={20} />
                   Analysis Summary
                 </h4>
                 <p className="text-gray-300 leading-relaxed">{analysis.summary}</p>
@@ -281,11 +281,11 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
                   <div className="space-y-4">
                     {analysis.improvements.structure.length > 0 && (
                       <div>
-                        <p className="text-sm font-medium text-purple-400 mb-2">Structure</p>
+                        <p className="text-sm font-medium text-orange-400 mb-2">Structure</p>
                         <ul className="space-y-1">
                           {analysis.improvements.structure.map((item, index) => (
                             <li key={index} className="text-gray-300 text-sm flex items-start gap-2">
-                              <span className="w-1 h-1 bg-purple-400 rounded-full mt-1.5 shrink-0" />
+                              <span className="w-1 h-1 bg-orange-400 rounded-full mt-1.5 shrink-0" />
                               {item}
                             </li>
                           ))}
@@ -295,7 +295,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
                     
                     {analysis.improvements.content.length > 0 && (
                       <div>
-                        <p className="text-sm font-medium text-blue-400 mb-2">Content</p>
+                        <p className="text-sm font-medium text-orange-400 mb-2">Content</p>
                         <ul className="space-y-1">
                           {analysis.improvements.content.map((item, index) => (
                             <li key={index} className="text-gray-300 text-sm flex items-start gap-2">
@@ -309,11 +309,11 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
                     
                     {analysis.improvements.keywords.length > 0 && (
                       <div>
-                        <p className="text-sm font-medium text-green-400 mb-2">Keywords</p>
+                        <p className="text-sm font-medium text-orange-400 mb-2">Keywords</p>
                         <ul className="space-y-1">
                           {analysis.improvements.keywords.map((item, index) => (
                             <li key={index} className="text-gray-300 text-sm flex items-start gap-2">
-                              <span className="w-1 h-1 bg-green-400 rounded-full mt-1.5 shrink-0" />
+                              <span className="w-1 h-1 bg-orange-400 rounded-full mt-1.5 shrink-0" />
                               {item}
                             </li>
                           ))}

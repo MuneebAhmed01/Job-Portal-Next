@@ -97,7 +97,7 @@ export default function AboutPage() {
       </div>
       <main className="min-h-screen pt-16">
         {/* Hero Section */}
-        <section className="bg-linear-to-br from-blue-600 to-indigo-700 text-white py-20">
+        <section className="py-20" style={{ background: 'linear-gradient(to bottom right, #020617, #0b0f19, #0f172a)' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
               About <span className="text-blue-200">Hire</span><span className="text-red-300">Heaven</span>
@@ -110,16 +110,16 @@ export default function AboutPage() {
         </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-white dark:bg-gray-800 -mt-10">
+      <section className="py-16 -mt-10" style={{ background: 'linear-gradient(to bottom right, #020617, #0b0f19, #0f172a)' }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="rounded-2xl shadow-xl p-8 grid grid-cols-2 md:grid-cols-4 gap-8" style={{ backgroundColor: '#1a1f2e' }}>
             {stats.map(({ value, label, icon: Icon }) => (
               <div key={label} className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-4">
-                  <Icon className="w-6 h-6 text-blue-600" />
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full mb-4" style={{ backgroundColor: '#F54900' }}>
+                  <Icon className="w-6 h-6 text-white" />
                 </div>
-                <div className="text-3xl font-bold text-gray-900 dark:text-white">{value}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">{label}</div>
+                <div className="text-3xl font-bold text-white">{value}</div>
+                <div className="text-sm text-gray-300">{label}</div>
               </div>
             ))}
           </div>
@@ -127,14 +127,14 @@ export default function AboutPage() {
       </section>
 
       {/* Our Story Section */}
-      <section className="py-20 bg-slate-50 dark:bg-gray-900">
+      <section className="py-20" style={{ background: 'linear-gradient(to bottom right, #020617, #0b0f19, #0f172a)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
                 Our Story
               </h2>
-              <div className="space-y-4 text-gray-600 dark:text-gray-400 leading-relaxed">
+              <div className="space-y-4 text-gray-300 leading-relaxed">
                 <p>
                   Founded in 2024, HireHeaven started with a simple observation: the job search process was broken. 
                   Talented individuals were getting lost in the noise, and great companies were struggling to find the right fit.
@@ -151,12 +151,12 @@ export default function AboutPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               {values.map(({ icon: Icon, title, description }) => (
-                <div key={title} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
-                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-4">
-                    <Icon className="w-5 h-5 text-blue-600" />
+                <div key={title} className="p-6 rounded-xl shadow-sm" style={{ backgroundColor: '#1a1f2e' }}>
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style={{ backgroundColor: '#F54900' }}>
+                    <Icon className="w-5 h-5 text-white" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
+                  <h3 className="font-semibold text-white mb-2">{title}</h3>
+                  <p className="text-sm text-gray-300">{description}</p>
                 </div>
               ))}
             </div>
@@ -165,24 +165,24 @@ export default function AboutPage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-white dark:bg-gray-800">
+      <section className="py-20" style={{ background: 'linear-gradient(to bottom right, #020617, #0b0f19, #0f172a)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Why Choose HireHeaven?
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            <p className="text-gray-300 max-w-2xl mx-auto">
               We combine technology with human insight to deliver the best job search experience
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map(({ icon: Icon, title, description }) => (
-              <div key={title} className="text-center p-6 rounded-xl hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
-                <div className="inline-flex items-center justify-center w-14 h-14 bg-linear-to-br from-blue-500 to-indigo-600 rounded-xl mb-4">
+              <div key={title} className="text-center p-6 rounded-xl hover:bg-white/5 transition-colors">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl mb-4" style={{ backgroundColor: '#F54900' }}>
                   <Icon className="w-7 h-7 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
+                <h3 className="font-semibold text-white mb-2">{title}</h3>
+                <p className="text-sm text-gray-300">{description}</p>
               </div>
             ))}
           </div>
@@ -190,19 +190,19 @@ export default function AboutPage() {
       </section>
 
       {/* Team Section */}
-      <section className="py-20 bg-slate-50 dark:bg-gray-900">
+      <section className="py-20" style={{ background: 'linear-gradient(to bottom right, #020617, #0b0f19, #0f172a)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Meet Our Team
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            <p className="text-gray-300 max-w-2xl mx-auto">
               Passionate individuals dedicated to transforming careers
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {team.map(({ name, role, image }) => (
-              <div key={name} className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
+              <div key={name} className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow" style={{ backgroundColor: '#1a1f2e' }}>
                 <div className="aspect-square relative">
                   <img
                     src={image}
@@ -211,8 +211,8 @@ export default function AboutPage() {
                   />
                 </div>
                 <div className="p-4 text-center">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">{name}</h3>
-                  <p className="text-sm text-blue-600">{role}</p>
+                  <h3 className="font-semibold text-white">{name}</h3>
+                  <p className="text-sm" style={{ color: '#F54900' }}>{role}</p>
                 </div>
               </div>
             ))}
@@ -224,24 +224,25 @@ export default function AboutPage() {
       <Testimonials />
 
       {/* CTA Section */}
-      <section className="py-20 bg-linear-to-r from-blue-600 to-indigo-700 text-white">
+      <section className="py-20" style={{ background: 'linear-gradient(to bottom right, #020617, #0b0f19, #0f172a)' }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
             Ready to Find Your Dream Job?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-gray-300 mb-8">
             Join thousands of professionals who&apos;ve transformed their careers with HireHeaven
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a
               href="/jobs"
-              className="inline-flex items-center gap-2 bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 rounded-lg font-semibold transition-colors"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-lg font-semibold transition-colors text-white"
+              style={{ backgroundColor: '#F54900' }}
             >
               Browse Jobs
             </a>
             <a
               href="/resume-analyzer"
-              className="inline-flex items-center gap-2 bg-transparent border-2 border-white text-white hover:bg-white/10 px-8 py-4 rounded-lg font-semibold transition-colors"
+              className="inline-flex items-center gap-2 border-2 border-white text-white hover:bg-white/10 px-8 py-4 rounded-lg font-semibold transition-colors"
             >
               Analyze Your Resume
             </a>

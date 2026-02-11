@@ -132,7 +132,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-linear-to-tbr from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#F54900' }}>
               <Sparkles className="text-white" size={20} />
             </div>
             <div>
@@ -142,7 +142,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
           </div>
           <button
             onClick={closeOverlay}
-            className="w-10 h-10 rounded-xl glass hover-lift flex items-center justify-center transition-colors"
+            className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
           >
             <X className="text-gray-400" size={20} />
           </button>
@@ -164,11 +164,11 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                     onChange={(e) => setCurrentSkill(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addSkill()}
                     placeholder="e.g., React, Node.js, Python..."
-                    className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors"
+                    className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
                   />
                   <button
                     onClick={addSkill}
-                    className="px-4 py-3 bg-linear-to-tr from-purple-500 to-pink-500 rounded-xl text-white font-medium hover-lift flex items-center gap-2"
+                    className="px-4 py-3 rounded-xl text-white font-medium hover-lift flex items-center gap-2" style={{ backgroundColor: '#F54900' }}
                   >
                     <Plus size={18} />
                     Add
@@ -206,7 +206,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
               <button
                 onClick={analyzeSkills}
                 disabled={isLoading || skills.length === 0}
-                className="w-full py-4 bg-linear-to-tr from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                className="w-full py-4 rounded-xl text-white font-bold hover-lift disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3" style={{ backgroundColor: '#F54900' }}
               >
                 {isLoading ? (
                   <>
@@ -230,8 +230,8 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">Your Career Analysis</h3>
                 <div className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full">
-                  <Briefcase size={16} className="text-purple-400" />
-                  <span className="text-sm font-medium text-purple-400">{analysis.primaryCareerTitle}</span>
+                  <Briefcase size={16} className="text-orange-400" />
+                  <span className="text-sm font-medium text-orange-400">{analysis.primaryCareerTitle}</span>
                 </div>
               </div>
 
@@ -244,7 +244,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
               {/* Recommended Career Paths - Multiple Options */}
               <div>
                 <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <TrendingUp size={20} className="text-purple-400" />
+                  <TrendingUp size={20} className="text-orange-400" />
                   Recommended Career Paths
                 </h4>
                 <div className="space-y-4">
@@ -265,17 +265,17 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                             <span className="text-2xl font-bold text-green-400">{path.matchScore}%</span>
                             <p className="text-xs text-gray-500">match</p>
                           </div>
-                          <ChevronRight className="text-purple-400" size={20} />
+                          <ChevronRight className="text-orange-400" size={20} />
                         </div>
                       </div>
                       
                       <div className="space-y-3 mt-4">
                         <div>
-                          <p className="text-sm font-medium text-purple-400 mb-2">Key Responsibilities</p>
+                          <p className="text-sm font-medium text-orange-400 mb-2">Key Responsibilities</p>
                           <ul className="space-y-1">
                             {path.keyResponsibilities.map((responsibility, idx) => (
                               <li key={idx} className="text-sm text-gray-300 flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-1.5 shrink-0" />
+                                <span className="w-1.5 h-1.5 bg-orange-400 rounded-full mt-1.5 shrink-0" />
                                 {responsibility}
                               </li>
                             ))}
@@ -313,7 +313,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                   <div className="space-y-4">
                     {analysis.skillsToEnhance.map((category, catIndex) => (
                       <div key={catIndex} className="glass rounded-xl p-5">
-                        <h5 className="text-sm font-medium text-purple-400 mb-3">{category.category}</h5>
+                        <h5 className="text-sm font-medium text-orange-400 mb-3">{category.category}</h5>
                         <div className="space-y-2">
                           {category.skills.map((skill, skillIndex) => (
                             <div 
@@ -383,7 +383,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                 </button>
                 <button
                   onClick={closeOverlay}
-                  className="flex-1 py-3 bg-linear-to-tr from-purple-500 to-pink-500 rounded-xl text-white font-medium hover-lift"
+                  className="flex-1 py-3 rounded-xl text-white font-medium hover-lift" style={{ backgroundColor: '#F54900' }}
                 >
                   Got it!
                 </button>

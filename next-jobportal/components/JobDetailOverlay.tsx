@@ -194,7 +194,8 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyCh
             <button
               onClick={handleApply}
               disabled={applying}
-              className="w-full py-3 bg-linear-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 rounded-xl text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: '#F54900' }}
             >
               {applying ? 'Applying...' : 'Apply Now'}
             </button>

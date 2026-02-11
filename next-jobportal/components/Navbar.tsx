@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Menu, X, User } from "lucide-react";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthOverlay from "./AuthOverlay";
 import ProfileOverlay from "./ProfileOverlay";
@@ -15,6 +16,7 @@ const navLinks = [
 
 export default function Navbar() {
   const { user } = useAuth();
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -38,7 +40,13 @@ export default function Navbar() {
 
           <nav className="hidden md:flex items-center gap-10 text-white/80 text-sm font-medium">
             {navLinks.map(link => (
-              <Link key={link.href} href={link.href} className="hover:text-white transition">
+              <Link key={link.href} href={link.href} 
+                className={`transition ${
+                  pathname === link.href 
+                    ? 'text-orange-500 font-semibold' 
+                    : 'hover:text-white'
+                }`}
+              >
                 {link.label}
               </Link>
             ))}
@@ -98,7 +106,11 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className="text-white/80 hover:text-white"
+                  className={`transition ${
+                    pathname === link.href 
+                      ? 'text-orange-500 font-semibold' 
+                      : 'text-white/80 hover:text-white'
+                  }`}
                 >
                   {link.label}
                 </Link>

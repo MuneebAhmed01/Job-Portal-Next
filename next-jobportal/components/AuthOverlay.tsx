@@ -111,10 +111,10 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative glass-dark rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-slide-up">
+      <div className="relative max-w-md w-full max-h-[90vh] overflow-y-auto animate-slide-up" style={{ background: 'linear-gradient(to bottom right, #020617, #0b0f19, #0f172a)' }}>
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#F54900' }}>
               <User className="text-white" size={20} />
             </div>
             <div>
@@ -122,7 +122,7 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
               <p className="text-sm text-gray-400">{isSignup ? 'Join our community' : 'Sign in to continue'}</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-10 h-10 rounded-xl glass hover-lift flex items-center justify-center">
+          <button onClick={onClose} className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
             <X className="text-gray-400" size={20} />
           </button>
         </div>
@@ -145,7 +145,7 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
+                      className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500"
                       placeholder="John Doe"
                       required
                     />
@@ -160,7 +160,7 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
+                      className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500"
                       placeholder="+1234567890"
                       required
                     />
@@ -175,11 +175,11 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
                       onClick={() => setFormData({ ...formData, role: 'FIND_JOB' })}
                       className={`p-3 rounded-xl border-2 transition-all ${
                         formData.role === 'FIND_JOB'
-                          ? 'border-purple-500 bg-purple-500/20'
+                          ? 'border-orange-500 bg-orange-500/20'
                           : 'border-white/20 hover:border-white/40'
                       }`}
                     >
-                      <Search className="mx-auto mb-2 text-purple-400" size={20} />
+                      <Search className="mx-auto mb-2 text-orange-400" size={20} />
                       <span className="text-sm text-white">Find Job</span>
                     </button>
                     <button
@@ -187,11 +187,11 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
                       onClick={() => setFormData({ ...formData, role: 'HIRE_TALENT' })}
                       className={`p-3 rounded-xl border-2 transition-all ${
                         formData.role === 'HIRE_TALENT'
-                          ? 'border-pink-500 bg-pink-500/20'
+                          ? 'border-orange-500 bg-orange-500/20'
                           : 'border-white/20 hover:border-white/40'
                       }`}
                     >
-                      <Briefcase className="mx-auto mb-2 text-pink-400" size={20} />
+                      <Briefcase className="mx-auto mb-2 text-orange-400" size={20} />
                       <span className="text-sm text-white">Hire Talent</span>
                     </button>
                   </div>
@@ -240,7 +240,7 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
+                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500"
                   placeholder="you@gmail.com"
                   required
                 />
@@ -255,7 +255,7 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
+                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500"
                   placeholder="••••••••"
                   required
                   minLength={6}
@@ -266,7 +266,7 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" style={{ backgroundColor: '#F54900' }}
             >
               {loading ? (
                 <>

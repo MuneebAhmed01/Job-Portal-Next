@@ -218,9 +218,9 @@ export default function EmployeeDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom right, #020617, #0b0f19, #0f172a)' }}>
       {/* Header */}
-      <div className="bg-gray-800 border-b border-gray-700">
+      <div className="border-b border-white/10" style={{ backgroundColor: '#1a1f2e' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
@@ -230,14 +230,14 @@ export default function EmployeeDashboard() {
             <div className="flex items-center gap-3">
               <Link 
                 href="/resume-analyzer"
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-white hover:bg-white/10" style={{ backgroundColor: '#F54900' }}
               >
                 <FileText size={20} />
                 Analyze Resume
               </Link>
               <Link 
                 href="/career-guidance"
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-white hover:bg-white/10"
               >
                 <TrendingUp size={20} />
                 Career Guidance
