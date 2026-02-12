@@ -51,7 +51,8 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  User: 'User',
+  Employee: 'Employee',
+  Employer: 'Employer',
   Job: 'Job',
   JobApplication: 'JobApplication',
   SavedJob: 'SavedJob',
@@ -75,30 +76,43 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
-export const UserScalarFieldEnum = {
+export const EmployeeScalarFieldEnum = {
   id: 'id',
+  name: 'name',
+  phone: 'phone',
   email: 'email',
   password: 'password',
-  name: 'name',
-  role: 'role',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  resumePath: 'resumePath',
+  bio: 'bio',
+  createdAt: 'createdAt'
 } as const
 
-export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+export type EmployeeScalarFieldEnum = (typeof EmployeeScalarFieldEnum)[keyof typeof EmployeeScalarFieldEnum]
+
+
+export const EmployerScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  phone: 'phone',
+  companyName: 'companyName',
+  email: 'email',
+  password: 'password',
+  bio: 'bio',
+  createdAt: 'createdAt'
+} as const
+
+export type EmployerScalarFieldEnum = (typeof EmployerScalarFieldEnum)[keyof typeof EmployerScalarFieldEnum]
 
 
 export const JobScalarFieldEnum = {
   id: 'id',
-  title: 'title',
-  company: 'company',
-  location: 'location',
-  salary: 'salary',
-  type: 'type',
-  description: 'description',
   employerId: 'employerId',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  title: 'title',
+  description: 'description',
+  location: 'location',
+  salaryRange: 'salaryRange',
+  status: 'status',
+  createdAt: 'createdAt'
 } as const
 
 export type JobScalarFieldEnum = (typeof JobScalarFieldEnum)[keyof typeof JobScalarFieldEnum]
@@ -107,12 +121,7 @@ export type JobScalarFieldEnum = (typeof JobScalarFieldEnum)[keyof typeof JobSca
 export const JobApplicationScalarFieldEnum = {
   id: 'id',
   jobId: 'jobId',
-  userId: 'userId',
-  name: 'name',
-  email: 'email',
-  phone: 'phone',
-  bio: 'bio',
-  resumePath: 'resumePath',
+  employeeId: 'employeeId',
   appliedAt: 'appliedAt'
 } as const
 
@@ -122,7 +131,7 @@ export type JobApplicationScalarFieldEnum = (typeof JobApplicationScalarFieldEnu
 export const SavedJobScalarFieldEnum = {
   id: 'id',
   jobId: 'jobId',
-  userId: 'userId',
+  employeeId: 'employeeId',
   savedAt: 'savedAt'
 } as const
 

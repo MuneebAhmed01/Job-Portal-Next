@@ -8,7 +8,8 @@
  *
  * 🟢 You can import this file directly.
  */
-export type * from './models/User'
+export type * from './models/Employee'
+export type * from './models/Employer'
 export type * from './models/Job'
 export type * from './models/JobApplication'
 export type * from './models/SavedJob'

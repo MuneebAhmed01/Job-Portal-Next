@@ -8,25 +8,24 @@ export class ApplicantsController {
 
   @Get(':id')
   async getApplicantBio(@Param('id') id: string) {
-    const user = await this.authService.findUserById(id);
-    if (!user) {
+    const employee = await this.authService.findEmployeeById(id);
+    if (!employee) {
       throw new NotFoundException('Applicant not found');
     }
-    return user;
+    return employee;
   }
 
   @Get(':id/resume')
   async downloadResume(@Param('id') id: string, @Res() res: Response) {
-    const user = await this.authService.findUserById(id);
-    if (!user) {
+    const employee = await this.authService.findEmployeeById(id);
+    if (!employee) {
       throw new NotFoundException('Applicant not found');
     }
-    
-    // Note: Resume handling would need to be updated based on new user structure
-    // For now, return a message that resume feature needs to be updated
-    return {
-      message: 'Resume download feature needs to be updated for new user structure',
-      userId: id,
-    };
+
+    if (!employee.resumePath) {
+      throw new NotFoundException('Resume not found for this applicant');
+    }
+
+    return res.sendFile(employee.resumePath);
   }
 }

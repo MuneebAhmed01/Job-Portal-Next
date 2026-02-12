@@ -9,10 +9,10 @@
 * 🟢 You can import this file directly.
 */
 
-export const UserRole = {
-  USER: 'USER',
-  EMPLOYER: 'EMPLOYER',
-  ADMIN: 'ADMIN'
+export const JobStatus = {
+  ACTIVE: 'ACTIVE',
+  CLOSED: 'CLOSED',
+  DRAFT: 'DRAFT'
 } as const
 
-export type UserRole = (typeof UserRole)[keyof typeof UserRole]
+export type JobStatus = (typeof JobStatus)[keyof typeof JobStatus]

@@ -136,8 +136,8 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyCh
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-white mb-1">{job.title}</h2>
-              {job.company && (
-                <p className="text-base text-purple-400 font-medium">{job.company}</p>
+              {job.employer?.companyName && (
+                <p className="text-base text-purple-400 font-medium">{job.employer.companyName}</p>
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -164,13 +164,13 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyCh
 
         <div className="flex-1 p-6 overflow-y-auto">
           {/* Company Info Section */}
-          {job.company && (
+          {job.employer?.companyName && (
             <div className="mb-6 p-4 bg-gray-700/30 rounded-lg border border-gray-600/30">
               <div className="flex items-center gap-3 mb-2">
                 <Building2 size={20} className="text-purple-400" />
                 <h3 className="text-lg font-semibold text-white">Company</h3>
               </div>
-              <p className="text-gray-200 text-lg">{job.company}</p>
+              <p className="text-gray-200 text-lg">{job.employer.companyName}</p>
             </div>
           )}
 
@@ -188,24 +188,24 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyCh
             )}
 
             {/* Salary Section */}
-            {job.salary && (
+            {job.salaryRange && (
               <div className="p-4 bg-gray-700/30 rounded-lg border border-gray-600/30">
                 <div className="flex items-center gap-2 mb-2">
                   <DollarSign size={18} className="text-green-400" />
-                  <h4 className="font-semibold text-white">Estimated Salary</h4>
+                  <h4 className="font-semibold text-white">Salary Range</h4>
                 </div>
-                <p className="text-gray-200 text-lg font-medium">{job.salary}</p>
+                <p className="text-gray-200 text-lg font-medium">{job.salaryRange}</p>
               </div>
             )}
 
-            {/* Job Type Section */}
-            {job.type && (
+            {/* Job Status Section */}
+            {job.status && (
               <div className="p-4 bg-gray-700/30 rounded-lg border border-gray-600/30">
                 <div className="flex items-center gap-2 mb-2">
                   <Clock size={18} className="text-orange-400" />
-                  <h4 className="font-semibold text-white">Job Type</h4>
+                  <h4 className="font-semibold text-white">Status</h4>
                 </div>
-                <p className="text-gray-200">{job.type}</p>
+                <p className="text-gray-200">{job.status}</p>
               </div>
             )}
 

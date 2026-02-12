@@ -5,15 +5,22 @@ import { Briefcase, MapPin, DollarSign, Heart, ExternalLink, FileText, TrendingU
 import { useAuth } from '@/contexts/AuthContext';
 import JobDetailOverlay from '@/components/JobDetailOverlay';
 
+interface Employer {
+  id: string;
+  name: string;
+  companyName: string;
+}
+
 interface Job {
   id: string;
   title: string;
-  company: string;
-  location: string;
-  salary: string;
-  type: string;
   description: string;
+  location: string;
+  salaryRange: string;
+  status: 'ACTIVE' | 'CLOSED' | 'DRAFT';
   createdAt: string;
+  employerId: string;
+  employer?: Employer;
   saved?: boolean;
   applied?: boolean;
 }
@@ -35,7 +42,7 @@ export default function EmployeeDashboard() {
   const fetchSavedJobs = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:3002/jobs/saved', {
+      const res = await fetch('http://localhost:3002/jobs/employee/saved', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -45,7 +52,7 @@ export default function EmployeeDashboard() {
         console.log('Saved jobs data:', data);
         
         // Also fetch applied jobs to check which saved jobs are also applied
-        const appliedRes = await fetch('http://localhost:3002/jobs/my-applications', {
+        const appliedRes = await fetch('http://localhost:3002/jobs/employee/applications', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -74,22 +81,23 @@ export default function EmployeeDashboard() {
 
   const fetchAppliedJobs = async () => {
     try {
-      const res = await fetch('http://localhost:3002/jobs/my-applications', {
+      const res = await fetch('http://localhost:3002/jobs/employee/applications', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
       if (res.ok) {
         const data = await res.json();
-        // Extract job data from applications
+        // Extract job data from applications and mark as applied
         const jobsWithApplicationInfo = data.map((application: any) => ({
           ...application.job,
           appliedAt: application.appliedAt,
           applicationId: application.id,
+          applied: true, // Always true since these are applied jobs
         }));
         
         // Check which applied jobs are also saved
-        const savedRes = await fetch('http://localhost:3002/jobs/saved', {
+        const savedRes = await fetch('http://localhost:3002/jobs/employee/saved', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -104,7 +112,8 @@ export default function EmployeeDashboard() {
           // Mark applied jobs as saved if they exist in saved jobs
           const jobsWithSavedStatus = jobsWithApplicationInfo.map((job: any) => ({
             ...job,
-            saved: savedJobIds.includes(job.id)
+            saved: savedJobIds.includes(job.id),
+            applied: true, // Keep applied status
           }));
           
           console.log('Applied jobs after marking:', jobsWithSavedStatus);
@@ -328,7 +337,7 @@ export default function EmployeeDashboard() {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="text-xl font-semibold text-white mb-2">{job.title}</h3>
-                      <p className="text-purple-400 font-medium mb-2">{job.company}</p>
+                      <p className="text-purple-400 font-medium mb-2">{job.employer?.companyName || 'Company'}</p>
                       <div className="flex items-center gap-4 text-gray-400 text-sm">
                         <span className="flex items-center gap-1">
                           <MapPin size={16} />
@@ -336,7 +345,7 @@ export default function EmployeeDashboard() {
                         </span>
                         <span className="flex items-center gap-1">
                           <DollarSign size={16} />
-                          {job.salary}
+                          {job.salaryRange}
                         </span>
                       </div>
                     </div>
@@ -383,7 +392,7 @@ export default function EmployeeDashboard() {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="text-xl font-semibold text-white mb-2">{job.title}</h3>
-                      <p className="text-purple-400 font-medium mb-2">{job.company}</p>
+                      <p className="text-purple-400 font-medium mb-2">{job.employer?.companyName || 'Company'}</p>
                       <div className="flex items-center gap-4 text-gray-400 text-sm">
                         <span className="flex items-center gap-1">
                           <MapPin size={16} />
@@ -391,7 +400,7 @@ export default function EmployeeDashboard() {
                         </span>
                         <span className="flex items-center gap-1">
                           <DollarSign size={16} />
-                          {job.salary}
+                          {job.salaryRange}
                         </span>
                       </div>
                     </div>

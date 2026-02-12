@@ -24,7 +24,7 @@ interface ProfileOverlayProps {
 
 export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps) {
   const router = useRouter();
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, isEmployer } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [myJobs, setMyJobs] = useState<Job[]>([]);
@@ -37,8 +37,6 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
     salary: '',
     type: 'FULL_TIME'
   });
-
-  const isEmployer = user?.role === 'EMPLOYER';
 
   const fetchMyJobs = async () => {
     try {

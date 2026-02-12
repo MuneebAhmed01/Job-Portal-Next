@@ -1,40 +1,69 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../lib/prisma/prisma.service';
-import { User, UserRole } from '../lib/prisma/client';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async create(userData: { email: string; password: string; name: string; role?: UserRole }) {
-    const user = await this.prisma.user.create({
-      data: userData,
+  // Employee operations
+  async createEmployee(data: { email: string; password: string; name: string; phone: string; bio?: string }) {
+    const employee = await this.prisma.employee.create({
+      data,
     });
 
-    // Log user creation
     await this.prisma.userLog.create({
       data: {
-        userId: user.id,
-        action: 'user_created',
-        message: `User ${user.email} created successfully`,
+        userId: employee.id,
+        action: 'employee_created',
+        message: `Employee ${employee.email} created successfully`,
       },
     });
 
-    return user;
+    return employee;
   }
 
-  async findByEmail(email: string) {
-    return this.prisma.user.findUnique({
+  async findEmployeeByEmail(email: string) {
+    return this.prisma.employee.findUnique({
       where: { email },
     });
   }
 
-  async findById(id: string) {
-    return this.prisma.user.findUnique({
+  async findEmployeeById(id: string) {
+    return this.prisma.employee.findUnique({
       where: { id },
     });
   }
 
+  // Employer operations
+  async createEmployer(data: { email: string; password: string; name: string; phone: string; companyName: string; bio?: string }) {
+    const employer = await this.prisma.employer.create({
+      data,
+    });
+
+    await this.prisma.employerLog.create({
+      data: {
+        employerId: employer.id,
+        action: 'employer_created',
+        message: `Employer ${employer.email} created successfully`,
+      },
+    });
+
+    return employer;
+  }
+
+  async findEmployerByEmail(email: string) {
+    return this.prisma.employer.findUnique({
+      where: { email },
+    });
+  }
+
+  async findEmployerById(id: string) {
+    return this.prisma.employer.findUnique({
+      where: { id },
+    });
+  }
+
+  // Logging operations
   async logUserAction(userId: string, action: string, message?: string) {
     await this.prisma.userLog.create({
       data: {

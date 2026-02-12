@@ -1,4 +1,4 @@
-import { Controller, Post, Body, BadRequestException, UseInterceptors, UploadedFile, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseInterceptors, UploadedFile, Get, Headers, UnauthorizedException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
 import type { SignupDto } from './dto/signup.dto';
@@ -12,11 +12,8 @@ export class AuthController {
   @UseInterceptors(FileInterceptor('resume'))
   async signup(
     @Body() signupDto: SignupDto,
-    @UploadedFile() resume: any
+    @UploadedFile() resume?: Express.Multer.File
   ) {
-    if (!resume) {
-      throw new BadRequestException('Resume is required');
-    }
     return this.authService.signup(signupDto, resume);
   }
 
@@ -25,21 +22,29 @@ export class AuthController {
     return this.authService.signin(signinDto);
   }
 
+  @Get('me')
+  async getMe(@Headers('authorization') authHeader: string) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('No token provided');
+    }
+    
+    const token = authHeader.split(' ')[1];
+    const payload = this.authService.verifyToken(token);
+    
+    if (payload.userType === 'employee') {
+      return this.authService.findEmployeeById(payload.sub);
+    } else {
+      return this.authService.findEmployerById(payload.sub);
+    }
+  }
+
   @Get('verify-token')
   async verifyToken(@Body() body: { token: string }) {
     try {
       const payload = this.authService.verifyToken(body.token);
-      return {
-        valid: true,
-        payload,
-        message: 'Token is valid'
-      };
-    } catch (error) {
-      return {
-        valid: false,
-        error: error.message,
-        message: 'Token is invalid'
-      };
+      return { valid: true, payload, message: 'Token is valid' };
+    } catch {
+      return { valid: false, message: 'Token is invalid' };
     }
   }
 }

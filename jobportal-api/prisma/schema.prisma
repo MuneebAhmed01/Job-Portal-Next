@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../src/lib/prisma"
@@ -13,36 +10,51 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String
-  role      UserRole @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// Employee model - for job seekers
+model Employee {
+  id         String   @id @default(cuid())
+  name       String
+  phone      String
+  email      String   @unique
+  password   String
+  resumePath String?
+  bio        String?
+  createdAt  DateTime @default(now())
 
-  jobsCreated  Job[]            @relation("JobCreator")
-  applications JobApplication[] @relation("JobApplicant")
-  savedJobs    SavedJob[]       @relation("JobSaver")
+  applications JobApplication[] @relation("EmployeeApplications")
+  savedJobs    SavedJob[]       @relation("EmployeeSavedJobs")
 
-  @@map("users")
+  @@map("employees")
+}
+
+// Employer model - for companies/recruiters
+model Employer {
+  id          String   @id @default(cuid())
+  name        String
+  phone       String
+  companyName String
+  email       String   @unique
+  password    String
+  bio         String?
+  createdAt   DateTime @default(now())
+
+  jobs Job[] @relation("EmployerJobs")
+
+  @@map("employers")
 }
 
 model Job {
-  id          String   @id @default(cuid())
-  title       String
-  company     String
-  location    String
-  salary      String
-  type        String
-  description String
+  id          String    @id @default(cuid())
   employerId  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  title       String
+  description String
+  location    String
+  salaryRange String
+  status      JobStatus @default(ACTIVE)
+  createdAt   DateTime  @default(now())
 
+  employer     Employer         @relation("EmployerJobs", fields: [employerId], references: [id], onDelete: Cascade)
   applications JobApplication[] @relation("JobApplications")
-  creator      User?            @relation("JobCreator", fields: [employerId], references: [id])
   savedBy      SavedJob[]       @relation("SavedJobs")
 
   @@map("jobs")
@@ -51,37 +63,32 @@ model Job {
 model JobApplication {
   id         String   @id @default(cuid())
   jobId      String
-  userId     String
-  name       String
-  email      String
-  phone      String?
-  bio        String?
-  resumePath String?
+  employeeId String
   appliedAt  DateTime @default(now())
 
- 
-  job       Job  @relation("JobApplications", fields: [jobId], references: [id], onDelete: Cascade)
-  applicant User @relation("JobApplicant", fields: [userId], references: [id])
+  job      Job      @relation("JobApplications", fields: [jobId], references: [id], onDelete: Cascade)
+  employee Employee @relation("EmployeeApplications", fields: [employeeId], references: [id], onDelete: Cascade)
 
+  @@unique([jobId, employeeId])
   @@map("job_applications")
 }
 
 model SavedJob {
-  id      String   @id @default(cuid())
-  jobId   String
-  userId  String
-  savedAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  jobId      String
+  employeeId String
+  savedAt    DateTime @default(now())
 
+  job      Job      @relation("SavedJobs", fields: [jobId], references: [id], onDelete: Cascade)
+  employee Employee @relation("EmployeeSavedJobs", fields: [employeeId], references: [id], onDelete: Cascade)
 
-  job  Job  @relation("SavedJobs", fields: [jobId], references: [id], onDelete: Cascade)
-  user User @relation("JobSaver", fields: [userId], references: [id])
-
-  @@unique([jobId, userId]) 
+  @@unique([jobId, employeeId])
   @@map("saved_jobs")
 }
 
 model UserLog {
   id        String   @id @default(cuid())
+  
   userId    String
   action    String
   message   String?
@@ -93,15 +100,15 @@ model UserLog {
 model EmployerLog {
   id         String   @id @default(cuid())
   employerId String
-  action     String 
+  action     String
   message    String?
   createdAt  DateTime @default(now())
 
   @@map("employer_logs")
 }
 
-enum UserRole {
-  USER
-  EMPLOYER
-  ADMIN
+enum JobStatus {
+  ACTIVE
+  CLOSED
+  DRAFT
 }

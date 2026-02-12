@@ -6,10 +6,11 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: 'USER' | 'EMPLOYER' | 'ADMIN';
   phone: string;
+  userType: 'employee' | 'employer';
   bio?: string;
   resumePath?: string;
+  companyName?: string; // For employers
 }
 
 interface AuthContextType {
@@ -18,6 +19,8 @@ interface AuthContextType {
   login: (user: User, token: string) => void;
   logout: () => void;
   isLoading: boolean;
+  isEmployee: boolean;
+  isEmployer: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -71,8 +74,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('user');
   };
 
+  const isEmployee = user?.userType === 'employee';
+  const isEmployer = user?.userType === 'employer';
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, isLoading, isEmployee, isEmployer }}>
       {children}
     </AuthContext.Provider>
   );

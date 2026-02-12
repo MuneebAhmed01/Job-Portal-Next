@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 
 export default function DashboardPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isEmployee, isEmployer } = useAuth();
 
   if (isLoading) {
     return (
@@ -38,8 +38,8 @@ export default function DashboardPage() {
     );
   }
 
-  // Role-based rendering
-  if (user.role === 'EMPLOYER') {
+  // User type based rendering
+  if (isEmployer) {
     return (
       <>
         <div className="relative bg-gradient-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
@@ -50,7 +50,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (user.role === 'USER') {
+  if (isEmployee) {
     return (
       <>
         <div className="relative bg-gradient-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
@@ -68,8 +68,8 @@ export default function DashboardPage() {
       </div>
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Invalid Role</h1>
-          <p className="text-gray-400">Your user role is not recognized.</p>
+          <h1 className="text-2xl font-bold text-white mb-4">Invalid User Type</h1>
+          <p className="text-gray-400">Your user type is not recognized.</p>
         </div>
       </div>
     </>

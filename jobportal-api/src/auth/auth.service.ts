@@ -1,8 +1,7 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../lib/prisma/prisma.service';
-import { UserRole } from '../lib/prisma/client';
-import type { SignupDto } from './dto/signup.dto';
+import type { SignupDto, EmployeeSignupDto, EmployerSignupDto } from './dto/signup.dto';
 import type { SigninDto } from './dto/signin.dto';
 import * as bcrypt from 'bcrypt';
 
@@ -13,158 +12,226 @@ export class AuthService {
     private prismaService: PrismaService,
   ) {}
 
-  async signup(signupDto: SignupDto, resume: any) {
-    console.log('Signup DTO received:', signupDto);
-    
-    // Check existing user
-    const existingUser = await this.prismaService.user.findUnique({
-      where: { email: signupDto.email },
-    });
-    if (existingUser) {
-      throw new UnauthorizedException('Email already registered');
-    }
-
-    // Hash password
+  async signup(signupDto: SignupDto, resume?: Express.Multer.File) {
     const hashedPassword = await bcrypt.hash(signupDto.password, 10);
 
-    // Convert role string to enum
-    let userRole: UserRole;
-    console.log('Original role:', signupDto.role);
-    
-    // Handle role conversion explicitly
-    if (signupDto.role === 'FIND_JOB' || !signupDto.role) {
-      userRole = UserRole.USER;
-      console.log('Setting role to USER (FIND_JOB)');
-    } else if (signupDto.role === 'HIRE_TALENT') {
-      userRole = UserRole.EMPLOYER;
-      console.log('Setting role to EMPLOYER (HIRE_TALENT)');
-    } else if (signupDto.role === 'USER') {
-      userRole = UserRole.USER;
-      console.log('Setting role to USER');
-    } else if (signupDto.role === 'EMPLOYER') {
-      userRole = UserRole.EMPLOYER;
-      console.log('Setting role to EMPLOYER');
-    } else if (signupDto.role === 'ADMIN') {
-      userRole = UserRole.ADMIN;
-      console.log('Setting role to ADMIN');
+    if (signupDto.userType === 'employee') {
+      return this.signupEmployee(signupDto as EmployeeSignupDto, hashedPassword, resume);
     } else {
-      userRole = UserRole.USER;
-      console.log('Defaulting to USER for unknown role:', signupDto.role);
+      return this.signupEmployer(signupDto as EmployerSignupDto, hashedPassword);
     }
-    
-    console.log('Final converted role:', userRole);
-    console.log('Available UserRole values:', Object.values(UserRole));
+  }
 
-    // Create user
-    console.log('About to create user with role:', userRole);
-    const user = await this.prismaService.user.create({
+  private async signupEmployee(dto: EmployeeSignupDto, hashedPassword: string, resume?: Express.Multer.File) {
+    // Check existing employee
+    const existingEmployee = await this.prismaService.employee.findUnique({
+      where: { email: dto.email },
+    });
+    if (existingEmployee) {
+      throw new BadRequestException('Email already registered');
+    }
+
+    // Create employee
+    const employee = await this.prismaService.employee.create({
       data: {
-        email: signupDto.email,
+        name: dto.name,
+        email: dto.email,
         password: hashedPassword,
-        name: signupDto.name,
-        role: userRole,
+        phone: dto.phone,
+        bio: dto.bio || null,
+        resumePath: resume?.path || null,
       },
     });
-    console.log('User created successfully:', user);
 
-    // Log user data sent to database
+    // Log employee creation
     await this.prismaService.userLog.create({
       data: {
-        userId: user.id,
-        action: 'user_created',
-        message: `User data sent to database: ${JSON.stringify({ email: user.email, name: user.name, role: user.role })}`,
+        userId: employee.id,
+        action: 'employee_created',
+        message: `Employee ${employee.email} created successfully`,
       },
     });
-
-    // Log employer specific data if applicable
-    if (userRole === UserRole.EMPLOYER) {
-      await this.prismaService.employerLog.create({
-        data: {
-          employerId: user.id,
-          action: 'employer_data_sent',
-          message: `Employer data sent to database: ${JSON.stringify({ email: user.email, name: user.name })}`,
-        },
-      });
-    }
 
     // Generate token
     const token = this.jwtService.sign({
-      sub: user.id,
-      email: user.email,
-      role: userRole
+      sub: employee.id,
+      email: employee.email,
+      userType: 'employee',
     });
 
-    console.log('Generated token for user:', { id: user.id, email: user.email, role: userRole });
+    return {
+      user: {
+        id: employee.id,
+        email: employee.email,
+        name: employee.name,
+        phone: employee.phone,
+        userType: 'employee',
+      },
+      token,
+    };
+  }
 
-    // Return user without password
-    return { 
-      user: { 
-        id: user.id, 
-        email: user.email, 
-        name: user.name, 
-        role: userRole 
-      }, 
-      token 
+  private async signupEmployer(dto: EmployerSignupDto, hashedPassword: string) {
+    // Check existing employer
+    const existingEmployer = await this.prismaService.employer.findUnique({
+      where: { email: dto.email },
+    });
+    if (existingEmployer) {
+      throw new BadRequestException('Email already registered');
+    }
+
+    // Create employer
+    const employer = await this.prismaService.employer.create({
+      data: {
+        name: dto.name,
+        email: dto.email,
+        password: hashedPassword,
+        phone: dto.phone,
+        companyName: dto.companyName,
+        bio: dto.bio || null,
+      },
+    });
+
+    // Log employer creation
+    await this.prismaService.employerLog.create({
+      data: {
+        employerId: employer.id,
+        action: 'employer_created',
+        message: `Employer ${employer.email} created successfully`,
+      },
+    });
+
+    // Generate token
+    const token = this.jwtService.sign({
+      sub: employer.id,
+      email: employer.email,
+      userType: 'employer',
+    });
+
+    return {
+      user: {
+        id: employer.id,
+        email: employer.email,
+        name: employer.name,
+        phone: employer.phone,
+        companyName: employer.companyName,
+        userType: 'employer',
+      },
+      token,
     };
   }
 
   async signin(signinDto: SigninDto) {
-    const user = await this.prismaService.user.findUnique({
-      where: { email: signinDto.email },
+    if (signinDto.userType === 'employee') {
+      return this.signinEmployee(signinDto.email, signinDto.password);
+    } else {
+      return this.signinEmployer(signinDto.email, signinDto.password);
+    }
+  }
+
+  private async signinEmployee(email: string, password: string) {
+    const employee = await this.prismaService.employee.findUnique({
+      where: { email },
     });
-    if (!user) {
+    if (!employee) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(signinDto.password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, employee.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Log user login
+    // Log employee login
     await this.prismaService.userLog.create({
       data: {
-        userId: user.id,
-        action: 'user_login',
-        message: `User ${user.email} logged in successfully`,
+        userId: employee.id,
+        action: 'employee_login',
+        message: `Employee ${employee.email} logged in successfully`,
       },
     });
 
     const token = this.jwtService.sign({
-      sub: user.id,
-      email: user.email,
-      role: user.role
+      sub: employee.id,
+      email: employee.email,
+      userType: 'employee',
     });
 
-    return { 
-      user: { 
-        id: user.id, 
-        email: user.email, 
-        name: user.name, 
-        role: user.role 
-      }, 
-      token 
+    return {
+      user: {
+        id: employee.id,
+        email: employee.email,
+        name: employee.name,
+        phone: employee.phone,
+        userType: 'employee',
+      },
+      token,
     };
   }
 
-  async findUserById(id: string) {
-    const user = await this.prismaService.user.findUnique({
-      where: { id },
+  private async signinEmployer(email: string, password: string) {
+    const employer = await this.prismaService.employer.findUnique({
+      where: { email },
     });
-    if (!user) {
-      return null;
+    if (!employer) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Return user without password
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    const isPasswordValid = await bcrypt.compare(password, employer.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Log employer login
+    await this.prismaService.employerLog.create({
+      data: {
+        employerId: employer.id,
+        action: 'employer_login',
+        message: `Employer ${employer.email} logged in successfully`,
+      },
+    });
+
+    const token = this.jwtService.sign({
+      sub: employer.id,
+      email: employer.email,
+      userType: 'employer',
+    });
+
+    return {
+      user: {
+        id: employer.id,
+        email: employer.email,
+        name: employer.name,
+        phone: employer.phone,
+        companyName: employer.companyName,
+        userType: 'employer',
+      },
+      token,
+    };
+  }
+
+  async findEmployeeById(id: string) {
+    const employee = await this.prismaService.employee.findUnique({
+      where: { id },
+    });
+    if (!employee) return null;
+    const { password, ...result } = employee;
+    return { ...result, userType: 'employee' };
+  }
+
+  async findEmployerById(id: string) {
+    const employer = await this.prismaService.employer.findUnique({
+      where: { id },
+    });
+    if (!employer) return null;
+    const { password, ...result } = employer;
+    return { ...result, userType: 'employer' };
   }
 
   verifyToken(token: string) {
     try {
-      const payload = this.jwtService.verify(token);
-      return payload;
-    } catch (error) {
+      return this.jwtService.verify(token);
+    } catch {
       throw new UnauthorizedException('Invalid token');
     }
   }

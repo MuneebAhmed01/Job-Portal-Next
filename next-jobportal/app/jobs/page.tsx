@@ -22,12 +22,12 @@ export default function JobsPage() {
       // If user is logged in, fetch saved jobs and applied jobs to mark jobs accordingly
       if (user && token) {
         const [savedRes, appliedRes] = await Promise.all([
-          fetch(`${apiUrl}/jobs/saved`, {
+          fetch(`${apiUrl}/jobs/employee/saved`, {
             headers: {
               'Authorization': `Bearer ${token}`
             }
           }),
-          fetch(`${apiUrl}/jobs/my-applications`, {
+          fetch(`${apiUrl}/jobs/employee/applications`, {
             headers: {
               'Authorization': `Bearer ${token}`
             }

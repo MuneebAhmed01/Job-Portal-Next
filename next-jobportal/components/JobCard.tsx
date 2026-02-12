@@ -22,11 +22,11 @@ export default function JobCard({ job, onSaveChange, onApplyChange }: JobCardPro
             {job.title}
           </h3>
           <p className="text-gray-400 font-medium">
-            {job.company}
+            {job.employer?.companyName || 'Company'}
           </p>
         </div>
         <span className="bg-linear-to-t900 text-green-200 text-sm px-3 py-1 rounded-full">
-          {job.salary}
+          {job.salaryRange}
         </span>
       </div>
       
