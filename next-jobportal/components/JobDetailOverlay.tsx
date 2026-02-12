@@ -176,8 +176,8 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyCh
 
           {/* Job Details Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {/* Location Section */}
-            {job.location && (
+            {/* Location Section - only show if not REMOTE */}
+            {job.location && job.type !== 'REMOTE' && (
               <div className="p-4 bg-gray-700/30 rounded-lg border border-gray-600/30">
                 <div className="flex items-center gap-2 mb-2">
                   <MapPin size={18} className="text-blue-400" />
@@ -205,11 +205,13 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyCh
                   <Briefcase size={18} className="text-cyan-400" />
                   <h4 className="font-semibold text-white">Job Type</h4>
                 </div>
-                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                  job.type === 'REMOTE' ? 'bg-blue-900/50 text-blue-300' :
-                  job.type === 'HYBRID' ? 'bg-purple-900/50 text-purple-300' :
-                  'bg-gray-700 text-gray-300'
-                }`}>
+                <span 
+                  className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                    job.type === 'HYBRID' ? 'bg-amber-900/50 text-amber-300' :
+                    job.type === 'ONSITE' ? 'bg-gray-700 text-gray-300' : 'text-white'
+                  }`}
+                  style={job.type === 'REMOTE' ? { backgroundColor: '#364153' } : {}}
+                >
                   {job.type}
                 </span>
               </div>

@@ -17,11 +17,15 @@ interface Job {
   employer?: {
     companyName: string;
   };
-  applicants?: number;
+  applications?: any[];
+  _count?: {
+    applications: number;
+  };
 }
 
 interface Applicant {
   id: string;
+  employeeId: string;
   name: string;
   email: string;
   phone: string;
@@ -65,9 +69,12 @@ export default function EmployerDashboard() {
 
   const fetchApplicants = async () => {
     try {
-      const url = viewingApplicants 
-        ? `${process.env.NEXT_PUBLIC_API_URL}/jobs/${viewingApplicants.id}/applications`
-        : `${process.env.NEXT_PUBLIC_API_URL}/applications/my-applications`;
+      if (!viewingApplicants) {
+        setApplicants([]);
+        return;
+      }
+      
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/jobs/${viewingApplicants.id}/applicants`;
       
       const res = await fetch(url, {
         headers: {
@@ -76,7 +83,18 @@ export default function EmployerDashboard() {
       });
       if (res.ok) {
         const data = await res.json();
-        setApplicants(data);
+        // Map the response to flat applicant structure
+        const mappedApplicants = data.map((app: any) => ({
+          id: app.id,
+          employeeId: app.employee.id,
+          name: app.employee.name,
+          email: app.employee.email,
+          phone: app.employee.phone,
+          bio: app.employee.bio,
+          resumePath: app.employee.resumePath,
+          appliedAt: app.appliedAt,
+        }));
+        setApplicants(mappedApplicants);
       }
     } catch (error) {
       console.error('Failed to fetch applicants:', error);
@@ -178,14 +196,14 @@ export default function EmployerDashboard() {
                 <p className="text-gray-400 text-sm">Active Jobs</p>
                 <p className="text-2xl font-bold mt-1">{jobs.length}</p>
               </div>
-              <Briefcase className="text-purple-500" size={24} />
+              <Briefcase className="text-orange-500" size={24} />
             </div>
           </div>
           <div className="bg-gray-800 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Total Applicants</p>
-                <p className="text-2xl font-bold mt-1">{applicants.length}</p>
+                <p className="text-2xl font-bold mt-1">{jobs.reduce((sum, job) => sum + (job._count?.applications || job.applications?.length || 0), 0)}</p>
               </div>
               <Users className="text-blue-500" size={24} />
             </div>
@@ -218,7 +236,7 @@ export default function EmployerDashboard() {
             onClick={() => setActiveTab('jobs')}
             className={`pb-3 px-1 border-b-2 transition-colors ${
               activeTab === 'jobs'
-                ? 'border-purple-500 text-purple-500'
+                ? 'border-orange-500 text-orange-500'
                 : 'border-transparent text-gray-400 hover:text-white'
             }`}
           >
@@ -228,7 +246,7 @@ export default function EmployerDashboard() {
             onClick={() => setActiveTab('applicants')}
             className={`pb-3 px-1 border-b-2 transition-colors ${
               activeTab === 'applicants'
-                ? 'border-purple-500 text-purple-500'
+                ? 'border-orange-500 text-orange-500'
                 : 'border-transparent text-gray-400 hover:text-white'
             }`}
           >
@@ -243,7 +261,7 @@ export default function EmployerDashboard() {
           <div className="space-y-4">
             {loading ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
               </div>
             ) : jobs.length === 0 ? (
               <div className="text-center py-12">
@@ -252,7 +270,7 @@ export default function EmployerDashboard() {
                 <p className="text-gray-400 mb-6">Post your first job to start finding talent</p>
                 <button
                   onClick={() => setShowJobForm(true)}
-                  className="bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded-lg transition-colors"
+                  className="px-6 py-2 rounded-lg transition-colors text-white" style={{ backgroundColor: '#F54900' }}
                 >
                   Post Your First Job
                 </button>
@@ -264,10 +282,12 @@ export default function EmployerDashboard() {
                     <div>
                       <h3 className="text-xl font-semibold text-white mb-2">{job.title}</h3>
                       <div className="flex items-center gap-4 text-gray-400 text-sm">
-                        <span className="flex items-center gap-1">
-                          <MapPin size={16} />
-                          {job.location}
-                        </span>
+                        {job.type !== 'REMOTE' && (
+                          <span className="flex items-center gap-1">
+                            <MapPin size={16} />
+                            {job.location}
+                          </span>
+                        )}
                         <span className="flex items-center gap-1">
                           <DollarSign size={16} />
                           {job.salaryRange}
@@ -279,7 +299,7 @@ export default function EmployerDashboard() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-purple-400 font-medium">{job.applicants || 0} Applicants</p>
+                      <p className="text-orange-400 font-medium">{job._count?.applications || job.applications?.length || 0} Applicants</p>
                       <p className="text-gray-400 text-sm">
                         Posted {new Date(job.createdAt).toLocaleDateString()}
                       </p>
@@ -289,7 +309,7 @@ export default function EmployerDashboard() {
                   <div className="flex gap-3">
                     <button 
                       onClick={() => handleViewApplicants(job)}
-                      className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors"
+                      className="px-4 py-2 rounded-lg transition-colors text-white" style={{ backgroundColor: '#F54900' }}
                     >
                       View Applicants
                     </button>
@@ -335,7 +355,7 @@ export default function EmployerDashboard() {
                 <div key={applicant.id} className="bg-gray-800 rounded-xl p-6 hover:bg-gray-750 transition-colors">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#F54900' }}>
                         <span className="text-white font-bold">
                           {applicant.name.split(' ').map(n => n[0]).join('')}
                         </span>
@@ -353,14 +373,50 @@ export default function EmployerDashboard() {
                       </div>
                     </div>
                     <div className="flex gap-2">
+                      <Link 
+                        href={`/applicant/${applicant.employeeId}`}
+                        className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors"
+                      >
+                        View Profile
+                      </Link>
                       {applicant.resumePath && (
-                        <button className="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm transition-colors">
-                          View Resume
+                        <button 
+                          onClick={async () => {
+                            try {
+                              const token = localStorage.getItem('token');
+                              const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/applicants/${applicant.employeeId}/resume`, {
+                                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                              });
+                              if (response.ok) {
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `resume-${applicant.name}.pdf`;
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+                              } else {
+                                alert('Resume not available');
+                              }
+                            } catch (error) {
+                              alert('Failed to download resume');
+                            }
+                          }}
+                          className="px-3 py-1 rounded text-sm transition-colors text-white" style={{ backgroundColor: '#F54900' }}
+                        >
+                          Download Resume
                         </button>
                       )}
-                      <button className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm transition-colors">
+                      <a 
+                        href={`https://mail.google.com/mail/?view=cm&fs=1&to=${applicant.email}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm transition-colors"
+                      >
                         Contact
-                      </button>
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -403,20 +459,22 @@ function JobForm({ onSubmit, onCancel, initialData }: {
     location: '',
     salaryMin: '',
     salaryMax: '',
-    description: ''
+    description: '',
+    type: 'ONSITE' as 'ONSITE' | 'REMOTE' | 'HYBRID'
   });
 
   // Update form when initialData changes
   useEffect(() => {
     if (initialData) {
-      // Parse salaryRange like "20-30 LPA" into min/max
-      const salaryMatch = initialData.salaryRange?.match(/(\d+)-(\d+)/);
+      // Parse salaryRange like "$20k-$30k" into min/max
+      const salaryMatch = initialData.salaryRange?.match(/(\d+).*?-(\d+)/);
       setFormData({
         title: initialData.title || '',
         location: initialData.location || '',
         salaryMin: salaryMatch ? salaryMatch[1] : '',
         salaryMax: salaryMatch ? salaryMatch[2] : '',
-        description: initialData.description || ''
+        description: initialData.description || '',
+        type: initialData.type || 'ONSITE'
       });
     } else {
       setFormData({
@@ -424,7 +482,8 @@ function JobForm({ onSubmit, onCancel, initialData }: {
         location: '',
         salaryMin: '',
         salaryMax: '',
-        description: ''
+        description: '',
+        type: 'ONSITE'
       });
     }
   }, [initialData]);
@@ -434,8 +493,9 @@ function JobForm({ onSubmit, onCancel, initialData }: {
     const submitData = {
       title: formData.title,
       location: formData.location,
-      salaryRange: `${formData.salaryMin}-${formData.salaryMax} LPA`,
-      description: formData.description
+      salaryRange: `$${formData.salaryMin}k-$${formData.salaryMax}k`,
+      description: formData.description,
+      type: formData.type
     };
     onSubmit(submitData);
   };
@@ -448,7 +508,7 @@ function JobForm({ onSubmit, onCancel, initialData }: {
           type="text"
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none"
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-orange-500 focus:outline-none"
           required
         />
       </div>
@@ -458,30 +518,43 @@ function JobForm({ onSubmit, onCancel, initialData }: {
           type="text"
           value={formData.location}
           onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none"
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-orange-500 focus:outline-none"
           required
         />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Salary Range (LPA)</label>
+        <label className="block text-sm font-medium mb-1">Salary Range ($k)</label>
         <div className="grid grid-cols-2 gap-4">
           <input
             type="number"
             value={formData.salaryMin}
             onChange={(e) => setFormData({ ...formData, salaryMin: e.target.value })}
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none"
-            placeholder="Min"
+            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-orange-500 focus:outline-none"
+            placeholder="Min (e.g. 50)"
             required
           />
           <input
             type="number"
             value={formData.salaryMax}
             onChange={(e) => setFormData({ ...formData, salaryMax: e.target.value })}
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none"
-            placeholder="Max"
+            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-orange-500 focus:outline-none"
+            placeholder="Max (e.g. 80)"
             required
           />
         </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Job Type</label>
+        <select
+          value={formData.type}
+          onChange={(e) => setFormData({ ...formData, type: e.target.value as 'ONSITE' | 'REMOTE' | 'HYBRID' })}
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-orange-500 focus:outline-none"
+          required
+        >
+          <option value="ONSITE">Onsite</option>
+          <option value="REMOTE">Remote</option>
+          <option value="HYBRID">Hybrid</option>
+        </select>
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Description</label>
@@ -489,14 +562,14 @@ function JobForm({ onSubmit, onCancel, initialData }: {
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           rows={4}
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none"
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-orange-500 focus:outline-none"
           required
         />
       </div>
       <div className="flex gap-3">
         <button
           type="submit"
-          className="flex-1 bg-purple-600 hover:bg-purple-700 py-2 rounded-lg transition-colors"
+          className="flex-1 py-2 rounded-lg transition-colors text-white" style={{ backgroundColor: '#F54900' }}
         >
           {initialData ? 'Update Job' : 'Post Job'}
         </button>

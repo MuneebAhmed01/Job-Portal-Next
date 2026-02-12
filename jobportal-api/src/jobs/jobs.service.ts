@@ -22,6 +22,9 @@ export class JobsService {
     return this.prisma.job.findMany({
       where: { employerId },
       include: {
+        _count: {
+          select: { applications: true }
+        },
         applications: {
           include: {
             employee: {

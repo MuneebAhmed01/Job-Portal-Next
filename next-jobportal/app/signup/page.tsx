@@ -87,7 +87,7 @@ export default function SignupPage() {
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)' }}>
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-20 left-20 w-72 h-72 bg-orange-500 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-orange-600 rounded-full blur-3xl" />
         </div>
         
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20">
@@ -102,7 +102,7 @@ export default function SignupPage() {
           {/* Headline */}
           <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-6">
             Your Gateway to<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">Career Success</span>
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-orange-400 to-orange-600">Career Success</span>
           </h1>
           
           <p className="text-gray-400 text-lg mb-10 max-w-md">
@@ -113,7 +113,7 @@ export default function SignupPage() {
           <div className="space-y-4">
             {features.map((feature, index) => (
               <div key={index} className="flex items-center gap-3">
-                <CheckCircle2 className="text-orange-500 flex-shrink-0" size={20} />
+                <CheckCircle2 className="text-orange-500 shrink-0" size={20} />
                 <span className="text-gray-300">{feature.text}</span>
               </div>
             ))}

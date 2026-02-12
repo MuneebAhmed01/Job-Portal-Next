@@ -15,39 +15,43 @@ export default function JobCard({ job, onSaveChange, onApplyChange }: JobCardPro
 
   return (
     <>
-      <div className="bg-linear-to-b rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+      <div className="bg-linear-to-b rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow h-full flex flex-col">
       <div className="flex justify-between items-start mb-4">
-        <div>
-          <h3 className="text-xl font-semibold text-white">
+        <div className="flex-1 min-w-0 mr-3">
+          <h3 className="text-xl font-semibold text-white min-h-[3.5rem] line-clamp-2" title={job.title}>
             {job.title}
           </h3>
           <p className="text-gray-400 font-medium">
             {job.employer?.companyName || 'Company'}
           </p>
         </div>
-        <span className="bg-linear-to-t900 text-green-200 text-sm px-3 py-1 rounded-full">
+        <span className="bg-linear-to-t900 text-green-200 text-sm px-3 py-1 rounded-full whitespace-nowrap shrink-0">
           {job.salaryRange}
         </span>
       </div>
       
       <div className="flex items-center gap-4 text-gray-400 mb-4">
-        <div className="flex items-center">
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          {job.location}
-        </div>
-        <span className={`text-xs px-2 py-1 rounded-full ${
-          job.type === 'REMOTE' ? 'bg-blue-900/50 text-blue-300' :
-          job.type === 'HYBRID' ? 'bg-purple-900/50 text-purple-300' :
-          'bg-gray-700 text-gray-300'
-        }`}>
+        {job.type !== 'REMOTE' && (
+          <div className="flex items-center">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            {job.location}
+          </div>
+        )}
+        <span 
+          className={`text-xs px-2 py-1 rounded-full ${
+            job.type === 'HYBRID' ? 'bg-amber-900/50 text-amber-300' :
+            job.type === 'ONSITE' ? 'bg-gray-700 text-gray-300' : 'text-white'
+          }`}
+          style={job.type === 'REMOTE' ? { backgroundColor: '#364153' } : {}}
+        >
           {job.type}
         </span>
       </div>
       
-      <p className="text-gray-300 text-sm line-clamp-3">
+      <p className="text-gray-300 text-sm line-clamp-3 flex-1">
         {job.description}
       </p>
       

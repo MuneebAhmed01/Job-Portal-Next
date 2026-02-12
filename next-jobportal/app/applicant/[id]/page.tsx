@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { User, Mail, Phone, FileText, Download, Loader2 } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { User, Mail, Phone, FileText, Download, Loader2, ArrowLeft } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 
 interface Applicant {
@@ -17,6 +17,7 @@ interface Applicant {
 
 export default function ApplicantBioPage() {
   const params = useParams();
+  const router = useRouter();
   const [applicant, setApplicant] = useState<Applicant | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,31 +41,37 @@ export default function ApplicantBioPage() {
 
   const downloadResume = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/applicants/${params.id}/resume`);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/applicants/${params.id}/resume`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `resume-${applicant?.name}.pdf`;
+        a.download = `resume-${applicant?.name || 'applicant'}.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+      } else {
+        alert('Resume not available');
       }
     } catch (error) {
       console.error('Failed to download resume');
+      alert('Failed to download resume');
     }
   };
 
   if (loading) {
     return (
       <>
-        <div className="relative bg-gradient-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
+        <div className="relative bg-linear-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
           <Navbar />
         </div>
         <div className="min-h-screen pt-20 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+          <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
         </div>
       </>
     );
@@ -73,7 +80,7 @@ export default function ApplicantBioPage() {
   if (!applicant) {
     return (
       <>
-        <div className="relative bg-gradient-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
+        <div className="relative bg-linear-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
           <Navbar />
         </div>
         <div className="min-h-screen pt-20 pb-12">
@@ -87,14 +94,21 @@ export default function ApplicantBioPage() {
 
   return (
     <>
-      <div className="relative bg-gradient-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
+      <div className="relative bg-linear-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
         <Navbar />
       </div>
       <div className="min-h-screen pt-20 pb-12">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="glass-dark rounded-2xl p-8">
+            <button
+              onClick={() => router.back()}
+              className="mb-6 flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            >
+              <ArrowLeft size={20} />
+              Back
+            </button>
             <div className="text-center mb-8">
-              <div className="w-20 h-20 bg-linear-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#F54900' }}>
                 <User className="text-white" size={40} />
               </div>
               <h1 className="text-3xl font-bold text-white mb-2">{applicant.name}</h1>
@@ -105,7 +119,7 @@ export default function ApplicantBioPage() {
 
             <div className="space-y-6">
               <div className="flex items-center gap-4 p-4 glass rounded-xl">
-                <Mail className="text-purple-400" size={24} />
+                <Mail className="text-orange-400" size={24} />
                 <div>
                   <p className="text-sm text-gray-400">Email</p>
                   <p className="text-white">{applicant.email}</p>
@@ -113,7 +127,7 @@ export default function ApplicantBioPage() {
               </div>
 
               <div className="flex items-center gap-4 p-4 glass rounded-xl">
-                <Phone className="text-purple-400" size={24} />
+                <Phone className="text-orange-400" size={24} />
                 <div>
                   <p className="text-sm text-gray-400">Phone</p>
                   <p className="text-white">{applicant.phone}</p>
@@ -129,7 +143,8 @@ export default function ApplicantBioPage() {
 
               <button
                 onClick={downloadResume}
-                className="w-full py-4 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl text-white font-bold hover-lift flex items-center justify-center gap-3"
+                className="w-full py-4 rounded-xl text-white font-bold hover-lift flex items-center justify-center gap-3"
+                style={{ backgroundColor: '#F54900' }}
               >
                 <Download size={20} />
                 Download Resume

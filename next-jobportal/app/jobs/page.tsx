@@ -85,7 +85,7 @@ export default function JobsPage() {
 
   return (
     <>
-      <div className="relative bg-gradient-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
+      <div className="relative bg-linear-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
         <Navbar />
       </div>
       <main className="min-h-screen " style={{ background: 'linear-gradient(to bottom right, #020617, #0b0f19, #0f172a)' }}>
@@ -106,7 +106,7 @@ export default function JobsPage() {
             <p className="text-gray-300">No jobs available.</p>
           )}
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
             {jobs.map((job) => (
               <JobCard 
                 key={job.id} 
