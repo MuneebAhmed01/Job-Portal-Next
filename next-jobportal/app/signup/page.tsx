@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { User, Mail, Lock, Phone, FileText, Building2, Loader2, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { employeeSignupSchema, employerSignupSchema, getZodErrors } from '@/lib/validations';
 
 type UserType = 'employee' | 'employer';
 
@@ -24,11 +25,26 @@ export default function SignupPage() {
   const [resume, setResume] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setFieldErrors({});
+
+    // Validate with Zod
+    const schema = userType === 'employer' ? employerSignupSchema : employeeSignupSchema;
+    const dataToValidate = userType === 'employer'
+      ? { name: formData.name, email: formData.email, password: formData.password, phone: formData.phone, companyName: formData.companyName, bio: formData.bio || undefined }
+      : { name: formData.name, email: formData.email, password: formData.password, phone: formData.phone, bio: formData.bio || undefined };
+    
+    const result = schema.safeParse(dataToValidate);
+    if (!result.success) {
+      setFieldErrors(getZodErrors(result.error));
+      setLoading(false);
+      return;
+    }
 
     try {
       const formDataToSend = new FormData();
@@ -183,7 +199,7 @@ export default function SignupPage() {
             </div>
           )}
           
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} noValidate className="space-y-5">
             {/* Name */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
@@ -195,9 +211,9 @@ export default function SignupPage() {
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
                   placeholder="John Doe"
-                  required
                 />
               </div>
+              {fieldErrors.name && <p className="mt-1 text-sm text-red-400">{fieldErrors.name}</p>}
             </div>
             
             {/* Company Name - Employer Only */}
@@ -212,9 +228,9 @@ export default function SignupPage() {
                     onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                     className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
                     placeholder="Acme Inc."
-                    required
                   />
                 </div>
+                {fieldErrors.companyName && <p className="mt-1 text-sm text-red-400">{fieldErrors.companyName}</p>}
               </div>
             )}
             
@@ -229,9 +245,9 @@ export default function SignupPage() {
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
                   placeholder="+1234567890"
-                  required
                 />
               </div>
+              {fieldErrors.phone && <p className="mt-1 text-sm text-red-400">{fieldErrors.phone}</p>}
             </div>
             
             {/* Email */}
@@ -245,9 +261,9 @@ export default function SignupPage() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
                   placeholder="you@example.com"
-                  required
                 />
               </div>
+              {fieldErrors.email && <p className="mt-1 text-sm text-red-400">{fieldErrors.email}</p>}
             </div>
             
             {/* Password */}
@@ -261,10 +277,10 @@ export default function SignupPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
                   placeholder="••••••••"
-                  required
                   minLength={6}
                 />
               </div>
+              {fieldErrors.password && <p className="mt-1 text-sm text-red-400">{fieldErrors.password}</p>}
             </div>
             
             {/* Resume - Employee Only */}

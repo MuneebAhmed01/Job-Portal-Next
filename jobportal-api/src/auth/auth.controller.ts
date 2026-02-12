@@ -1,9 +1,10 @@
-import { Controller, Post, Body, UseInterceptors, UploadedFile, Get, Headers, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, UseInterceptors, UploadedFile, Get, Headers, UnauthorizedException, UsePipes, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { AuthService } from './auth.service';
-import type { SignupDto } from './dto/signup.dto';
-import type { SigninDto } from './dto/signin.dto';
+import { signupSchema, type SignupDto } from './dto/signup.dto';
+import { signinSchema, type SigninDto } from './dto/signin.dto';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -40,10 +41,20 @@ export class AuthController {
     @Body() signupDto: SignupDto,
     @UploadedFile() resume?: Express.Multer.File
   ) {
-    return this.authService.signup(signupDto, resume);
+    // Manually validate since @UsePipes doesn't work with FileInterceptor (multipart)
+    const result = signupSchema.safeParse(signupDto);
+    if (!result.success) {
+      const errors = result.error.issues.map((e) => ({
+        field: e.path.join('.'),
+        message: e.message,
+      }));
+      throw new BadRequestException({ message: 'Validation failed', errors });
+    }
+    return this.authService.signup(result.data, resume);
   }
 
   @Post('signin')
+  @UsePipes(new ZodValidationPipe(signinSchema))
   async signin(@Body() signinDto: SigninDto) {
     return this.authService.signin(signinDto);
   }

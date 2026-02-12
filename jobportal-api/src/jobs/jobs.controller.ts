@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Delete, Body, UseGuards, Request, Param, Put } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, UseGuards, Request, Param, Put, UsePipes } from '@nestjs/common';
 import { JobsService } from './jobs.service';
-import type { CreateJobDto } from './dto/create-job.dto';
+import { createJobSchema, type CreateJobDto } from './dto/create-job.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 
 @Controller('jobs')
 export class JobsController {
@@ -9,6 +10,7 @@ export class JobsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
+  @UsePipes(new ZodValidationPipe(createJobSchema))
   create(@Body() createJobDto: CreateJobDto, @Request() req: any) {
     const employerId = req.user.sub;
     return this.jobsService.create(createJobDto, employerId);

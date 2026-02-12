@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, User, LogOut, FileText, Plus, Briefcase, ChevronLeft, MapPin, IndianRupee, Users, Loader2, Edit3, Save, Phone, Mail, Building2, FileUser } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { createJobSchema, updateEmployeeProfileSchema, updateEmployerProfileSchema, getZodErrors } from '@/lib/validations';
 
 interface Job {
   id: string;
@@ -47,6 +48,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
     salaryMax: '',
     type: 'ONSITE' as 'ONSITE' | 'REMOTE' | 'HYBRID'
   });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Initialize edit form when user changes or editing starts
   useEffect(() => {
@@ -78,6 +80,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
     e.preventDefault();
     setLoading(true);
     setError('');
+    setFieldErrors({});
 
     try {
       const jobData = {
@@ -87,6 +90,14 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
         salaryRange: `${jobForm.salaryMin}-${jobForm.salaryMax} LPA`,
         type: jobForm.type,
       };
+
+      const validation = createJobSchema.safeParse(jobData);
+      if (!validation.success) {
+        setFieldErrors(getZodErrors(validation.error));
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs`, {
         method: 'POST',
         headers: {
@@ -115,15 +126,25 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
     setLoading(true);
     setError('');
     setSuccess('');
+    setFieldErrors({});
+
+    // Validate with Zod
+    const schema = isEmployer ? updateEmployerProfileSchema : updateEmployeeProfileSchema;
+    const updateData = isEmployer
+      ? { name: editForm.name, phone: editForm.phone, bio: editForm.bio, companyName: editForm.companyName }
+      : { name: editForm.name, phone: editForm.phone, bio: editForm.bio };
+    
+    const validation = schema.safeParse(updateData);
+    if (!validation.success) {
+      setFieldErrors(getZodErrors(validation.error));
+      setLoading(false);
+      return;
+    }
 
     try {
       const endpoint = isEmployer 
         ? `${process.env.NEXT_PUBLIC_API_URL}/users/employer/profile`
         : `${process.env.NEXT_PUBLIC_API_URL}/users/employee/profile`;
-      
-      const updateData = isEmployer 
-        ? { name: editForm.name, phone: editForm.phone, bio: editForm.bio, companyName: editForm.companyName }
-        : { name: editForm.name, phone: editForm.phone, bio: editForm.bio };
 
       const response = await fetch(endpoint, {
         method: 'PUT',
@@ -176,6 +197,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
   const handleCancelEdit = () => {
     setIsEditing(false);
     setError('');
+    setFieldErrors({});
     // Reset form to current user values
     if (user) {
       setEditForm({
@@ -240,13 +262,16 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                   <User className="text-white" size={48} />
                 </div>
                 {isEditing ? (
-                  <input
-                    type="text"
-                    value={editForm.name}
-                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                    className="text-xl font-bold text-white bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-center w-full max-w-xs mx-auto"
-                    placeholder="Your Name"
-                  />
+                  <>
+                    <input
+                      type="text"
+                      value={editForm.name}
+                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                      className="text-xl font-bold text-white bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-center w-full max-w-xs mx-auto"
+                      placeholder="Your Name"
+                    />
+                    {fieldErrors.name && <p className="mt-1 text-sm text-red-400">{fieldErrors.name}</p>}
+                  </>
                 ) : (
                   <h3 className="text-2xl font-bold text-white">{user.name}</h3>
                 )}
@@ -273,13 +298,16 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                     <p className="text-sm text-gray-400">Phone</p>
                   </div>
                   {isEditing ? (
-                    <input
-                      type="tel"
-                      value={editForm.phone}
-                      onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                      className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-white"
-                      placeholder="Your phone number"
-                    />
+                    <>
+                      <input
+                        type="tel"
+                        value={editForm.phone}
+                        onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                        className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                        placeholder="Your phone number"
+                      />
+                      {fieldErrors.phone && <p className="mt-1 text-sm text-red-400">{fieldErrors.phone}</p>}
+                    </>
                   ) : (
                     <p className="text-white font-medium">{user.phone || 'Not provided'}</p>
                   )}
@@ -293,13 +321,16 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                       <p className="text-sm text-gray-400">Company Name</p>
                     </div>
                     {isEditing ? (
-                      <input
-                        type="text"
-                        value={editForm.companyName}
-                        onChange={(e) => setEditForm({ ...editForm, companyName: e.target.value })}
-                        className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-white"
-                        placeholder="Your company name"
-                      />
+                      <>
+                        <input
+                          type="text"
+                          value={editForm.companyName}
+                          onChange={(e) => setEditForm({ ...editForm, companyName: e.target.value })}
+                          className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                          placeholder="Your company name"
+                        />
+                        {fieldErrors.companyName && <p className="mt-1 text-sm text-red-400">{fieldErrors.companyName}</p>}
+                      </>
                     ) : (
                       <p className="text-white font-medium">{user.companyName || 'Not provided'}</p>
                     )}
@@ -422,7 +453,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
           )}
 
           {activeTab === 'post-job' && isEmployer && (
-            <form onSubmit={handleCreateJob} className="space-y-4">
+            <form onSubmit={handleCreateJob} noValidate className="space-y-4">
               {error && (
                 <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
                   {error}
@@ -437,8 +468,8 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                   onChange={(e) => setJobForm({ ...jobForm, title: e.target.value })}
                   className="w-full p-3 rounded-xl bg-gray-700/50 border border-gray-600 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
                   placeholder="e.g., Senior Software Engineer"
-                  required
                 />
+                {fieldErrors.title && <p className="mt-1 text-sm text-red-400">{fieldErrors.title}</p>}
               </div>
 
               <div>
@@ -448,8 +479,8 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                   onChange={(e) => setJobForm({ ...jobForm, description: e.target.value })}
                   className="w-full p-3 rounded-xl bg-gray-700/50 border border-gray-600 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 h-24 resize-none"
                   placeholder="Describe the role, responsibilities, and requirements..."
-                  required
                 />
+                {fieldErrors.description && <p className="mt-1 text-sm text-red-400">{fieldErrors.description}</p>}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -462,6 +493,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                     className="w-full p-3 rounded-xl bg-gray-700/50 border border-gray-600 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="e.g., Mumbai, Remote"
                   />
+                  {fieldErrors.location && <p className="mt-1 text-sm text-red-400">{fieldErrors.location}</p>}
                 </div>
 
                 <div>

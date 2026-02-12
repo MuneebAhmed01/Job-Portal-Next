@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Briefcase, Plus, Users, DollarSign, FileText, X } from 'lucide-react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
+import { employerJobPostSchema, getZodErrors } from '@/lib/validations';
 
 interface Job {
   id: string;
@@ -26,6 +27,8 @@ export default function EmployerDashboard() {
   });
   const [loading, setLoading] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchJobs();
@@ -48,6 +51,15 @@ export default function EmployerDashboard() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setFieldErrors({});
+
+    const result = employerJobPostSchema.safeParse(formData);
+    if (!result.success) {
+      setFieldErrors(getZodErrors(result.error));
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -67,7 +79,7 @@ export default function EmployerDashboard() {
         fetchJobs();
       }
     } catch (error) {
-      console.error('Failed to create job');
+      setError('Failed to create job');
     } finally {
       setLoading(false);
     }
@@ -96,7 +108,12 @@ export default function EmployerDashboard() {
           {showForm && (
             <div className="glass-dark rounded-2xl p-6 mb-8 animate-slide-up">
               <h2 className="text-xl font-bold text-white mb-4">Create Job Posting</h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="mb-4 p-4 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 text-sm">
+                  {error}
+                </div>
+              )}
+              <form onSubmit={handleSubmit} noValidate className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Job Title</label>
                   <input
@@ -105,8 +122,8 @@ export default function EmployerDashboard() {
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500"
                     placeholder="e.g., Senior React Developer"
-                    required
                   />
+                  {fieldErrors.title && <p className="mt-1 text-sm text-red-400">{fieldErrors.title}</p>}
                 </div>
 
                 <div>
@@ -117,8 +134,8 @@ export default function EmployerDashboard() {
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 resize-none"
                     placeholder="Describe the role and responsibilities..."
                     rows={4}
-                    required
                   />
+                  {fieldErrors.description && <p className="mt-1 text-sm text-red-400">{fieldErrors.description}</p>}
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
@@ -130,8 +147,8 @@ export default function EmployerDashboard() {
                       onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
                       placeholder="e.g., React, Node.js, TypeScript"
-                      required
                     />
+                    {fieldErrors.skills && <p className="mt-1 text-sm text-red-400">{fieldErrors.skills}</p>}
                   </div>
 
                   <div>

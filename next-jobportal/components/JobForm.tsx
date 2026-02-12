@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { createJobSchema, getZodErrors } from '@/lib/validations';
 
 interface JobFormProps {
   onJobCreated: () => void;
@@ -17,6 +18,7 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -26,6 +28,7 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setFieldErrors({});
 
     try {
       const submitData = {
@@ -35,6 +38,14 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
         type: formData.type,
         description: formData.description,
       };
+
+      const validation = createJobSchema.safeParse(submitData);
+      if (!validation.success) {
+        setFieldErrors(getZodErrors(validation.error));
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch('http://localhost:3002/jobs', {
         method: 'POST',
         headers: { 
@@ -56,7 +67,7 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white dark:bg-linear-to-b rounded-lg shadow-md p-6">
+    <form onSubmit={handleSubmit} noValidate className="bg-white dark:bg-linear-to-b rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Post a New Job</h2>
       
       {error && (
@@ -75,10 +86,10 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
             name="title"
             value={formData.title}
             onChange={handleChange}
-            required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-linear-to-t-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             placeholder="e.g. Senior Developer"
           />
+          {fieldErrors.title && <p className="mt-1 text-sm text-red-400">{fieldErrors.title}</p>}
         </div>
         
         <div>
@@ -90,10 +101,10 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
             name="location"
             value={formData.location}
             onChange={handleChange}
-            required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-linear-to-t-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             placeholder="e.g. New York, NY or Remote"
           />
+          {fieldErrors.location && <p className="mt-1 text-sm text-red-400">{fieldErrors.location}</p>}
         </div>
 
         <div>
@@ -105,7 +116,6 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
             name="salaryMin"
             value={formData.salaryMin}
             onChange={handleChange}
-            required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-linear-to-t-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             placeholder="e.g. 15"
           />
@@ -120,7 +130,6 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
             name="salaryMax"
             value={formData.salaryMax}
             onChange={handleChange}
-            required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-linear-to-t-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             placeholder="e.g. 25"
           />
@@ -134,7 +143,6 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
             name="type"
             value={formData.type}
             onChange={handleChange}
-            required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
           >
             <option value="ONSITE">Onsite</option>
@@ -152,11 +160,11 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
           name="description"
           value={formData.description}
           onChange={handleChange}
-          required
           rows={4}
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-linear-to-t-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
           placeholder="Describe the job responsibilities and requirements..."
         />
+        {fieldErrors.description && <p className="mt-1 text-sm text-red-400">{fieldErrors.description}</p>}
       </div>
 
       <button

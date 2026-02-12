@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { X, Plus, Sparkles, Briefcase, Target, Award, ChevronRight, BookOpen, TrendingUp, Lightbulb, CheckCircle2, Star } from 'lucide-react';
+import { analyzeSkillsSchema } from '@/lib/validations';
 
 interface Skill {
   id: string;
@@ -64,8 +65,10 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
   };
 
   const analyzeSkills = async () => {
-    if (skills.length === 0) {
-      setError('Please add at least one skill to analyze');
+    const skillNames = skills.map(skill => skill.name);
+    const result = analyzeSkillsSchema.safeParse({ skills: skillNames });
+    if (!result.success) {
+      setError(result.error.issues[0]?.message || 'Invalid input');
       return;
     }
 

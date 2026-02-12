@@ -1,40 +1,21 @@
-import { IsEmail, IsString, IsOptional } from 'class-validator';
+import { z } from 'zod';
 
-export class CreateEmployeeDto {
-  @IsEmail()
-  email: string;
+export const createEmployeeSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  phone: z.string().min(10, 'Phone must be at least 10 digits'),
+  bio: z.string().optional(),
+});
 
-  @IsString()
-  password: string;
+export const createEmployerSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  phone: z.string().min(10, 'Phone must be at least 10 digits'),
+  companyName: z.string().min(2, 'Company name must be at least 2 characters'),
+  bio: z.string().optional(),
+});
 
-  @IsString()
-  name: string;
-
-  @IsString()
-  phone: string;
-
-  @IsString()
-  @IsOptional()
-  bio?: string;
-}
-
-export class CreateEmployerDto {
-  @IsEmail()
-  email: string;
-
-  @IsString()
-  password: string;
-
-  @IsString()
-  name: string;
-
-  @IsString()
-  phone: string;
-
-  @IsString()
-  companyName: string;
-
-  @IsString()
-  @IsOptional()
-  bio?: string;
-}
+export type CreateEmployeeDto = z.infer<typeof createEmployeeSchema>;
+export type CreateEmployerDto = z.infer<typeof createEmployerSchema>;

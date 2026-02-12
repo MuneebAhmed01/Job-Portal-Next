@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, Building2, Loader2, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { signinSchema, getZodErrors } from '@/lib/validations';
 
 type UserType = 'employee' | 'employer';
 
@@ -19,11 +20,20 @@ export default function SigninPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setFieldErrors({});
     setError('');
+
+    const result = signinSchema.safeParse(formData);
+    if (!result.success) {
+      setFieldErrors(getZodErrors(result.error));
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/signin`, {
@@ -31,8 +41,7 @@ export default function SigninPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userType,
-          email: formData.email,
-          password: formData.password,
+          ...result.data,
         }),
       });
 
@@ -159,7 +168,7 @@ export default function SigninPage() {
             </div>
           )}
           
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} noValidate className="space-y-5">
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
@@ -171,9 +180,9 @@ export default function SigninPage() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
                   placeholder="you@example.com"
-                  required
                 />
               </div>
+              {fieldErrors.email && <p className="mt-1 text-sm text-red-400">{fieldErrors.email}</p>}
             </div>
             
             {/* Password */}
@@ -187,9 +196,9 @@ export default function SigninPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
                   placeholder="••••••••"
-                  required
                 />
               </div>
+              {fieldErrors.password && <p className="mt-1 text-sm text-red-400">{fieldErrors.password}</p>}
             </div>
             
             {/* Submit Button */}

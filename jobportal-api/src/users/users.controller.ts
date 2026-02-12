@@ -1,6 +1,8 @@
 import { Controller, Get, Put, Param, Body, NotFoundException, Query, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import { updateEmployeeProfileSchema, updateEmployerProfileSchema, type UpdateEmployeeProfileDto, type UpdateEmployerProfileDto } from './dto/update-profile.dto';
 
 @Controller('users')
 export class UsersController {
@@ -30,7 +32,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   async updateEmployeeProfile(
     @Request() req: any,
-    @Body() data: { name?: string; phone?: string; bio?: string }
+    @Body(new ZodValidationPipe(updateEmployeeProfileSchema)) data: UpdateEmployeeProfileDto
   ) {
     const employeeId = req.user.sub;
     const employee = await this.usersService.updateEmployee(employeeId, data);
@@ -42,7 +44,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   async updateEmployerProfile(
     @Request() req: any,
-    @Body() data: { name?: string; phone?: string; companyName?: string; bio?: string }
+    @Body(new ZodValidationPipe(updateEmployerProfileSchema)) data: UpdateEmployerProfileDto
   ) {
     const employerId = req.user.sub;
     const employer = await this.usersService.updateEmployer(employerId, data);
