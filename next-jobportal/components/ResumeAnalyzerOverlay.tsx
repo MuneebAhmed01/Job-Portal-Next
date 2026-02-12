@@ -365,7 +365,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
 
                     {analysis.jobMatchAnalysis.qualificationMatches.length > 0 && (
                       <div>
-                        <p className="text-sm font-medium text-purple-400 mb-2">Matching Qualifications</p>
+                        <p className="text-sm font-medium text-orange-400 mb-2">Matching Qualifications</p>
                         <div className="flex flex-wrap gap-2">
                           {analysis.jobMatchAnalysis.qualificationMatches.map((qual, index) => (
                             <span key={index} className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full">

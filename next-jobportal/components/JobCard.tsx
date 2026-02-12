@@ -18,7 +18,7 @@ export default function JobCard({ job, onSaveChange, onApplyChange }: JobCardPro
       <div className="bg-linear-to-b rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow h-full flex flex-col">
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1 min-w-0 mr-3">
-          <h3 className="text-xl font-semibold text-white min-h-[3.5rem] line-clamp-2" title={job.title}>
+          <h3 className="text-xl font-semibold text-white min-h-14 line-clamp-2" title={job.title}>
             {job.title}
           </h3>
           <p className="text-gray-400 font-medium">

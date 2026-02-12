@@ -67,6 +67,15 @@ export default function SigninPage() {
         </div>
         
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20">
+          {/* Back Button - Above Logo */}
+          <button
+            onClick={() => router.push('/')}
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8"
+          >
+            <ArrowLeft size={20} />
+            <span>Back to Home</span>
+          </button>
+          
           {/* Logo */}
           <div className="flex items-center gap-3 mb-12">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#F54900' }}>
@@ -99,8 +108,8 @@ export default function SigninPage() {
       
       {/* Right Side - Form */}
       <div className="w-full lg:w-1/2 flex flex-col bg-slate-900 overflow-y-auto">
-        {/* Back Button */}
-        <div className="p-4 sm:p-6">
+        {/* Back Button - Mobile Only */}
+        <div className="p-4 sm:p-6 lg:hidden">
           <button
             onClick={() => router.push('/')}
             className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
@@ -110,7 +119,7 @@ export default function SigninPage() {
           </button>
         </div>
         
-        <div className="flex-1 flex items-center justify-center px-6 pb-6 sm:px-12 sm:pb-12">
+        <div className="flex-1 flex items-center justify-center px-6 pb-6 sm:px-12 sm:pb-12 lg:pt-6">
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-8">

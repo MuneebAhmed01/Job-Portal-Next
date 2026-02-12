@@ -289,7 +289,7 @@ export default function EmployeeDashboard() {
                 <p className="text-gray-400 text-sm">Applications</p>
                 <p className="text-2xl font-bold mt-1">{appliedJobs.length}</p>
               </div>
-              <ExternalLink className="text-blue-500" size={24} />
+              <ExternalLink className="text-orange-500" size={24} />
             </div>
           </div>
         </div>
@@ -303,7 +303,7 @@ export default function EmployeeDashboard() {
             onClick={() => setActiveTab('saved')}
             className={`pb-3 px-1 border-b-2 transition-colors ${
               activeTab === 'saved'
-                ? 'border-purple-500 text-purple-500'
+                ? 'border-orange-500 text-orange-500'
                 : 'border-transparent text-gray-400 hover:text-white'
             }`}
           >
@@ -313,7 +313,7 @@ export default function EmployeeDashboard() {
             onClick={() => setActiveTab('applied')}
             className={`pb-3 px-1 border-b-2 transition-colors ${
               activeTab === 'applied'
-                ? 'border-purple-500 text-purple-500'
+                ? 'border-orange-500 text-orange-500'
                 : 'border-transparent text-gray-400 hover:text-white'
             }`}
           >
@@ -338,7 +338,7 @@ export default function EmployeeDashboard() {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="text-xl font-semibold text-white mb-2">{job.title}</h3>
-                      <p className="text-purple-400 font-medium mb-2">{job.employer?.companyName || 'Company'}</p>
+                      <p className="text-orange-500 font-medium mb-2">{job.employer?.companyName || 'Company'}</p>
                       <div className="flex items-center gap-4 text-gray-400 text-sm">
                         <span className="flex items-center gap-1">
                           <MapPin size={16} />
@@ -363,7 +363,7 @@ export default function EmployeeDashboard() {
                     ) : (
                       <button 
                         onClick={() => handleApplyJob(job.id)}
-                        className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors"
+                        className="bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-lg transition-colors"
                       >
                         Apply Now
                       </button>
@@ -393,7 +393,7 @@ export default function EmployeeDashboard() {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="text-xl font-semibold text-white mb-2">{job.title}</h3>
-                      <p className="text-purple-400 font-medium mb-2">{job.employer?.companyName || 'Company'}</p>
+                      <p className="text-orange-400 font-medium mb-2">{job.employer?.companyName || 'Company'}</p>
                       <div className="flex items-center gap-4 text-gray-400 text-sm">
                         <span className="flex items-center gap-1">
                           <MapPin size={16} />

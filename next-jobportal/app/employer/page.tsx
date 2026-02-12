@@ -75,7 +75,7 @@ export default function EmployerDashboard() {
 
   return (
     <>
-      <div className="relative bg-gradient-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
+      <div className="relative bg-linear-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
         <Navbar />
       </div>
       <div className="min-h-screen pt-20 pb-12">
@@ -103,7 +103,7 @@ export default function EmployerDashboard() {
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500"
                     placeholder="e.g., Senior React Developer"
                     required
                   />

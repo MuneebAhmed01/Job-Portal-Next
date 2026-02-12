@@ -289,7 +289,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                 {isEmployer && (
                   <div className="p-4 bg-gray-700/30 rounded-xl border border-gray-600/30">
                     <div className="flex items-center gap-2 mb-2">
-                      <Building2 size={18} className="text-purple-400" />
+                      <Building2 size={18} className="text-orange-400" />
                       <p className="text-sm text-gray-400">Company Name</p>
                     </div>
                     {isEditing ? (
