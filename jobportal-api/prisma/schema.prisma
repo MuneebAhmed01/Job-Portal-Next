@@ -22,7 +22,6 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
   jobsCreated  Job[]            @relation("JobCreator")
   applications JobApplication[] @relation("JobApplicant")
   savedJobs    SavedJob[]       @relation("JobSaver")
@@ -42,7 +41,6 @@ model Job {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // Relations
   applications JobApplication[] @relation("JobApplications")
   creator      User?            @relation("JobCreator", fields: [employerId], references: [id])
   savedBy      SavedJob[]       @relation("SavedJobs")
@@ -61,7 +59,7 @@ model JobApplication {
   resumePath String?
   appliedAt  DateTime @default(now())
 
-  // Relations
+ 
   job       Job  @relation("JobApplications", fields: [jobId], references: [id], onDelete: Cascade)
   applicant User @relation("JobApplicant", fields: [userId], references: [id])
 
@@ -74,18 +72,18 @@ model SavedJob {
   userId  String
   savedAt DateTime @default(now())
 
-  // Relations
+
   job  Job  @relation("SavedJobs", fields: [jobId], references: [id], onDelete: Cascade)
   user User @relation("JobSaver", fields: [userId], references: [id])
 
-  @@unique([jobId, userId]) // Prevent duplicate saves
+  @@unique([jobId, userId]) 
   @@map("saved_jobs")
 }
 
 model UserLog {
   id        String   @id @default(cuid())
   userId    String
-  action    String // "user_created", "user_updated", "user_login", etc.
+  action    String
   message   String?
   createdAt DateTime @default(now())
 
@@ -95,7 +93,7 @@ model UserLog {
 model EmployerLog {
   id         String   @id @default(cuid())
   employerId String
-  action     String // "employer_created", "job_posted", "job_updated", etc.
+  action     String 
   message    String?
   createdAt  DateTime @default(now())
 

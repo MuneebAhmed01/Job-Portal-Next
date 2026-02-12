@@ -8,7 +8,7 @@ const companies = [
   { name: "Netflix", src: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Netflix_logo.svg/240px-Netflix_logo.svg.png" },
   { name: "YouTube", src: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/240px-YouTube_full-color_icon_%282017%29.svg.png" },
   { name: "Google", src: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/240px-Google_2015_logo.svg.png" },
-  { name: "Amazon", src: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/240px-Amazon_logo.svg.png" },
+  { name: "Amazon", src: "https://cdn.worldvectorlogo.com/logos/amazon-com-light.svg" },
 ];
 
 export default function HeroSection() {
@@ -83,7 +83,7 @@ export default function HeroSection() {
   <img
     src={c.src}
     alt={c.name}
-    className="h-[90px] w-auto object-contain hover:scale-110 transition"
+    className="h-22.5 w-auto object-contain hover:scale-110 transition"
   />
 </div>
 
