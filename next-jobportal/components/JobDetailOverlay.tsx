@@ -198,6 +198,23 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyCh
               </div>
             )}
 
+            {/* Job Type Section */}
+            {job.type && (
+              <div className="p-4 bg-gray-700/30 rounded-lg border border-gray-600/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Briefcase size={18} className="text-cyan-400" />
+                  <h4 className="font-semibold text-white">Job Type</h4>
+                </div>
+                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                  job.type === 'REMOTE' ? 'bg-blue-900/50 text-blue-300' :
+                  job.type === 'HYBRID' ? 'bg-purple-900/50 text-purple-300' :
+                  'bg-gray-700 text-gray-300'
+                }`}>
+                  {job.type}
+                </span>
+              </div>
+            )}
+
             {/* Job Status Section */}
             {job.status && (
               <div className="p-4 bg-gray-700/30 rounded-lg border border-gray-600/30">

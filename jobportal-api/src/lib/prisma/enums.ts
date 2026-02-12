@@ -9,6 +9,15 @@
 * 🟢 You can import this file directly.
 */
 
+export const JobType = {
+  ONSITE: 'ONSITE',
+  REMOTE: 'REMOTE',
+  HYBRID: 'HYBRID'
+} as const
+
+export type JobType = (typeof JobType)[keyof typeof JobType]
+
+
 export const JobStatus = {
   ACTIVE: 'ACTIVE',
   CLOSED: 'CLOSED',

@@ -8,12 +8,15 @@ import Link from 'next/link';
 interface Job {
   id: string;
   title: string;
-  company: string;
   location: string;
-  salary: string;
-  type: string;
+  salaryRange: string;
+  type: 'ONSITE' | 'REMOTE' | 'HYBRID';
   description: string;
   createdAt: string;
+  status: string;
+  employer?: {
+    companyName: string;
+  };
   applicants?: number;
 }
 
@@ -267,7 +270,7 @@ export default function EmployerDashboard() {
                         </span>
                         <span className="flex items-center gap-1">
                           <DollarSign size={16} />
-                          {job.salary}
+                          {job.salaryRange}
                         </span>
                         <span className="flex items-center gap-1">
                           <Calendar size={16} />
@@ -310,7 +313,7 @@ export default function EmployerDashboard() {
                     <h3 className="text-lg font-semibold text-white">
                       Applicants for: {viewingApplicants.title}
                     </h3>
-                    <p className="text-gray-400 text-sm">{viewingApplicants.company}</p>
+                    <p className="text-gray-400 text-sm">{viewingApplicants.employer?.companyName || user?.companyName}</p>
                   </div>
                   <button
                     onClick={handleBackToJobs}
@@ -397,31 +400,30 @@ function JobForm({ onSubmit, onCancel, initialData }: {
 }) {
   const [formData, setFormData] = useState({
     title: '',
-    company: '',
     location: '',
-    salary: '',
-    type: 'FULL_TIME',
+    salaryMin: '',
+    salaryMax: '',
     description: ''
   });
 
   // Update form when initialData changes
   useEffect(() => {
     if (initialData) {
+      // Parse salaryRange like "20-30 LPA" into min/max
+      const salaryMatch = initialData.salaryRange?.match(/(\d+)-(\d+)/);
       setFormData({
         title: initialData.title || '',
-        company: initialData.company || '',
         location: initialData.location || '',
-        salary: initialData.salary || '',
-        type: initialData.type || 'FULL_TIME',
+        salaryMin: salaryMatch ? salaryMatch[1] : '',
+        salaryMax: salaryMatch ? salaryMatch[2] : '',
         description: initialData.description || ''
       });
     } else {
       setFormData({
         title: '',
-        company: '',
         location: '',
-        salary: '',
-        type: 'FULL_TIME',
+        salaryMin: '',
+        salaryMax: '',
         description: ''
       });
     }
@@ -429,7 +431,13 @@ function JobForm({ onSubmit, onCancel, initialData }: {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    const submitData = {
+      title: formData.title,
+      location: formData.location,
+      salaryRange: `${formData.salaryMin}-${formData.salaryMax} LPA`,
+      description: formData.description
+    };
+    onSubmit(submitData);
   };
 
   return (
@@ -445,49 +453,35 @@ function JobForm({ onSubmit, onCancel, initialData }: {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Company</label>
+        <label className="block text-sm font-medium mb-1">Location</label>
         <input
           type="text"
-          value={formData.company}
-          onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+          value={formData.location}
+          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
           className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none"
           required
         />
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Location</label>
-          <input
-            type="text"
-            value={formData.location}
-            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Salary</label>
-          <input
-            type="text"
-            value={formData.salary}
-            onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none"
-            required
-          />
-        </div>
-      </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Job Type</label>
-        <select
-          value={formData.type}
-          onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none"
-        >
-          <option value="FULL_TIME">Full Time</option>
-          <option value="PART_TIME">Part Time</option>
-          <option value="CONTRACT">Contract</option>
-          <option value="INTERNSHIP">Internship</option>
-        </select>
+        <label className="block text-sm font-medium mb-1">Salary Range (LPA)</label>
+        <div className="grid grid-cols-2 gap-4">
+          <input
+            type="number"
+            value={formData.salaryMin}
+            onChange={(e) => setFormData({ ...formData, salaryMin: e.target.value })}
+            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none"
+            placeholder="Min"
+            required
+          />
+          <input
+            type="number"
+            value={formData.salaryMax}
+            onChange={(e) => setFormData({ ...formData, salaryMax: e.target.value })}
+            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none"
+            placeholder="Max"
+            required
+          />
+        </div>
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Description</label>
@@ -504,7 +498,7 @@ function JobForm({ onSubmit, onCancel, initialData }: {
           type="submit"
           className="flex-1 bg-purple-600 hover:bg-purple-700 py-2 rounded-lg transition-colors"
         >
-          Post Job
+          {initialData ? 'Update Job' : 'Post Job'}
         </button>
         <button
           type="button"

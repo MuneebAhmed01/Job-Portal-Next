@@ -1,5 +1,6 @@
-import { Controller, Get, Param, NotFoundException, Query } from '@nestjs/common';
+import { Controller, Get, Put, Param, Body, NotFoundException, Query, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -21,6 +22,30 @@ export class UsersController {
     if (!employer) {
       throw new NotFoundException('Employer not found');
     }
+    const { password, ...result } = employer;
+    return result;
+  }
+
+  @Put('employee/profile')
+  @UseGuards(JwtAuthGuard)
+  async updateEmployeeProfile(
+    @Request() req: any,
+    @Body() data: { name?: string; phone?: string; bio?: string }
+  ) {
+    const employeeId = req.user.sub;
+    const employee = await this.usersService.updateEmployee(employeeId, data);
+    const { password, ...result } = employee;
+    return result;
+  }
+
+  @Put('employer/profile')
+  @UseGuards(JwtAuthGuard)
+  async updateEmployerProfile(
+    @Request() req: any,
+    @Body() data: { name?: string; phone?: string; companyName?: string; bio?: string }
+  ) {
+    const employerId = req.user.sub;
+    const employer = await this.usersService.updateEmployer(employerId, data);
     const { password, ...result } = employer;
     return result;
   }

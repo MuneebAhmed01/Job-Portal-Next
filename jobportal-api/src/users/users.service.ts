@@ -34,6 +34,23 @@ export class UsersService {
     });
   }
 
+  async updateEmployee(id: string, data: { name?: string; phone?: string; bio?: string }) {
+    const employee = await this.prisma.employee.update({
+      where: { id },
+      data,
+    });
+
+    await this.prisma.userLog.create({
+      data: {
+        userId: id,
+        action: 'employee_updated',
+        message: `Employee profile updated`,
+      },
+    });
+
+    return employee;
+  }
+
   // Employer operations
   async createEmployer(data: { email: string; password: string; name: string; phone: string; companyName: string; bio?: string }) {
     const employer = await this.prisma.employer.create({
@@ -61,6 +78,23 @@ export class UsersService {
     return this.prisma.employer.findUnique({
       where: { id },
     });
+  }
+
+  async updateEmployer(id: string, data: { name?: string; phone?: string; companyName?: string; bio?: string }) {
+    const employer = await this.prisma.employer.update({
+      where: { id },
+      data,
+    });
+
+    await this.prisma.employerLog.create({
+      data: {
+        employerId: id,
+        action: 'employer_updated',
+        message: `Employer profile updated`,
+      },
+    });
+
+    return employer;
   }
 
   // Logging operations

@@ -50,6 +50,7 @@ model Job {
   description String
   location    String
   salaryRange String
+  type        JobType   @default(ONSITE)
   status      JobStatus @default(ACTIVE)
   createdAt   DateTime  @default(now())
 
@@ -58,6 +59,12 @@ model Job {
   savedBy      SavedJob[]       @relation("SavedJobs")
 
   @@map("jobs")
+}
+
+enum JobType {
+  ONSITE
+  REMOTE
+  HYBRID
 }
 
 model JobApplication {

@@ -9,15 +9,16 @@ interface JobFormProps {
 export default function JobForm({ onJobCreated }: JobFormProps) {
   const [formData, setFormData] = useState({
     title: '',
-    company: '',
     location: '',
-    salary: '',
+    salaryMin: '',
+    salaryMax: '',
+    type: 'ONSITE' as 'ONSITE' | 'REMOTE' | 'HYBRID',
     description: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -27,15 +28,25 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:3001/jobs', {
+      const submitData = {
+        title: formData.title,
+        location: formData.location,
+        salaryRange: `${formData.salaryMin}-${formData.salaryMax} LPA`,
+        type: formData.type,
+        description: formData.description,
+      };
+      const res = await fetch('http://localhost:3002/jobs', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(submitData),
       });
 
       if (!res.ok) throw new Error('Failed to create job');
 
-      setFormData({ title: '', company: '', location: '', salary: '', description: '' });
+      setFormData({ title: '', location: '', salaryMin: '', salaryMax: '', type: 'ONSITE', description: '' });
       onJobCreated();
     } catch (err) {
       setError('Failed to create job. Please try again.');
@@ -72,21 +83,6 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
         
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Company
-          </label>
-          <input
-            type="text"
-            name="company"
-            value={formData.company}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-linear-to-t-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-            placeholder="e.g. TechCorp Inc."
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Location
           </label>
           <input
@@ -102,17 +98,49 @@ export default function JobForm({ onJobCreated }: JobFormProps) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Salary
+            Min Salary (LPA)
           </label>
           <input
-            type="text"
-            name="salary"
-            value={formData.salary}
+            type="number"
+            name="salaryMin"
+            value={formData.salaryMin}
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-linear-to-t-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-            placeholder="e.g. $80,000 - $100,000"
+            placeholder="e.g. 15"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Max Salary (LPA)
+          </label>
+          <input
+            type="number"
+            name="salaryMax"
+            value={formData.salaryMax}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-linear-to-t-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            placeholder="e.g. 25"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Job Type
+          </label>
+          <select
+            name="type"
+            value={formData.type}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="ONSITE">Onsite</option>
+            <option value="REMOTE">Remote</option>
+            <option value="HYBRID">Hybrid</option>
+          </select>
         </div>
       </div>
 

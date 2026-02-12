@@ -10,6 +10,7 @@ export interface Job {
   description: string;
   location: string;
   salaryRange: string;
+  type: 'ONSITE' | 'REMOTE' | 'HYBRID';
   status: 'ACTIVE' | 'CLOSED' | 'DRAFT';
   createdAt: string;
   employerId: string;
