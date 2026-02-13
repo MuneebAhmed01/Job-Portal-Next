@@ -58,7 +58,7 @@ export default function FeaturesSection() {
             id={index === 0 ? "career-guidance" : "resume-analyzer"}
             className={`py-28 relative ${
               index % 2 === 1
-                ? "bg-linear-to-b from-transparent via-white/[0.02] to-transparent"
+                ? "bg-linear-to-b from-transparent via-white/2 to-transparent"
                 : ""
             }`}
           >
@@ -121,7 +121,7 @@ export default function FeaturesSection() {
 
                 {/* visual */}
                 <div className={`${index % 2 === 1 ? "lg:col-start-1" : ""}`}>
-                  <div className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur p-10 text-center">
+                  <div className="rounded-3xl border border-white/10 bg-white/3 backdrop-blur p-10 text-center">
                     <div className="w-24 h-24 mx-auto rounded-2xl bg-orange-500 flex items-center justify-center mb-6">
                       <img src={featureImages[index]} alt={title} className="w-12 h-12" />
                     </div>

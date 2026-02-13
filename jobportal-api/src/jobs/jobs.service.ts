@@ -1,11 +1,17 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
 import { PrismaService } from '../lib/prisma/prisma.service';
+import { JobCacheService } from '../redis/job-cache.service';
+import { DraftStorageService } from '../redis/draft-storage.service';
 import { JobStatus } from '../lib/prisma/client';
 
 @Injectable()
 export class JobsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jobCache: JobCacheService,
+    private draftStorage: DraftStorageService,
+  ) {}
 
   async create(createJobDto: CreateJobDto, employerId: string) {
     const job = await this.prisma.job.create({
@@ -15,6 +21,10 @@ export class JobsService {
         status: JobStatus.ACTIVE,
       },
     });
+
+    // Invalidate the "all jobs" cache so the new job appears immediately
+    await this.jobCache.invalidateAll();
+
     return job;
   }
 
@@ -41,7 +51,11 @@ export class JobsService {
   }
 
   async findAllPublic() {
-    return this.prisma.job.findMany({
+    // Try cache first
+    const cached = await this.jobCache.getAllJobs();
+    if (cached) return cached;
+
+    const jobs = await this.prisma.job.findMany({
       where: { status: JobStatus.ACTIVE },
       include: {
         employer: {
@@ -56,6 +70,10 @@ export class JobsService {
         },
       },
     });
+
+    // Store in cache for next request
+    await this.jobCache.cacheAllJobs(jobs);
+    return jobs;
   }
 
   async findApplicants(jobId: string, employerId: string) {
@@ -241,10 +259,15 @@ export class JobsService {
       throw new ForbiddenException('You can only update your own jobs');
     }
 
-    return this.prisma.job.update({
+    const updated = await this.prisma.job.update({
       where: { id },
       data: updateJobDto,
     });
+
+    // Bust cache for this job + the listing
+    await this.jobCache.invalidateJob(id);
+
+    return updated;
   }
 
   async closeJob(id: string, employerId: string) {
@@ -260,13 +283,22 @@ export class JobsService {
       throw new ForbiddenException('You can only close your own jobs');
     }
 
-    return this.prisma.job.update({
+    const closed = await this.prisma.job.update({
       where: { id },
       data: { status: JobStatus.CLOSED },
     });
+
+    // Bust cache
+    await this.jobCache.invalidateJob(id);
+
+    return closed;
   }
 
   async getJobById(id: string) {
+    // Try cache first
+    const cached = await this.jobCache.getJob(id);
+    if (cached) return cached;
+
     const job = await this.prisma.job.findUnique({
       where: { id },
       include: {
@@ -283,6 +315,9 @@ export class JobsService {
     if (!job) {
       throw new NotFoundException('Job not found');
     }
+
+    // Cache the result
+    await this.jobCache.cacheJob(id, job);
 
     return job;
   }

@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../lib/prisma/prisma.service';
+import { SessionService } from '../redis/session.service';
 import type { SignupDto, EmployeeSignupDto, EmployerSignupDto } from './dto/signup.dto';
 import type { SigninDto } from './dto/signin.dto';
 import * as bcrypt from 'bcrypt';
@@ -10,6 +11,7 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     private prismaService: PrismaService,
+    private sessionService: SessionService,
   ) {}
 
   async signup(signupDto: SignupDto, resume?: Express.Multer.File) {
@@ -58,6 +60,9 @@ export class AuthService {
       email: employee.email,
       userType: 'employee',
     });
+
+    // Store session in Redis for server-side validation & revocation
+    await this.sessionService.store(employee.id, token);
 
     return {
       user: {
@@ -108,6 +113,9 @@ export class AuthService {
       email: employer.email,
       userType: 'employer',
     });
+
+    // Store session in Redis
+    await this.sessionService.store(employer.id, token);
 
     return {
       user: {
@@ -162,6 +170,9 @@ export class AuthService {
       userType: 'employee',
     });
 
+    // Store session in Redis
+    await this.sessionService.store(employee.id, token);
+
     return {
       user: {
         id: employee.id,
@@ -207,6 +218,9 @@ export class AuthService {
       userType: 'employer',
     });
 
+    // Store session in Redis
+    await this.sessionService.store(employer.id, token);
+
     return {
       user: {
         id: employer.id,
@@ -218,6 +232,16 @@ export class AuthService {
       },
       token,
     };
+  }
+
+  /** Revoke session on logout. */
+  async logout(userId: string): Promise<void> {
+    await this.sessionService.revoke(userId);
+  }
+
+  /** Check if a session is still valid in Redis. */
+  async isSessionValid(userId: string, token: string): Promise<boolean> {
+    return this.sessionService.validate(userId, token);
   }
 
   async findEmployeeById(id: string) {

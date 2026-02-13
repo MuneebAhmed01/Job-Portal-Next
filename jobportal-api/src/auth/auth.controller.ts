@@ -103,4 +103,15 @@ export class AuthController {
       return { valid: false, message: 'Token is invalid' };
     }
   }
+
+  @Post('logout')
+  async logout(@Headers('authorization') authHeader: string) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('No token provided');
+    }
+    const token = authHeader.split(' ')[1];
+    const payload = this.authService.verifyToken(token);
+    await this.authService.logout(payload.sub);
+    return { message: 'Logged out successfully' };
+  }
 }

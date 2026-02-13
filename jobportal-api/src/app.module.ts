@@ -11,11 +11,13 @@ import { ResumeAnalyzerModule } from './resume-analyzer/resume-analyzer.module';
 import { PrismaModule } from './lib/prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { AdminModule } from './admin/admin.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     PrismaModule,
+    RedisModule,
     UsersModule,
     AuthModule,
     ApplicantsModule,

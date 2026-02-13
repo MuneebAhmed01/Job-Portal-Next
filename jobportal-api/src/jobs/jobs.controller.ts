@@ -1,12 +1,16 @@
 import { Controller, Get, Post, Delete, Body, UseGuards, Request, Param, Put, UsePipes } from '@nestjs/common';
 import { JobsService } from './jobs.service';
+import { DraftStorageService } from '../redis/draft-storage.service';
 import { createJobSchema, type CreateJobDto } from './dto/create-job.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 
 @Controller('jobs')
 export class JobsController {
-  constructor(private readonly jobsService: JobsService) {}
+  constructor(
+    private readonly jobsService: JobsService,
+    private readonly draftStorage: DraftStorageService,
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -89,5 +93,37 @@ export class JobsController {
   async getJobApplicants(@Param('id') id: string, @Request() req: any) {
     const employerId = req.user.sub;
     return this.jobsService.findApplicants(id, employerId);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Draft application endpoints (Redis-backed)                         */
+  /* ------------------------------------------------------------------ */
+
+  @Post(':id/draft')
+  @UseGuards(JwtAuthGuard)
+  async saveDraft(
+    @Param('id') jobId: string,
+    @Body() body: Record<string, any>,
+    @Request() req: any,
+  ) {
+    const employeeId = req.user.sub;
+    await this.draftStorage.saveDraft(employeeId, jobId, body);
+    return { message: 'Draft saved' };
+  }
+
+  @Get(':id/draft')
+  @UseGuards(JwtAuthGuard)
+  async getDraft(@Param('id') jobId: string, @Request() req: any) {
+    const employeeId = req.user.sub;
+    const draft = await this.draftStorage.getDraft(employeeId, jobId);
+    return draft ?? { message: 'No draft found' };
+  }
+
+  @Delete(':id/draft')
+  @UseGuards(JwtAuthGuard)
+  async deleteDraft(@Param('id') jobId: string, @Request() req: any) {
+    const employeeId = req.user.sub;
+    await this.draftStorage.deleteDraft(employeeId, jobId);
+    return { message: 'Draft deleted' };
   }
 }
