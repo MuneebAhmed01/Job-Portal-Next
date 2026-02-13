@@ -6,6 +6,8 @@ import { useState, useEffect } from "react";
 import CareerGuidanceOverlay from "./CareerGuidanceOverlay";
 import ResumeAnalyzerOverlay from "./ResumeAnalyzerOverlay";
 
+const featureImages = ["/icons8-stars-50.png", "/icons8-analyze-48.png"];
+
 const features = [
   {
     icon: Sparkles,
@@ -121,7 +123,7 @@ export default function FeaturesSection() {
                 <div className={`${index % 2 === 1 ? "lg:col-start-1" : ""}`}>
                   <div className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur p-10 text-center">
                     <div className="w-24 h-24 mx-auto rounded-2xl bg-orange-500 flex items-center justify-center mb-6">
-                      <Icon size={48} />
+                      <img src={featureImages[index]} alt={title} className="w-12 h-12" />
                     </div>
 
                     <h3 className="text-2xl font-bold mb-4">

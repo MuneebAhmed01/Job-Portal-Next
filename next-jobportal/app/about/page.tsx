@@ -68,24 +68,28 @@ const features = [
 
 const team = [
   {
-    name: 'Arjun Mehta',
+    name: 'Emily Carter',
     role: 'CEO & Co-Founder',
-    image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&h=300&fit=crop',
+    image: '/pexels-mikhail-nilov-8871934.jpg',
+    objectPosition: 'top',
   },
   {
-    name: 'Sneha Kapoor',
+    name: 'James Mitchell',
     role: 'CTO & Co-Founder',
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&h=300&fit=crop',
+    image: '/pexels-ono-kosuki-5648100.jpg',
+    objectPosition: 'top',
   },
   {
-    name: 'Rohan Das',
+    name: 'Daniel Brooks',
     role: 'Head of Product',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop',
+    image: '/pexels-uiliamnornberg-30767565.jpg',
+    objectPosition: 'center 50%',
   },
   {
-    name: 'Meera Iyer',
+    name: 'Sophia Reynolds',
     role: 'Head of AI',
-    image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=300&fit=crop',
+    image: '/pexels-apunto-group-agencia-de-publicidad-53086916-7752893.jpg',
+    objectPosition: 'top',
   },
 ];
 
@@ -201,13 +205,14 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {team.map(({ name, role, image }) => (
+            {team.map(({ name, role, image, objectPosition }) => (
               <div key={name} className="rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow" style={{ backgroundColor: '#1a1f2e' }}>
-                <div className="aspect-square relative">
+                <div className="aspect-square relative overflow-hidden">
                   <img
                     src={image}
                     alt={name}
                     className="w-full h-full object-cover"
+                    style={{ objectPosition }}
                   />
                 </div>
                 <div className="p-4 text-center">
