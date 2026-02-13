@@ -36,7 +36,7 @@ export default function DashboardPage() {
   if (!user) {
     return (
       <>
-        <div className="relative bg-lienar-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
+        <div className="relative bg-linear-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
           <Navbar />
         </div>
         <div className="min-h-screen bg-gray-900 flex items-center justify-center">
