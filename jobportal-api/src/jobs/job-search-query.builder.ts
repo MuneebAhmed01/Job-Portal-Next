@@ -44,15 +44,57 @@ export class JobSearchQueryBuilder {
     const { minSalary, maxSalary } = this.params;
     if (minSalary === undefined && maxSalary === undefined) return this;
 
-    const salaryFilter: Record<string, number> = {};
-    if (minSalary !== undefined) salaryFilter.gte = minSalary;
-    if (maxSalary !== undefined) salaryFilter.lte = maxSalary;
-    this.where.salary = salaryFilter;
+    if (minSalary !== undefined && maxSalary !== undefined) {
+      // Both min and max specified - use salary field with range
+      this.where.salary = {
+        gte: minSalary,
+        lte: maxSalary
+      };
+    } else if (minSalary !== undefined) {
+      // Only min specified - use salary field (stored as min)
+      this.where.salary = {
+        gte: minSalary
+      };
+    } else if (maxSalary !== undefined) {
+      // Only max specified - filter by checking actual salary values and salary ranges
+      this.where.OR = [
+        // Jobs with no salaryRange
+        { salaryRange: { equals: '' } },
+        // Jobs where salary (actual value) is <= maxSalary
+        { 
+          AND: [
+            { salary: { not: null } },
+            { salary: { lte: maxSalary } }
+          ]
+        },
+        // Jobs with salary ranges - check if max value <= maxSalary
+        {
+          AND: [
+            { salaryRange: { contains: '-' } },
+            { salary: { lte: maxSalary } }
+          ]
+        },
+        // Jobs with single salary values (no dash) - check if salary <= maxSalary
+        {
+          AND: [
+            { salaryRange: { not: { contains: '-' } } },
+            { salary: { lte: maxSalary } }
+          ]
+        }
+      ];
+    }
+
+    // If minSalary is set, always sort by salary descending (top salaries first)
+    if (minSalary !== undefined) {
+      this.orderBy = [{ salary: 'desc' }];
+    }
     return this;
   }
 
   /** Sort by createdAt, salary, or relevance (title-priority when keyword exists). */
   applySorting(): this {
+    // If minSalary is set, sorting is handled in applySalary
+    if (this.params.minSalary !== undefined) return this;
     const order = this.params.sortOrder ?? 'desc';
 
     switch (this.params.sortBy) {

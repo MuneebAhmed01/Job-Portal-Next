@@ -33,6 +33,11 @@ export class JobsController {
     return this.jobsService.findAllPublic();
   }
 
+  @Get('update-salaries')
+  async updateSalaries() {
+    return this.jobsService.updateExistingJobSalaries();
+  }
+
   @Get('search')
   search(@Query(new ZodValidationPipe(searchJobsSchema)) query: SearchJobsDto) {
     return this.jobsService.searchJobs(query);

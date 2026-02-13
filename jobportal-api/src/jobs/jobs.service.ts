@@ -16,18 +16,122 @@ export class JobsService {
   ) {}
 
   async create(createJobDto: CreateJobDto, employerId: string) {
+    // Parse salary from salaryRange if not provided
+    let salary = createJobDto.salary;
+    if (!salary && createJobDto.salaryRange) {
+      salary = this.parseMinSalary(createJobDto.salaryRange); // Use MIN salary for filtering
+    }
+
     const job = await this.prisma.job.create({
       data: {
         ...createJobDto,
+        salary: salary || undefined,
         employerId,
         status: JobStatus.ACTIVE,
       },
     });
 
-    // Invalidate the "all jobs" cache so the new job appears immediately
+    // Invalidate cache so new job appears immediately
     await this.jobCache.invalidateAll();
 
     return job;
+  }
+
+  /**
+   * Parse salary for filtering - returns minimum for general use
+   */
+  private parseSalaryForFiltering(salaryRange: string): number | undefined {
+    return this.parseMinSalary(salaryRange);
+  }
+
+  /**
+   * Parse minimum salary value from a salary range string
+   * Examples: "$80k-$100k" -> 80000, "50k-70k" -> 50000, "$120k" -> 120000
+   */
+  private parseMinSalary(salaryRange: string): number | undefined {
+    try {
+      // Remove common currency symbols and whitespace
+      const cleaned = salaryRange.replace(/[$,\s]/g, '').toLowerCase();
+      
+      // Handle different formats
+      if (cleaned.includes('-')) {
+        // Range format: "80k-100k" or "80000-100000"
+        const parts = cleaned.split('-');
+        const minPart = parts[0]; // Take first part as min
+        return this.parseSalaryValue(minPart);
+      } else {
+        // Single value format: "100k" or "100000"
+        return this.parseSalaryValue(cleaned);
+      }
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Parse maximum salary value from a salary range string
+   * Examples: "$80k-$100k" -> 100000, "50k-70k" -> 70000, "$120k" -> 120000
+   */
+  private parseMaxSalary(salaryRange: string): number | undefined {
+    try {
+      // Remove common currency symbols and whitespace
+      const cleaned = salaryRange.replace(/[$,\s]/g, '').toLowerCase();
+      
+      // Handle different formats
+      if (cleaned.includes('-')) {
+        // Range format: "80k-100k" or "80000-100000"
+        const parts = cleaned.split('-');
+        const maxPart = parts[parts.length - 1]; // Take the last part as max
+        return this.parseSalaryValue(maxPart);
+      } else {
+        // Single value format: "100k" or "100000"
+        return this.parseSalaryValue(cleaned);
+      }
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Parse individual salary value (handles 'k' suffix and plain numbers)
+   */
+  private parseSalaryValue(value: string): number | undefined {
+    if (value.includes('k')) {
+      const numValue = parseFloat(value.replace('k', ''));
+      return isNaN(numValue) ? undefined : Math.round(numValue * 1000);
+    } else {
+      const numValue = parseFloat(value);
+      return isNaN(numValue) ? undefined : Math.round(numValue);
+    }
+  }
+
+  async updateExistingJobSalaries() {
+    const jobsToUpdate = await this.prisma.job.findMany({
+      where: {
+        salaryRange: {
+          not: ''
+        }
+      }
+    });
+
+    let updatedCount = 0;
+
+    for (const job of jobsToUpdate) {
+      const parsedSalary = this.parseMinSalary(job.salaryRange); // Use MIN salary for filtering
+      
+      await this.prisma.job.update({
+        where: { id: job.id },
+        data: { salary: parsedSalary }
+      });
+
+      updatedCount++;
+      console.log(`Updated job "${job.title}" - salaryRange: "${job.salaryRange}" -> salary: ${parsedSalary}`);
+    }
+
+    // Invalidate cache
+    await this.jobCache.invalidateAll();
+
+    return { message: `Updated ${updatedCount} jobs with salary values` };
   }
 
   async findByEmployer(employerId: string) {

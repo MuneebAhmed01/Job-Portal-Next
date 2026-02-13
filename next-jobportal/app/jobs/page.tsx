@@ -42,6 +42,28 @@ export default function JobsPage() {
   const [page, setPage] = useState(1);
   const LIMIT = 12;
 
+  // --- applied filters state (for actual search) ---
+  const [appliedFilters, setAppliedFilters] = useState({
+    keyword: '',
+    type: '' as JobType | '',
+    location: '',
+    minSalary: '',
+    maxSalary: '',
+    sortBy: 'createdAt' as SortBy
+  });
+
+  // Initialize appliedFilters on mount
+  useEffect(() => {
+    setAppliedFilters({
+      keyword,
+      type,
+      location,
+      minSalary,
+      maxSalary,
+      sortBy
+    });
+  }, []); // Only run once on mount
+
   // --- data state ---
   const [result, setResult] = useState<PaginatedJobs>({ data: [], total: 0, totalPages: 0, currentPage: 1 });
   const [loading, setLoading] = useState(true);
@@ -50,19 +72,19 @@ export default function JobsPage() {
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Build params object from state
+  // Build params object from applied filters
   const buildParams = useCallback((): SearchJobsParams => {
-    const params: SearchJobsParams = { page, limit: LIMIT, sortBy };
-    if (keyword.trim()) params.keyword = keyword.trim();
-    if (type) params.type = type;
-    if (location.trim()) params.location = location.trim();
-    if (minSalary) params.minSalary = Number(minSalary);
-    if (maxSalary) params.maxSalary = Number(maxSalary);
-    if (sortBy === 'relevance' && !keyword.trim()) {
+    const params: SearchJobsParams = { page, limit: LIMIT, sortBy: appliedFilters.sortBy };
+    if (appliedFilters.keyword.trim()) params.keyword = appliedFilters.keyword.trim();
+    if (appliedFilters.type) params.type = appliedFilters.type;
+    if (appliedFilters.location.trim()) params.location = appliedFilters.location.trim();
+    if (appliedFilters.minSalary) params.minSalary = Number(appliedFilters.minSalary);
+    if (appliedFilters.maxSalary) params.maxSalary = Number(appliedFilters.maxSalary);
+    if (appliedFilters.sortBy === 'relevance' && !appliedFilters.keyword.trim()) {
       params.sortBy = 'createdAt'; // fallback when no keyword
     }
     return params;
-  }, [keyword, type, location, minSalary, maxSalary, sortBy, page]);
+  }, [appliedFilters, page]);
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
@@ -102,19 +124,24 @@ export default function JobsPage() {
     }
   }, [buildParams, user, token]);
 
-  // Debounced search for text inputs
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setPage(1); // reset to page 1 on filter change
-    }, 400);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [keyword, location, minSalary, maxSalary]);
-
-  // Fetch whenever page/type/sortBy or debounced params change
+  // Fetch whenever appliedFilters or page changes
   useEffect(() => {
     fetchJobs();
-  }, [fetchJobs]);
+  }, [appliedFilters.keyword, appliedFilters.type, appliedFilters.location, appliedFilters.minSalary, appliedFilters.maxSalary, appliedFilters.sortBy, page]);
+
+  // Apply filters function
+  const applyFilters = () => {
+    setAppliedFilters({
+      keyword,
+      type,
+      location,
+      minSalary,
+      maxSalary,
+      sortBy
+    });
+    setPage(1); // reset to page 1 when applying filters
+    setFiltersOpen(false); // close filter panel after applying
+  };
 
   // Clear all filters
   const clearFilters = () => {
@@ -124,10 +151,19 @@ export default function JobsPage() {
     setMinSalary('');
     setMaxSalary('');
     setSortBy('createdAt');
+    setAppliedFilters({
+      keyword: '',
+      type: '',
+      location: '',
+      minSalary: '',
+      maxSalary: '',
+      sortBy: 'createdAt'
+    });
     setPage(1);
   };
 
-  const hasActiveFilters = keyword || type || location || minSalary || maxSalary;
+  const hasActiveFilters = appliedFilters.keyword || appliedFilters.type || appliedFilters.location || appliedFilters.minSalary || appliedFilters.maxSalary;
+  const hasUnappliedChanges = keyword !== appliedFilters.keyword || type !== appliedFilters.type || location !== appliedFilters.location || minSalary !== appliedFilters.minSalary || maxSalary !== appliedFilters.maxSalary || sortBy !== appliedFilters.sortBy;
 
   const handleSaveChange = (jobId: string, saved: boolean) => {
     setResult((prev) => ({
@@ -194,7 +230,7 @@ export default function JobsPage() {
                     {/* Invisible backdrop to close on outside click */}
                     <div className="fixed inset-0 z-10" onClick={() => setFiltersOpen(false)} />
 
-                    <div className="absolute right-0 top-full mt-2 z-20 w-[340px] rounded-xl bg-[#0b1120] border border-white/10 shadow-2xl animate-slide-up">
+                    <div className="absolute right-0 top-full mt-2 z-20 w-85 rounded-xl bg-[#0b1120] border border-white/10 shadow-2xl animate-slide-up">
                       {/* Panel header with close */}
                       <div className="flex items-center justify-between px-4 pt-3 pb-2">
                         <span className="text-sm font-medium text-gray-300">Filter by</span>
@@ -213,7 +249,7 @@ export default function JobsPage() {
                           <label className="block text-xs text-gray-400 mb-1 font-medium uppercase tracking-wide">Job Type</label>
                           <select
                             value={type}
-                            onChange={(e) => { setType(e.target.value as JobType | ''); setPage(1); }}
+                            onChange={(e) => setType(e.target.value as JobType | '')}
                             className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 text-sm focus:outline-none focus:border-orange-500/60 [&>option]:bg-[#0f172a] [&>option]:text-gray-300"
                           >
                             <option value="">All Types</option>
@@ -261,17 +297,28 @@ export default function JobsPage() {
                           />
                         </div>
 
-                        {/* Clear button */}
-                        {hasActiveFilters && (
-                          <div className="col-span-2 flex justify-end pt-1">
+                        {/* Apply Filter and Clear buttons */}
+                        <div className="col-span-2 flex gap-2 pt-2">
+                          <button
+                            onClick={applyFilters}
+                            disabled={!hasUnappliedChanges}
+                            className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition ${
+                              hasUnappliedChanges
+                                ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                                : 'bg-white/10 text-gray-500 cursor-not-allowed'
+                            }`}
+                          >
+                            Apply Filters
+                          </button>
+                          {hasActiveFilters && (
                             <button
                               onClick={clearFilters}
-                              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition"
+                              className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-400 hover:text-white transition"
                             >
                               <X className="w-3.5 h-3.5" /> Clear all
                             </button>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
                     </div>
                   </>
@@ -281,7 +328,7 @@ export default function JobsPage() {
               {/* Sort */}
               <select
                 value={sortBy}
-                onChange={(e) => { setSortBy(e.target.value as SortBy); setPage(1); }}
+                onChange={(e) => setSortBy(e.target.value as SortBy)}
                 className="px-4 py-2 rounded-full bg-[#181f2a] border border-white/10 text-gray-300 text-sm focus:outline-none focus:border-orange-500/60 transition appearance-none cursor-pointer"
                 style={{ backgroundColor: '#181f2a', color: '#e5e7eb' }}
               >
@@ -365,7 +412,7 @@ export default function JobsPage() {
                   <button
                     key={p}
                     onClick={() => setPage(p as number)}
-                    className={`min-w-[40px] h-10 rounded-lg text-sm font-medium transition ${
+                    className={`min-w-10 h-10 rounded-lg text-sm font-medium transition ${
                       page === p
                         ? 'bg-orange-500 text-white'
                         : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20'
