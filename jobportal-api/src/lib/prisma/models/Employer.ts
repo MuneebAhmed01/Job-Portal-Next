@@ -31,6 +31,7 @@ export type EmployerMinAggregateOutputType = {
   companyName: string | null
   email: string | null
   password: string | null
+  provider: string | null
   bio: string | null
   createdAt: Date | null
 }
@@ -42,6 +43,7 @@ export type EmployerMaxAggregateOutputType = {
   companyName: string | null
   email: string | null
   password: string | null
+  provider: string | null
   bio: string | null
   createdAt: Date | null
 }
@@ -53,6 +55,7 @@ export type EmployerCountAggregateOutputType = {
   companyName: number
   email: number
   password: number
+  provider: number
   bio: number
   createdAt: number
   _all: number
@@ -66,6 +69,7 @@ export type EmployerMinAggregateInputType = {
   companyName?: true
   email?: true
   password?: true
+  provider?: true
   bio?: true
   createdAt?: true
 }
@@ -77,6 +81,7 @@ export type EmployerMaxAggregateInputType = {
   companyName?: true
   email?: true
   password?: true
+  provider?: true
   bio?: true
   createdAt?: true
 }
@@ -88,6 +93,7 @@ export type EmployerCountAggregateInputType = {
   companyName?: true
   email?: true
   password?: true
+  provider?: true
   bio?: true
   createdAt?: true
   _all?: true
@@ -171,7 +177,8 @@ export type EmployerGroupByOutputType = {
   phone: string
   companyName: string
   email: string
-  password: string
+  password: string | null
+  provider: string
   bio: string | null
   createdAt: Date
   _count: EmployerCountAggregateOutputType | null
@@ -203,7 +210,8 @@ export type EmployerWhereInput = {
   phone?: Prisma.StringFilter<"Employer"> | string
   companyName?: Prisma.StringFilter<"Employer"> | string
   email?: Prisma.StringFilter<"Employer"> | string
-  password?: Prisma.StringFilter<"Employer"> | string
+  password?: Prisma.StringNullableFilter<"Employer"> | string | null
+  provider?: Prisma.StringFilter<"Employer"> | string
   bio?: Prisma.StringNullableFilter<"Employer"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Employer"> | Date | string
   jobs?: Prisma.JobListRelationFilter
@@ -215,7 +223,8 @@ export type EmployerOrderByWithRelationInput = {
   phone?: Prisma.SortOrder
   companyName?: Prisma.SortOrder
   email?: Prisma.SortOrder
-  password?: Prisma.SortOrder
+  password?: Prisma.SortOrderInput | Prisma.SortOrder
+  provider?: Prisma.SortOrder
   bio?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   jobs?: Prisma.JobOrderByRelationAggregateInput
@@ -230,7 +239,8 @@ export type EmployerWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Employer"> | string
   phone?: Prisma.StringFilter<"Employer"> | string
   companyName?: Prisma.StringFilter<"Employer"> | string
-  password?: Prisma.StringFilter<"Employer"> | string
+  password?: Prisma.StringNullableFilter<"Employer"> | string | null
+  provider?: Prisma.StringFilter<"Employer"> | string
   bio?: Prisma.StringNullableFilter<"Employer"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Employer"> | Date | string
   jobs?: Prisma.JobListRelationFilter
@@ -242,7 +252,8 @@ export type EmployerOrderByWithAggregationInput = {
   phone?: Prisma.SortOrder
   companyName?: Prisma.SortOrder
   email?: Prisma.SortOrder
-  password?: Prisma.SortOrder
+  password?: Prisma.SortOrderInput | Prisma.SortOrder
+  provider?: Prisma.SortOrder
   bio?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.EmployerCountOrderByAggregateInput
@@ -259,7 +270,8 @@ export type EmployerScalarWhereWithAggregatesInput = {
   phone?: Prisma.StringWithAggregatesFilter<"Employer"> | string
   companyName?: Prisma.StringWithAggregatesFilter<"Employer"> | string
   email?: Prisma.StringWithAggregatesFilter<"Employer"> | string
-  password?: Prisma.StringWithAggregatesFilter<"Employer"> | string
+  password?: Prisma.StringNullableWithAggregatesFilter<"Employer"> | string | null
+  provider?: Prisma.StringWithAggregatesFilter<"Employer"> | string
   bio?: Prisma.StringNullableWithAggregatesFilter<"Employer"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Employer"> | Date | string
 }
@@ -270,7 +282,8 @@ export type EmployerCreateInput = {
   phone: string
   companyName: string
   email: string
-  password: string
+  password?: string | null
+  provider?: string
   bio?: string | null
   createdAt?: Date | string
   jobs?: Prisma.JobCreateNestedManyWithoutEmployerInput
@@ -282,7 +295,8 @@ export type EmployerUncheckedCreateInput = {
   phone: string
   companyName: string
   email: string
-  password: string
+  password?: string | null
+  provider?: string
   bio?: string | null
   createdAt?: Date | string
   jobs?: Prisma.JobUncheckedCreateNestedManyWithoutEmployerInput
@@ -294,7 +308,8 @@ export type EmployerUpdateInput = {
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   companyName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobs?: Prisma.JobUpdateManyWithoutEmployerNestedInput
@@ -306,7 +321,8 @@ export type EmployerUncheckedUpdateInput = {
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   companyName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobs?: Prisma.JobUncheckedUpdateManyWithoutEmployerNestedInput
@@ -318,7 +334,8 @@ export type EmployerCreateManyInput = {
   phone: string
   companyName: string
   email: string
-  password: string
+  password?: string | null
+  provider?: string
   bio?: string | null
   createdAt?: Date | string
 }
@@ -329,7 +346,8 @@ export type EmployerUpdateManyMutationInput = {
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   companyName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -340,7 +358,8 @@ export type EmployerUncheckedUpdateManyInput = {
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   companyName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -352,6 +371,7 @@ export type EmployerCountOrderByAggregateInput = {
   companyName?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
+  provider?: Prisma.SortOrder
   bio?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -363,6 +383,7 @@ export type EmployerMaxOrderByAggregateInput = {
   companyName?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
+  provider?: Prisma.SortOrder
   bio?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -374,6 +395,7 @@ export type EmployerMinOrderByAggregateInput = {
   companyName?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
+  provider?: Prisma.SortOrder
   bio?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -403,7 +425,8 @@ export type EmployerCreateWithoutJobsInput = {
   phone: string
   companyName: string
   email: string
-  password: string
+  password?: string | null
+  provider?: string
   bio?: string | null
   createdAt?: Date | string
 }
@@ -414,7 +437,8 @@ export type EmployerUncheckedCreateWithoutJobsInput = {
   phone: string
   companyName: string
   email: string
-  password: string
+  password?: string | null
+  provider?: string
   bio?: string | null
   createdAt?: Date | string
 }
@@ -441,7 +465,8 @@ export type EmployerUpdateWithoutJobsInput = {
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   companyName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -452,7 +477,8 @@ export type EmployerUncheckedUpdateWithoutJobsInput = {
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   companyName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -495,6 +521,7 @@ export type EmployerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   companyName?: boolean
   email?: boolean
   password?: boolean
+  provider?: boolean
   bio?: boolean
   createdAt?: boolean
   jobs?: boolean | Prisma.Employer$jobsArgs<ExtArgs>
@@ -508,6 +535,7 @@ export type EmployerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   companyName?: boolean
   email?: boolean
   password?: boolean
+  provider?: boolean
   bio?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["employer"]>
@@ -519,6 +547,7 @@ export type EmployerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   companyName?: boolean
   email?: boolean
   password?: boolean
+  provider?: boolean
   bio?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["employer"]>
@@ -530,11 +559,12 @@ export type EmployerSelectScalar = {
   companyName?: boolean
   email?: boolean
   password?: boolean
+  provider?: boolean
   bio?: boolean
   createdAt?: boolean
 }
 
-export type EmployerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "phone" | "companyName" | "email" | "password" | "bio" | "createdAt", ExtArgs["result"]["employer"]>
+export type EmployerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "phone" | "companyName" | "email" | "password" | "provider" | "bio" | "createdAt", ExtArgs["result"]["employer"]>
 export type EmployerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   jobs?: boolean | Prisma.Employer$jobsArgs<ExtArgs>
   _count?: boolean | Prisma.EmployerCountOutputTypeDefaultArgs<ExtArgs>
@@ -553,7 +583,8 @@ export type $EmployerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     phone: string
     companyName: string
     email: string
-    password: string
+    password: string | null
+    provider: string
     bio: string | null
     createdAt: Date
   }, ExtArgs["result"]["employer"]>
@@ -986,6 +1017,7 @@ export interface EmployerFieldRefs {
   readonly companyName: Prisma.FieldRef<"Employer", 'String'>
   readonly email: Prisma.FieldRef<"Employer", 'String'>
   readonly password: Prisma.FieldRef<"Employer", 'String'>
+  readonly provider: Prisma.FieldRef<"Employer", 'String'>
   readonly bio: Prisma.FieldRef<"Employer", 'String'>
   readonly createdAt: Prisma.FieldRef<"Employer", 'DateTime'>
 }

@@ -3,6 +3,7 @@ import { Inter, Poppins, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import ReduxProvider from "@/providers/ReduxProvider";
 import ThemeProvider from "@/providers/ThemeProvider";
+import GoogleAuthProvider from "@/providers/GoogleAuthProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import BackToTop from "@/components/BackToTop";
 
@@ -49,6 +50,7 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <ReduxProvider>
           <ThemeProvider>
+            <GoogleAuthProvider>
             <AuthProvider>
               
               <main>
@@ -56,6 +58,7 @@ export default function RootLayout({
               </main>
               <BackToTop />
             </AuthProvider>
+            </GoogleAuthProvider>
           </ThemeProvider>
         </ReduxProvider>
       </body>

@@ -23,6 +23,7 @@ interface AuthContextType {
   isEmployee: boolean;
   isEmployer: boolean;
   isAdmin: boolean;
+  isProfileIncomplete: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -88,8 +89,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isEmployer = user?.userType === 'employer';
   const isAdmin = user?.userType === 'admin';
 
+  const isProfileIncomplete = (() => {
+    if (!user || isAdmin) return false;
+    if (!user.name || !user.phone) return true;
+    if (isEmployer && !user.companyName) return true;
+    return false;
+  })();
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, updateUser, isLoading, isEmployee, isEmployer, isAdmin }}>
+    <AuthContext.Provider value={{ user, token, login, logout, updateUser, isLoading, isEmployee, isEmployer, isAdmin, isProfileIncomplete }}>
       {children}
     </AuthContext.Provider>
   );

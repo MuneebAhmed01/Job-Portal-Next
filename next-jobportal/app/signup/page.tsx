@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { User, Mail, Lock, Phone, FileText, Building2, Loader2, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { employeeSignupSchema, employerSignupSchema, getZodErrors } from '@/lib/validations';
+import GoogleLoginButton from '@/components/GoogleLoginButton';
 
 type UserType = 'employee' | 'employer';
 
@@ -342,6 +343,17 @@ export default function SignupPage() {
               )}
             </button>
           </form>
+          
+          {/* Google Sign-Up */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-700" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-slate-900 text-gray-500">or</span>
+            </div>
+          </div>
+          <GoogleLoginButton role={userType} />
           
           {/* Sign In Link */}
           <p className="mt-8 text-center text-gray-400">

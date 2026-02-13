@@ -134,10 +134,14 @@ export class AuthService {
       where: { email },
     });
     if (!employee) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Account not found');
     }
 
-    const isPasswordValid = await bcrypt.compare(password, employee.password);
+    if (employee.provider === 'google') {
+      throw new UnauthorizedException('This account uses Google sign-in. Continue with Google.');
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, employee.password!);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -174,10 +178,14 @@ export class AuthService {
       where: { email },
     });
     if (!employer) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Account not found');
     }
 
-    const isPasswordValid = await bcrypt.compare(password, employer.password);
+    if (employer.provider === 'google') {
+      throw new UnauthorizedException('This account uses Google sign-in. Continue with Google.');
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, employer.password!);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }

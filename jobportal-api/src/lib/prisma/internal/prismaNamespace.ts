@@ -973,6 +973,7 @@ export const EmployeeScalarFieldEnum = {
   phone: 'phone',
   email: 'email',
   password: 'password',
+  provider: 'provider',
   resumePath: 'resumePath',
   bio: 'bio',
   createdAt: 'createdAt'
@@ -988,6 +989,7 @@ export const EmployerScalarFieldEnum = {
   companyName: 'companyName',
   email: 'email',
   password: 'password',
+  provider: 'provider',
   bio: 'bio',
   createdAt: 'createdAt'
 } as const

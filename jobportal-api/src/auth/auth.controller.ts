@@ -1,16 +1,21 @@
-import { Controller, Post, Body, UseInterceptors, UploadedFile, Get, Headers, UnauthorizedException, UsePipes, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, UseInterceptors, UploadedFile, Get, Headers, Query, UnauthorizedException, UsePipes, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { AuthService } from './auth.service';
+import { GoogleAuthService } from './google-auth.service';
 import { signupSchema, type SignupDto } from './dto/signup.dto';
 import { signinSchema, type SigninDto } from './dto/signin.dto';
+import { googleAuthSchema, googleRoleSchema } from './dto/google-auth.dto';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import * as path from 'path';
 import * as fs from 'fs';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private googleAuthService: GoogleAuthService,
+  ) {}
 
   @Post('signup')
   @UseInterceptors(FileInterceptor('resume', {
@@ -57,6 +62,20 @@ export class AuthController {
   @UsePipes(new ZodValidationPipe(signinSchema))
   async signin(@Body() signinDto: SigninDto) {
     return this.authService.signin(signinDto);
+  }
+
+  @Post('google')
+  async googleAuth(
+    @Body() body: any,
+    @Query('role') role?: string,
+  ) {
+    const bodyResult = googleAuthSchema.safeParse(body);
+    if (!bodyResult.success) {
+      throw new BadRequestException('Invalid request: accessToken is required');
+    }
+    const roleResult = googleRoleSchema.safeParse({ role });
+    const validRole = roleResult.success ? roleResult.data.role : undefined;
+    return this.googleAuthService.authenticate(bodyResult.data.accessToken, validRole);
   }
 
   @Get('me')

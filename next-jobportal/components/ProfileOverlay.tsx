@@ -24,7 +24,7 @@ interface ProfileOverlayProps {
 
 export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps) {
   const router = useRouter();
-  const { user, token, logout, isEmployer, updateUser } = useAuth();
+  const { user, token, logout, isEmployer, updateUser, isProfileIncomplete } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -244,6 +244,22 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
           
           {activeTab === 'profile' && (
             <div className="space-y-6">
+              {/* Incomplete Profile Warning */}
+              {isProfileIncomplete && !isEditing && (
+                <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+                  <span className="w-2.5 h-2.5 bg-red-500 rounded-full shrink-0 animate-pulse" />
+                  <p className="text-red-400 text-sm font-medium flex-1">
+                    Your profile is incomplete. Please update your details to get the best experience.
+                  </p>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="text-red-400 hover:text-red-300 text-sm font-semibold whitespace-nowrap"
+                  >
+                    Complete Now
+                  </button>
+                </div>
+              )}
+
               {/* Success/Error Messages */}
               {success && (
                 <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400 text-sm">

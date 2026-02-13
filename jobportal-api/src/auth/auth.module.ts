@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { GoogleAuthService } from './google-auth.service';
 import { PrismaModule } from '../lib/prisma/prisma.module';
 
 @Module({
@@ -13,7 +14,7 @@ import { PrismaModule } from '../lib/prisma/prisma.module';
     PrismaModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, GoogleAuthService],
   exports: [AuthService],
 })
 export class AuthModule {}

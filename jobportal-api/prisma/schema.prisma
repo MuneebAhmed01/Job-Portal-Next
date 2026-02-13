@@ -16,7 +16,8 @@ model Employee {
   name       String
   phone      String
   email      String   @unique
-  password   String
+  password   String?
+  provider   String   @default("local")
   resumePath String?
   bio        String?
   createdAt  DateTime @default(now())
@@ -34,7 +35,8 @@ model Employer {
   phone       String
   companyName String
   email       String   @unique
-  password    String
+  password    String?
+  provider    String   @default("local")
   bio         String?
   createdAt   DateTime @default(now())
 

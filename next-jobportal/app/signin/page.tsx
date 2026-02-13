@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { Mail, Lock, Building2, Loader2, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { signinSchema, getZodErrors } from '@/lib/validations';
+import GoogleLoginButton from '@/components/GoogleLoginButton';
 
 type UserType = 'employee' | 'employer';
 
@@ -274,6 +275,21 @@ export default function SigninPage() {
               )}
             </button>
           </form>
+          
+          {/* Google Sign-In - Only for non-admin */}
+          {!isAdminMode && (
+            <>
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-700" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-slate-900 text-gray-500">or</span>
+                </div>
+              </div>
+              <GoogleLoginButton role={userType} />
+            </>
+          )}
           
           {/* Sign Up Link - Only for non-admin */}
           {!isAdminMode && (

@@ -14,7 +14,7 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  const { user } = useAuth();
+  const { user, isProfileIncomplete } = useAuth();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -63,9 +63,12 @@ export default function Navbar() {
                 </div>
                 <button 
                   onClick={() => setIsProfileOpen(true)} 
-                  className="text-white/70 hover:text-white transition"
+                  className="relative text-white/70 hover:text-white transition"
                 >
                   Profile
+                  {isProfileIncomplete && (
+                    <span className="absolute -top-1 -right-2 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
+                  )}
                 </button>
               </>
             ) : (
@@ -124,9 +127,12 @@ export default function Navbar() {
                       setMobileOpen(false);
                       setIsProfileOpen(true);
                     }}
-                    className="text-white/80 hover:text-white"
+                    className="relative text-white/80 hover:text-white"
                   >
                     Profile
+                    {isProfileIncomplete && (
+                      <span className="absolute -top-1 -right-2 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
+                    )}
                   </button>
                 </>
               ) : (
