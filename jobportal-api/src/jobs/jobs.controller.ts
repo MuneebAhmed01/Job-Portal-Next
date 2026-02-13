@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Delete, Body, UseGuards, Request, Param, Put, UsePipes } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, UseGuards, Request, Param, Put, Query, UsePipes } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { DraftStorageService } from '../redis/draft-storage.service';
 import { createJobSchema, type CreateJobDto } from './dto/create-job.dto';
+import { searchJobsSchema, type SearchJobsDto } from './dto/search-jobs.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 
@@ -30,6 +31,11 @@ export class JobsController {
   @Get('all')
   findAll() {
     return this.jobsService.findAllPublic();
+  }
+
+  @Get('search')
+  search(@Query(new ZodValidationPipe(searchJobsSchema)) query: SearchJobsDto) {
+    return this.jobsService.searchJobs(query);
   }
 
   // Employee-specific routes - must be before :id routes

@@ -1,86 +1,146 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import JobCard from '@/components/JobCard';
-import { Job } from '@/types/job';
+import { Job, SearchJobsParams, PaginatedJobs, JobType, SortBy } from '@/types/job';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
+import { Search, SlidersHorizontal, X, ChevronLeft, ChevronRight } from 'lucide-react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+
+const JOB_TYPES: { value: JobType; label: string }[] = [
+  { value: 'REMOTE', label: 'Remote' },
+  { value: 'ONSITE', label: 'Onsite' },
+  { value: 'HYBRID', label: 'Hybrid' },
+];
+
+const SORT_OPTIONS: { value: SortBy; label: string }[] = [
+  { value: 'createdAt', label: 'Newest' },
+  { value: 'salary', label: 'Salary' },
+  { value: 'relevance', label: 'Relevance' },
+];
+
+/** Build query string from non-empty params */
+function toQueryString(params: SearchJobsParams): string {
+  const entries = Object.entries(params).filter(
+    ([, v]) => v !== undefined && v !== '' && v !== null,
+  );
+  return new URLSearchParams(entries.map(([k, v]) => [k, String(v)])).toString();
+}
 
 export default function JobsPage() {
   const { user, token } = useAuth();
-  const [jobs, setJobs] = useState<Job[]>([]);
+
+  // --- filter state ---
+  const [keyword, setKeyword] = useState('');
+  const [type, setType] = useState<JobType | ''>('');
+  const [location, setLocation] = useState('');
+  const [minSalary, setMinSalary] = useState('');
+  const [maxSalary, setMaxSalary] = useState('');
+  const [sortBy, setSortBy] = useState<SortBy>('createdAt');
+  const [page, setPage] = useState(1);
+  const LIMIT = 12;
+
+  // --- data state ---
+  const [result, setResult] = useState<PaginatedJobs>({ data: [], total: 0, totalPages: 0, currentPage: 1 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const fetchJobs = async () => {
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Build params object from state
+  const buildParams = useCallback((): SearchJobsParams => {
+    const params: SearchJobsParams = { page, limit: LIMIT, sortBy };
+    if (keyword.trim()) params.keyword = keyword.trim();
+    if (type) params.type = type;
+    if (location.trim()) params.location = location.trim();
+    if (minSalary) params.minSalary = Number(minSalary);
+    if (maxSalary) params.maxSalary = Number(maxSalary);
+    if (sortBy === 'relevance' && !keyword.trim()) {
+      params.sortBy = 'createdAt'; // fallback when no keyword
+    }
+    return params;
+  }, [keyword, type, location, minSalary, maxSalary, sortBy, page]);
+
+  const fetchJobs = useCallback(async () => {
+    setLoading(true);
+    setError('');
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
-      const res = await fetch(`${apiUrl}/jobs/all`);
+      const qs = toQueryString(buildParams());
+      const res = await fetch(`${API_URL}/jobs/search?${qs}`);
       if (!res.ok) throw new Error('Failed to fetch jobs');
-      const data = await res.json();
-      
-      // If user is logged in, fetch saved jobs and applied jobs to mark jobs accordingly
+      const json: PaginatedJobs = await res.json();
+
+      // Enrich with saved/applied status when logged in
       if (user && token) {
         const [savedRes, appliedRes] = await Promise.all([
-          fetch(`${apiUrl}/jobs/employee/saved`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          }),
-          fetch(`${apiUrl}/jobs/employee/applications`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          })
+          fetch(`${API_URL}/jobs/employee/saved`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_URL}/jobs/employee/applications`, { headers: { Authorization: `Bearer ${token}` } }),
         ]);
-        
-        let savedJobIds: string[] = [];
-        let appliedJobIds: string[] = [];
-        
-        if (savedRes.ok) {
-          const savedData = await savedRes.json();
-          savedJobIds = savedData.map((savedJob: any) => savedJob.jobId);
-        }
-        
-        if (appliedRes.ok) {
-          const appliedData = await appliedRes.json();
-          appliedJobIds = appliedData.map((application: any) => application.jobId);
-        }
-        
-        // Mark jobs as saved and applied if they exist in respective lists
-        const jobsWithStatus = data.map((job: any) => ({
+
+        const savedIds: string[] = savedRes.ok
+          ? (await savedRes.json()).map((s: any) => s.jobId)
+          : [];
+        const appliedIds: string[] = appliedRes.ok
+          ? (await appliedRes.json()).map((a: any) => a.jobId)
+          : [];
+
+        json.data = json.data.map((job) => ({
           ...job,
-          saved: savedJobIds.includes(job.id),
-          applied: appliedJobIds.includes(job.id)
+          saved: savedIds.includes(job.id),
+          applied: appliedIds.includes(job.id),
         }));
-        
-        setJobs(jobsWithStatus);
-      } else {
-        setJobs(data);
       }
-    } catch (err) {
+
+      setResult(json);
+    } catch {
       setError('Failed to load jobs. Make sure the backend is running.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [buildParams, user, token]);
 
+  // Debounced search for text inputs
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setPage(1); // reset to page 1 on filter change
+    }, 400);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [keyword, location, minSalary, maxSalary]);
+
+  // Fetch whenever page/type/sortBy or debounced params change
   useEffect(() => {
     fetchJobs();
-  }, [user, token]);
+  }, [fetchJobs]);
+
+  // Clear all filters
+  const clearFilters = () => {
+    setKeyword('');
+    setType('');
+    setLocation('');
+    setMinSalary('');
+    setMaxSalary('');
+    setSortBy('createdAt');
+    setPage(1);
+  };
+
+  const hasActiveFilters = keyword || type || location || minSalary || maxSalary;
 
   const handleSaveChange = (jobId: string, saved: boolean) => {
-    // Update the jobs list to reflect save status
-    setJobs(prev => prev.map(job => 
-      job.id === jobId ? { ...job, saved } : job
-    ));
+    setResult((prev) => ({
+      ...prev,
+      data: prev.data.map((j) => (j.id === jobId ? { ...j, saved } : j)),
+    }));
   };
 
   const handleApplyChange = (jobId: string, applied: boolean) => {
-    // Update the jobs list to reflect apply status
-    setJobs(prev => prev.map(job => 
-      job.id === jobId ? { ...job, applied } : job
-    ));
+    setResult((prev) => ({
+      ...prev,
+      data: prev.data.map((j) => (j.id === jobId ? { ...j, applied } : j)),
+    }));
   };
 
   return (
@@ -88,36 +148,263 @@ export default function JobsPage() {
       <div className="relative bg-linear-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
         <Navbar />
       </div>
-      <main className="min-h-screen " style={{ background: 'linear-gradient(to bottom right, #020617, #0b0f19, #0f172a)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h1 className="text-4xl font-bold text-white mb-8 border-b border-white/20 pb-4">Available Jobs</h1>
 
-          {loading && (
-            <p className="text-gray-300">Loading jobs...</p>
+      <main className="min-h-screen" style={{ background: 'linear-gradient(to bottom right, #020617, #0b0f19, #0f172a)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* ── Header + inline search ── */}
+          {/* ── Header row: title + search + filters + sort ── */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8 border-b border-white/20 pb-4">
+            <h1 className="text-4xl font-bold text-white shrink-0">
+              Find Jobs
+            </h1>
+
+            <div className="flex items-center gap-3 ml-auto">
+              {/* Search */}
+              <div className="relative w-48 sm:w-56">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <input
+                  type="text"
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  placeholder="Search jobs…"
+                  className="w-full pl-9 pr-3 py-2 rounded-full bg-white/5 border border-white/10 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/60 transition"
+                />
+              </div>
+
+              {/* Filters */}
+              <div className="relative">
+                <button
+                  onClick={() => setFiltersOpen((o) => !o)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full border transition font-medium text-sm whitespace-nowrap ${
+                    filtersOpen
+                      ? 'bg-orange-500/20 border-orange-500/40 text-orange-400'
+                      : 'bg-white/5 border-white/10 text-gray-300 hover:border-white/20'
+                  }`}
+                >
+                  <SlidersHorizontal className="w-4 h-4" />
+                  Filters
+                  {hasActiveFilters && (
+                    <span className="w-2 h-2 rounded-full bg-orange-500" />
+                  )}
+                </button>
+
+                {/* Dropdown filter panel */}
+                {filtersOpen && (
+                  <>
+                    {/* Invisible backdrop to close on outside click */}
+                    <div className="fixed inset-0 z-10" onClick={() => setFiltersOpen(false)} />
+
+                    <div className="absolute right-0 top-full mt-2 z-20 w-[340px] rounded-xl bg-[#0b1120] border border-white/10 shadow-2xl animate-slide-up">
+                      {/* Panel header with close */}
+                      <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                        <span className="text-sm font-medium text-gray-300">Filter by</span>
+                        <button
+                          onClick={() => setFiltersOpen(false)}
+                          className="p-1 rounded-md text-gray-500 hover:text-white hover:bg-white/10 transition"
+                          aria-label="Close filters"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="px-4 pb-4 grid grid-cols-2 gap-3">
+                        {/* Type */}
+                        <div className="col-span-2">
+                          <label className="block text-xs text-gray-400 mb-1 font-medium uppercase tracking-wide">Job Type</label>
+                          <select
+                            value={type}
+                            onChange={(e) => { setType(e.target.value as JobType | ''); setPage(1); }}
+                            className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 text-sm focus:outline-none focus:border-orange-500/60 [&>option]:bg-[#0f172a] [&>option]:text-gray-300"
+                          >
+                            <option value="">All Types</option>
+                            {JOB_TYPES.map((t) => (
+                              <option key={t.value} value={t.value}>{t.label}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Location */}
+                        <div className="col-span-2">
+                          <label className="block text-xs text-gray-400 mb-1 font-medium uppercase tracking-wide">Location</label>
+                          <input
+                            type="text"
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                            placeholder="e.g. New York"
+                            className="w-full px-3 py-2 rounded-lg bg-[#181f2a] border border-white/10 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-orange-500/60"
+                          />
+                        </div>
+
+                        {/* Min Salary */}
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1 font-medium uppercase tracking-wide">Min Salary</label>
+                          <input
+                            type="number"
+                            value={minSalary}
+                            onChange={(e) => setMinSalary(e.target.value)}
+                            placeholder="$ 0"
+                            min={0}
+                            className="w-full px-3 py-2 rounded-lg bg-[#181f2a] border border-white/10 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-orange-500/60"
+                          />
+                        </div>
+
+                        {/* Max Salary */}
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1 font-medium uppercase tracking-wide">Max Salary</label>
+                          <input
+                            type="number"
+                            value={maxSalary}
+                            onChange={(e) => setMaxSalary(e.target.value)}
+                            placeholder="$ 0"
+                            min={0}
+                            className="w-full px-3 py-2 rounded-lg bg-[#181f2a] border border-white/10 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-orange-500/60"
+                          />
+                        </div>
+
+                        {/* Clear button */}
+                        {hasActiveFilters && (
+                          <div className="col-span-2 flex justify-end pt-1">
+                            <button
+                              onClick={clearFilters}
+                              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition"
+                            >
+                              <X className="w-3.5 h-3.5" /> Clear all
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Sort */}
+              <select
+                value={sortBy}
+                onChange={(e) => { setSortBy(e.target.value as SortBy); setPage(1); }}
+                className="px-4 py-2 rounded-full bg-[#181f2a] border border-white/10 text-gray-300 text-sm focus:outline-none focus:border-orange-500/60 transition appearance-none cursor-pointer"
+                style={{ backgroundColor: '#181f2a', color: '#e5e7eb' }}
+              >
+                {SORT_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value} style={{ backgroundColor: '#181f2a', color: '#e5e7eb' }}>
+                    Sort: {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* ── Results summary (only if filters applied) ── */}
+          {!loading && !error && hasActiveFilters && (
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-sm text-gray-400">
+                {result.total === 0
+                  ? 'No jobs found'
+                  : `Showing ${(result.currentPage - 1) * LIMIT + 1}–${Math.min(result.currentPage * LIMIT, result.total)} of ${result.total} jobs`}
+              </p>
+            </div>
           )}
-          
+
+          {/* ── Loading ── */}
+          {loading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-64 rounded-lg bg-white/5 animate-pulse" />
+              ))}
+            </div>
+          )}
+
+          {/* ── Error ── */}
           {error && (
             <div className="p-4 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400">
               {error}
             </div>
           )}
-          
-          {!loading && !error && jobs.length === 0 && (
-            <p className="text-gray-300">No jobs available.</p>
+
+          {/* ── Empty state ── */}
+          {!loading && !error && result.data.length === 0 && (
+            <div className="text-center py-20">
+              <p className="text-gray-400 text-lg mb-2">No jobs match your filters.</p>
+              {hasActiveFilters && (
+                <button onClick={clearFilters} className="text-orange-400 hover:text-orange-300 text-sm font-medium transition">
+                  Clear filters &amp; try again
+                </button>
+              )}
+            </div>
           )}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
-            {jobs.map((job) => (
-              <JobCard 
-                key={job.id} 
-                job={job} 
-                onSaveChange={handleSaveChange}
-                onApplyChange={handleApplyChange}
-              />
-            ))}
-          </div>
+
+          {/* ── Job cards grid ── */}
+          {!loading && !error && result.data.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+              {result.data.map((job) => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  onSaveChange={handleSaveChange}
+                  onApplyChange={handleApplyChange}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* ── Pagination ── */}
+          {result.totalPages > 1 && (
+            <div className="mt-10 flex items-center justify-center gap-2">
+              <button
+                disabled={page <= 1}
+                onClick={() => setPage((p) => p - 1)}
+                className="p-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+
+              {generatePageNumbers(page, result.totalPages).map((p, i) =>
+                p === '...' ? (
+                  <span key={`dots-${i}`} className="px-2 text-gray-500">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p as number)}
+                    className={`min-w-[40px] h-10 rounded-lg text-sm font-medium transition ${
+                      page === p
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ),
+              )}
+
+              <button
+                disabled={page >= result.totalPages}
+                onClick={() => setPage((p) => p + 1)}
+                className="p-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          )}
         </div>
       </main>
     </>
   );
+}
+
+/** Generate a compact page number array with ellipsis */
+function generatePageNumbers(current: number, total: number): (number | '...')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+
+  const pages: (number | '...')[] = [1];
+
+  if (current > 3) pages.push('...');
+
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  for (let i = start; i <= end; i++) pages.push(i);
+
+  if (current < total - 2) pages.push('...');
+
+  pages.push(total);
+  return pages;
 }

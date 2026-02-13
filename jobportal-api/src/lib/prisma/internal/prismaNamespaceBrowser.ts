@@ -113,6 +113,7 @@ export const JobScalarFieldEnum = {
   description: 'description',
   location: 'location',
   salaryRange: 'salaryRange',
+  salary: 'salary',
   type: 'type',
   status: 'status',
   createdAt: 'createdAt'

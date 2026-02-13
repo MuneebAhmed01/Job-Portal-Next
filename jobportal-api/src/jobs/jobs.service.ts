@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
+import { SearchJobsDto } from './dto/search-jobs.dto';
+import { JobSearchQueryBuilder } from './job-search-query.builder';
 import { PrismaService } from '../lib/prisma/prisma.service';
 import { JobCacheService } from '../redis/job-cache.service';
 import { DraftStorageService } from '../redis/draft-storage.service';
@@ -74,6 +76,27 @@ export class JobsService {
     // Store in cache for next request
     await this.jobCache.cacheAllJobs(jobs);
     return jobs;
+  }
+
+  async searchJobs(params: SearchJobsDto) {
+    const { where, orderBy, skip, take } = new JobSearchQueryBuilder(params).build();
+
+    const include = {
+      employer: { select: { id: true, name: true, companyName: true } },
+      _count: { select: { applications: true } },
+    };
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.job.findMany({ where, orderBy, skip, take, include }),
+      this.prisma.job.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      totalPages: Math.ceil(total / params.limit),
+      currentPage: params.page,
+    };
   }
 
   async findApplicants(jobId: string, employerId: string) {

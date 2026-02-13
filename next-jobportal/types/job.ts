@@ -10,6 +10,7 @@ export interface Job {
   description: string;
   location: string;
   salaryRange: string;
+  salary?: number | null;
   type: 'ONSITE' | 'REMOTE' | 'HYBRID';
   status: 'ACTIVE' | 'CLOSED' | 'DRAFT';
   createdAt: string;
@@ -18,6 +19,29 @@ export interface Job {
   saved?: boolean;
   applied?: boolean;
   _count?: { applications: number };
+}
+
+export type JobType = 'ONSITE' | 'REMOTE' | 'HYBRID';
+export type SortBy = 'createdAt' | 'salary' | 'relevance';
+export type SortOrder = 'asc' | 'desc';
+
+export interface SearchJobsParams {
+  keyword?: string;
+  type?: JobType;
+  location?: string;
+  minSalary?: number;
+  maxSalary?: number;
+  sortBy?: SortBy;
+  sortOrder?: SortOrder;
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedJobs {
+  data: Job[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
 }
 
 export interface Employee {

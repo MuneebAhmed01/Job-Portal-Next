@@ -52,6 +52,7 @@ model Job {
   description String
   location    String
   salaryRange String
+  salary      Int?
   type        JobType   @default(ONSITE)
   status      JobStatus @default(ACTIVE)
   createdAt   DateTime  @default(now())
@@ -60,6 +61,10 @@ model Job {
   applications JobApplication[] @relation("JobApplications")
   savedBy      SavedJob[]       @relation("SavedJobs")
 
+  @@index([status, createdAt])
+  @@index([status, type])
+  @@index([status, location])
+  @@index([status, salary])
   @@map("jobs")
 }
 
