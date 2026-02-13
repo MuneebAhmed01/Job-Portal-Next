@@ -56,9 +56,17 @@ export default function JobCard({ job, onSaveChange, onApplyChange }: JobCardPro
       </p>
       
       <div className="mt-4 pt-4 border-t border-gray-700 flex justify-between items-center">
-        <span className="text-xs text-gray-400">
-          Posted {new Date(job.createdAt).toLocaleDateString()}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-400">
+            Posted {new Date(job.createdAt).toLocaleDateString()}
+          </span>
+          {job._count?.applications !== undefined && (
+            <span className="flex items-center gap-1 text-xs text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              {job._count.applications}
+            </span>
+          )}
+        </div>
         <button
           onClick={() => setShowDetails(true)}
           className="px-4 py-2 rounded-lg text-sm font-medium transition-colors text-white hover:bg-white/10"

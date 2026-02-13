@@ -51,6 +51,9 @@ export class JobsService {
             companyName: true,
           },
         },
+        _count: {
+          select: { applications: true },
+        },
       },
     });
   }

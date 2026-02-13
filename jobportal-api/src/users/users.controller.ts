@@ -1,8 +1,12 @@
-import { Controller, Get, Put, Param, Body, NotFoundException, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Put, Post, Param, Body, NotFoundException, Query, UseGuards, Request, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { updateEmployeeProfileSchema, updateEmployerProfileSchema, type UpdateEmployeeProfileDto, type UpdateEmployerProfileDto } from './dto/update-profile.dto';
+import * as path from 'path';
+import * as fs from 'fs';
 
 @Controller('users')
 export class UsersController {
@@ -36,6 +40,34 @@ export class UsersController {
   ) {
     const employeeId = req.user.sub;
     const employee = await this.usersService.updateEmployee(employeeId, data);
+    const { password, ...result } = employee;
+    return result;
+  }
+
+  @Post('employee/resume')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('resume', {
+    storage: diskStorage({
+      destination: (req, file, cb) => {
+        const uploadPath = path.join(process.cwd(), 'uploads', 'resumes');
+        if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive: true });
+        cb(null, uploadPath);
+      },
+      filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        cb(null, `resume-${Date.now()}-${Math.round(Math.random() * 1E9)}${ext}`);
+      },
+    }),
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype === 'application/pdf') cb(null, true);
+      else cb(new Error('Only PDF files are allowed'), false);
+    },
+    limits: { fileSize: 5 * 1024 * 1024 },
+  }))
+  async uploadResume(@Request() req: any, @UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('Please upload a PDF file');
+    const employeeId = req.user.sub;
+    const employee = await this.usersService.updateEmployee(employeeId, { resumePath: file.path });
     const { password, ...result } = employee;
     return result;
   }

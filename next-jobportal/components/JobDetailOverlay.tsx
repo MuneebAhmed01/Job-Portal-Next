@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, MapPin, DollarSign, Building2, Clock, Calendar, Heart, FileText, Briefcase } from 'lucide-react';
+import { X, MapPin, DollarSign, Building2, Clock, Calendar, Heart, FileText, Briefcase, Users } from 'lucide-react';
 import { Job } from '@/types/job';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -236,6 +236,17 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyCh
               </div>
               <p className="text-gray-200">{new Date(job.createdAt).toLocaleDateString()}</p>
             </div>
+
+            {/* Applicants Count */}
+            {job._count?.applications !== undefined && (
+              <div className="p-4 bg-gray-700/30 rounded-lg border border-gray-600/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users size={18} className="text-pink-400" />
+                  <h4 className="font-semibold text-white">Applicants</h4>
+                </div>
+                <p className="text-gray-200 text-lg font-medium">{job._count.applications}</p>
+              </div>
+            )}
           </div>
 
           {/* Job Description Section */}

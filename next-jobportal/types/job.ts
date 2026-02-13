@@ -17,6 +17,7 @@ export interface Job {
   employer?: Employer;
   saved?: boolean;
   applied?: boolean;
+  _count?: { applications: number };
 }
 
 export interface Employee {

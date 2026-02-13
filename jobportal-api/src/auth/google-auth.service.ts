@@ -46,6 +46,7 @@ export class GoogleAuthService {
   private issueToken(user: any, userType: 'employee' | 'employer') {
     const token = this.jwt.sign({ sub: user.id, email: user.email, userType });
     const base: any = { id: user.id, email: user.email, name: user.name, phone: user.phone, userType };
+    if (userType === 'employee') base.resumePath = user.resumePath;
     if (userType === 'employer') base.companyName = user.companyName;
     return { user: base, token };
   }

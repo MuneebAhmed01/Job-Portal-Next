@@ -34,7 +34,7 @@ export class UsersService {
     });
   }
 
-  async updateEmployee(id: string, data: { name?: string; phone?: string; bio?: string }) {
+  async updateEmployee(id: string, data: { name?: string; phone?: string; bio?: string; resumePath?: string }) {
     const employee = await this.prisma.employee.update({
       where: { id },
       data,

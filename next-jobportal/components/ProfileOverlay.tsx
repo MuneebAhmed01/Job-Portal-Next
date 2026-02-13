@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, User, LogOut, FileText, Plus, Briefcase, ChevronLeft, MapPin, IndianRupee, Users, Loader2, Edit3, Save, Phone, Mail, Building2, FileUser } from 'lucide-react';
+import { X, User, LogOut, FileText, Plus, Briefcase, ChevronLeft, MapPin, IndianRupee, Users, Loader2, Edit3, Save, Phone, Mail, Building2, FileUser, Upload } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { createJobSchema, updateEmployeeProfileSchema, updateEmployerProfileSchema, getZodErrors } from '@/lib/validations';
 
@@ -49,6 +49,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
     type: 'ONSITE' as 'ONSITE' | 'REMOTE' | 'HYBRID'
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [uploadingResume, setUploadingResume] = useState(false);
 
   // Initialize edit form when user changes or editing starts
   useEffect(() => {
@@ -194,6 +195,39 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
     }
   };
 
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      setError('Only PDF files are allowed');
+      return;
+    }
+    setUploadingResume(true);
+    setError('');
+    try {
+      const formData = new FormData();
+      formData.append('resume', file);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/employee/resume`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData,
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to upload resume');
+      }
+      const data = await response.json();
+      updateUser({ resumePath: data.resumePath });
+      setSuccess('Resume uploaded successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload resume');
+    } finally {
+      setUploadingResume(false);
+      e.target.value = '';
+    }
+  };
+
   const handleCancelEdit = () => {
     setIsEditing(false);
     setError('');
@@ -317,8 +351,9 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                     <>
                       <input
                         type="tel"
+                        inputMode="numeric"
                         value={editForm.phone}
-                        onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                        onChange={(e) => setEditForm({ ...editForm, phone: e.target.value.replace(/\D/g, '') })}
                         className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-white"
                         placeholder="Your phone number"
                       />
@@ -370,6 +405,39 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                     <p className="text-white">{user.bio || 'No bio provided'}</p>
                   )}
                 </div>
+
+                {/* Resume - Employee Only */}
+                {!isEmployer && (
+                  <div className="p-4 bg-gray-700/30 rounded-xl border border-gray-600/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileText size={18} className="text-purple-400" />
+                      <p className="text-sm text-gray-400">Resume</p>
+                    </div>
+                    {user.resumePath ? (
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={handleDownloadResume}
+                          className="flex items-center gap-2 text-purple-400 hover:text-purple-300 text-sm font-medium transition"
+                        >
+                          <FileText size={16} />
+                          View Current Resume
+                        </button>
+                        <span className="text-gray-600">|</span>
+                        <label className="flex items-center gap-2 text-orange-400 hover:text-orange-300 text-sm font-medium cursor-pointer transition">
+                          <Upload size={16} />
+                          {uploadingResume ? 'Uploading...' : 'Replace'}
+                          <input type="file" accept=".pdf" onChange={handleResumeUpload} className="hidden" disabled={uploadingResume} />
+                        </label>
+                      </div>
+                    ) : (
+                      <label className="flex items-center gap-2 text-orange-400 hover:text-orange-300 cursor-pointer transition">
+                        <Upload size={16} />
+                        <span className="text-sm font-medium">{uploadingResume ? 'Uploading...' : 'Upload Resume (PDF)'}</span>
+                        <input type="file" accept=".pdf" onChange={handleResumeUpload} className="hidden" disabled={uploadingResume} />
+                      </label>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Edit/Save Buttons */}
@@ -443,16 +511,6 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                     >
                       <Briefcase size={20} />
                       Browse Available Jobs
-                    </button>
-                  )}
-
-                  {user.resumePath && (
-                    <button
-                      onClick={handleDownloadResume}
-                      className="w-full py-3 bg-gray-700 hover:bg-gray-600 rounded-xl text-white font-medium transition flex items-center justify-center gap-2"
-                    >
-                      <FileText size={20} />
-                      View My Resume
                     </button>
                   )}
 

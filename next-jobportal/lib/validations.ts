@@ -11,7 +11,7 @@ export const employeeSignupSchema = z.object({
   name: z.string().min(1, 'Please enter your name').min(2, 'Name must be at least 2 characters'),
   email: z.string().min(1, 'Please enter your email').email('Invalid email format'),
   password: z.string().min(1, 'Please enter a password').min(6, 'Password must be at least 6 characters'),
-  phone: z.string().min(1, 'Please enter your phone number').min(10, 'Phone number must be at least 10 digits'),
+  phone: z.string().min(1, 'Please enter your phone number').regex(/^\d+$/, 'Phone number must contain only digits').min(10, 'Phone number must be at least 10 digits'),
   bio: z.string().optional(),
 });
 
@@ -41,7 +41,7 @@ export const employerJobPostSchema = z.object({
 
 export const updateEmployeeProfileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  phone: z.string().min(10, 'Phone must be at least 10 digits'),
+  phone: z.string().min(1, 'Phone is required').regex(/^\d+$/, 'Phone must contain only digits').min(10, 'Phone must be at least 10 digits'),
   bio: z.string().optional(),
 });
 

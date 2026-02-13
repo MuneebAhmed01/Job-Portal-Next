@@ -168,10 +168,11 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input
                       type="tel"
+                      inputMode="numeric"
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
                       className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500"
-                      placeholder="+1234567890"
+                      placeholder="1234567890"
                       required
                     />
                   </div>
