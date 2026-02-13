@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Mail, Lock, Building2, Loader2, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { signinSchema, getZodErrors } from '@/lib/validations';
@@ -14,6 +15,7 @@ export default function SigninPage() {
   const { login } = useAuth();
   
   const [userType, setUserType] = useState<UserType>('employee');
+  const [isAdminMode, setIsAdminMode] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -22,10 +24,44 @@ export default function SigninPage() {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
+  const toggleAdminMode = () => {
+    setIsAdminMode(!isAdminMode);
+    setFormData({ email: '', password: '' });
+    setError('');
+    setFieldErrors({});
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFieldErrors({});
     setError('');
+
+    if (isAdminMode) {
+      if (!formData.email || !formData.password) {
+        setError('Please fill in all fields');
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Invalid admin credentials');
+        }
+        login(data.user, data.token);
+        router.push('/admin/dashboard');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Login failed');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
     const result = signinSchema.safeParse(formData);
     if (!result.success) {
@@ -116,7 +152,15 @@ export default function SigninPage() {
       </div>
       
       {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex flex-col bg-slate-900 overflow-y-auto">
+      <div className="w-full lg:w-1/2 flex flex-col bg-slate-900 relative">
+        {/* Admin Shield - Top Right */}
+        <button
+          onClick={toggleAdminMode}
+          className={`absolute top-4 right-4 sm:top-6 sm:right-6 z-10 transition-opacity ${isAdminMode ? 'opacity-100' : 'opacity-40 hover:opacity-100'}`}
+          title={isAdminMode ? 'Back to user login' : 'Admin'}
+        >
+          <Image src="/shield.png" alt="Admin" width={24} height={24} />
+        </button>
         {/* Back Button - Mobile Only */}
         <div className="p-4 sm:p-6 lg:hidden">
           <button
@@ -132,35 +176,41 @@ export default function SigninPage() {
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-white mb-2">Sign In</h2>
-            <p className="text-gray-400">Welcome back! Please enter your details</p>
+            <h2 className="text-2xl font-bold text-white mb-2">
+              {isAdminMode ? 'Admin Sign In' : 'Sign In'}
+            </h2>
+            <p className="text-gray-400">
+              {isAdminMode ? 'Restricted access — authorized personnel only' : 'Welcome back! Please enter your details'}
+            </p>
           </div>
           
-          {/* User Type Toggle */}
-          <div className="flex bg-slate-800 rounded-xl p-1 mb-8">
-            <button
-              type="button"
-              onClick={() => setUserType('employee')}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-                userType === 'employee'
-                  ? 'bg-orange-500 text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Employee
-            </button>
-            <button
-              type="button"
-              onClick={() => setUserType('employer')}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-                userType === 'employer'
-                  ? 'bg-orange-500 text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Employer
-            </button>
-          </div>
+          {/* User Type Toggle - Only for non-admin */}
+          {!isAdminMode && (
+            <div className="flex bg-slate-800 rounded-xl p-1 mb-8">
+              <button
+                type="button"
+                onClick={() => setUserType('employee')}
+                className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
+                  userType === 'employee'
+                    ? 'bg-orange-500 text-white shadow-lg'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Employee
+              </button>
+              <button
+                type="button"
+                onClick={() => setUserType('employer')}
+                className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
+                  userType === 'employer'
+                    ? 'bg-orange-500 text-white shadow-lg'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Employer
+              </button>
+            </div>
+          )}
           
           {error && (
             <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 text-sm">
@@ -178,8 +228,10 @@ export default function SigninPage() {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
-                  placeholder="you@example.com"
+                  className={`w-full pl-12 pr-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-gray-500 focus:outline-none transition-colors ${
+                    isAdminMode ? 'border-red-500/30 focus:border-red-500' : 'border-slate-700 focus:border-orange-500'
+                  }`}
+                  placeholder={isAdminMode ? 'admin@gmail.com' : 'you@example.com'}
                 />
               </div>
               {fieldErrors.email && <p className="mt-1 text-sm text-red-400">{fieldErrors.email}</p>}
@@ -194,7 +246,9 @@ export default function SigninPage() {
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                  className={`w-full pl-12 pr-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-gray-500 focus:outline-none transition-colors ${
+                    isAdminMode ? 'border-red-500/30 focus:border-red-500' : 'border-slate-700 focus:border-orange-500'
+                  }`}
                   placeholder="••••••••"
                 />
               </div>
@@ -206,26 +260,40 @@ export default function SigninPage() {
               type="submit"
               disabled={loading}
               className="w-full py-4 rounded-xl text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all hover:opacity-90"
-              style={{ backgroundColor: '#F54900' }}
+              style={{ backgroundColor: isAdminMode ? '#dc2626' : '#F54900' }}
             >
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Signing In...
+                  {isAdminMode ? 'Authenticating...' : 'Signing In...'}
                 </>
+              ) : isAdminMode ? (
+                'Sign In as Admin'
               ) : (
                 <>Sign In as {userType === 'employee' ? 'Employee' : 'Employer'}</>
               )}
             </button>
           </form>
           
-          {/* Sign Up Link */}
-          <p className="mt-8 text-center text-gray-400">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-orange-500 hover:text-orange-400 font-medium transition-colors">
-              Sign Up
-            </Link>
-          </p>
+          {/* Sign Up Link - Only for non-admin */}
+          {!isAdminMode && (
+            <p className="mt-8 text-center text-gray-400">
+              Don&apos;t have an account?{' '}
+              <Link href="/signup" className="text-orange-500 hover:text-orange-400 font-medium transition-colors">
+                Sign Up
+              </Link>
+            </p>
+          )}
+
+          {/* Back to user login - Only for admin */}
+          {isAdminMode && (
+            <button
+              onClick={toggleAdminMode}
+              className="mt-8 w-full text-center text-gray-500 hover:text-gray-300 text-sm transition-colors"
+            >
+              ← Back to User Sign In
+            </button>
+          )}
         </div>
         </div>
       </div>

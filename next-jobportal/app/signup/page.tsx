@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { User, Mail, Lock, Phone, FileText, Building2, Loader2, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { employeeSignupSchema, employerSignupSchema, getZodErrors } from '@/lib/validations';
@@ -147,7 +148,11 @@ export default function SignupPage() {
       </div>
       
       {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex flex-col bg-slate-900 overflow-y-auto">
+      <div className="w-full lg:w-1/2 flex flex-col bg-slate-900 overflow-y-auto relative">
+        {/* Admin Shield - Top Right (goes to signin for admin) */}
+        <Link href="/signin" className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10 opacity-40 hover:opacity-100 transition-opacity" title="Admin">
+          <Image src="/shield.png" alt="Admin" width={24} height={24} />
+        </Link>
         {/* Back Button - Mobile Only */}
         <div className="p-4 sm:p-6 lg:hidden">
           <button

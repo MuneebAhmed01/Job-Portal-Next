@@ -10,6 +10,7 @@ import { CareerGuidanceModule } from './career-guidance/career-guidance.module';
 import { ResumeAnalyzerModule } from './resume-analyzer/resume-analyzer.module';
 import { PrismaModule } from './lib/prisma/prisma.module';
 import { UsersModule } from './users/users.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { UsersModule } from './users/users.module';
     JobsModule,
     CareerGuidanceModule,
     ResumeAnalyzerModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

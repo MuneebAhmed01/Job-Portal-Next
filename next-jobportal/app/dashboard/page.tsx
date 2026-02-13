@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import EmployerDashboard from './EmployerDashboard';
 import EmployeeDashboard from './EmployeeDashboard';
@@ -7,7 +9,16 @@ import { Loader2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 
 export default function DashboardPage() {
-  const { user, isLoading, isEmployee, isEmployer } = useAuth();
+  const router = useRouter();
+  const { user, isLoading, isEmployee, isEmployer, isAdmin } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && isAdmin) {
+      router.push('/admin/dashboard');
+    }
+  }, [isLoading, isAdmin, router]);
+
+  if (isAdmin) return null;
 
   if (isLoading) {
     return (

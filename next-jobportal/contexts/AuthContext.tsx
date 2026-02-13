@@ -6,8 +6,8 @@ interface User {
   id: string;
   name: string;
   email: string;
-  phone: string;
-  userType: 'employee' | 'employer';
+  phone?: string;
+  userType: 'employee' | 'employer' | 'admin';
   bio?: string;
   resumePath?: string;
   companyName?: string; // For employers
@@ -22,6 +22,7 @@ interface AuthContextType {
   isLoading: boolean;
   isEmployee: boolean;
   isEmployer: boolean;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -85,9 +86,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isEmployee = user?.userType === 'employee';
   const isEmployer = user?.userType === 'employer';
+  const isAdmin = user?.userType === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, updateUser, isLoading, isEmployee, isEmployer }}>
+    <AuthContext.Provider value={{ user, token, login, logout, updateUser, isLoading, isEmployee, isEmployer, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );
