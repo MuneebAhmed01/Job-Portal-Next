@@ -13,6 +13,12 @@ interface CareerAnalysis {
   careerSummary: string;
   primaryCareerTitle: string;
   careerCategory: string;
+  skillBreakdown: {
+    category: string;
+    matchedSkills: string[];
+    normalizedScore: number;
+    percentage: number;
+  }[];
   recommendedCareerPaths: {
     title: string;
     description: string;
@@ -37,6 +43,10 @@ interface CareerAnalysis {
       description: string;
     }[];
   }[];
+  debugTrace?: {
+    decisionReason: string;
+    combinationRatio: number | null;
+  };
 }
 
 interface CareerGuidanceOverlayProps {
@@ -125,11 +135,11 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={closeOverlay}
       />
-      
+
       {/* Overlay Content */}
       <div className="relative glass-dark rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-slide-up">
         {/* Header */}
@@ -244,6 +254,47 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                 <p className="text-gray-300 leading-relaxed">{analysis.careerSummary}</p>
               </div>
 
+              {/* Skill Breakdown */}
+              {analysis.skillBreakdown && analysis.skillBreakdown.length > 0 && (
+                <div className="glass rounded-xl p-6">
+                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <Target size={20} className="text-orange-400" />
+                    Skill Category Breakdown
+                  </h4>
+                  <div className="space-y-3">
+                    {analysis.skillBreakdown.map((item, index) => (
+                      <div key={index}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-gray-300">{item.category}</span>
+                          <span className="text-sm font-bold text-orange-400">{item.percentage}%</span>
+                        </div>
+                        <div className="w-full bg-white/10 rounded-full h-2.5">
+                          <div
+                            className="h-2.5 rounded-full transition-all duration-500"
+                            style={{
+                              width: `${Math.min(item.percentage, 100)}%`,
+                              backgroundColor: index === 0 ? '#F54900' : index === 1 ? '#FB923C' : '#FCD34D',
+                            }}
+                          />
+                        </div>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {item.matchedSkills.map((skill, idx) => (
+                            <span key={idx} className="text-xs glass px-2 py-0.5 rounded-full text-gray-400">
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {analysis.debugTrace && (
+                    <div className="mt-4 glass-dark rounded-lg p-3">
+                      <p className="text-xs text-gray-500 font-mono">{analysis.debugTrace.decisionReason}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Recommended Career Paths - Multiple Options */}
               <div>
                 <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
@@ -271,7 +322,7 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                           <ChevronRight className="text-orange-400" size={20} />
                         </div>
                       </div>
-                      
+
                       <div className="space-y-3 mt-4">
                         <div>
                           <p className="text-sm font-medium text-orange-400 mb-2">Key Responsibilities</p>
@@ -284,12 +335,12 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                             ))}
                           </ul>
                         </div>
-                        
+
                         <div className="glass-dark rounded-lg p-3">
                           <p className="text-sm font-medium text-green-400 mb-1">Why This Fits You</p>
                           <p className="text-sm text-gray-300">{path.whyItFits}</p>
                         </div>
-                        
+
                         <div>
                           <p className="text-sm font-medium text-blue-400 mb-2">Common Job Titles</p>
                           <div className="flex flex-wrap gap-2">
@@ -319,18 +370,17 @@ export default function CareerGuidanceOverlay({ isOpen, onClose }: CareerGuidanc
                         <h5 className="text-sm font-medium text-orange-400 mb-3">{category.category}</h5>
                         <div className="space-y-2">
                           {category.skills.map((skill, skillIndex) => (
-                            <div 
-                              key={skillIndex} 
+                            <div
+                              key={skillIndex}
                               className={`flex items-start gap-3 p-3 rounded-lg border ${getPriorityColor(skill.priority)}`}
                             >
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                   <span className="font-medium text-white">{skill.name}</span>
-                                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                    skill.priority === 'high' ? 'bg-red-500/20 text-red-400' :
-                                    skill.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                                    'bg-blue-500/20 text-blue-400'
-                                  }`}>
+                                  <span className={`text-xs px-2 py-0.5 rounded-full ${skill.priority === 'high' ? 'bg-red-500/20 text-red-400' :
+                                      skill.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                                        'bg-blue-500/20 text-blue-400'
+                                    }`}>
                                     {skill.priority}
                                   </span>
                                 </div>

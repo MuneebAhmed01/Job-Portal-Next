@@ -1,162 +1,277 @@
-import { Injectable } from '@nestjs/common';
-import { AtsAnalysisResult } from './ats-scorer.service';
+import { Injectable, Logger } from '@nestjs/common';
+import { AtsAnalysisResult, AtsPenalty } from './ats-scorer.service';
+
+// ─── Response Interfaces ───────────────────────────────────────────────
 
 export interface AiAnalysisResponse {
-  atsScore: number;
   summary: string;
-  scoreBreakdown: {
-    formatting: number;
-    keywords: number;
-    structure: number;
-    readability: number;
-  };
   strengths: string[];
-  improvements: {
-    structure: string[];
-    content: string[];
-    keywords: string[];
-  };
+  improvements: string[];
+  improvementPriority: {
+    action: string;
+    impact: string;
+    estimatedScoreGain: number;
+  }[];
+  scoreBreakdown: {
+    category: string;
+    score: number;
+    weight: string;
+    details: string;
+  }[];
+  penalties: AtsPenalty[];
 }
+
+// ─── Service ───────────────────────────────────────────────────────────
 
 @Injectable()
 export class AiAnalysisService {
-  async generateAnalysis(atsResult: AtsAnalysisResult): Promise<AiAnalysisResponse> {
-    const prompt = this.buildPrompt(atsResult);
-    
-    // This is where you'd integrate with your AI provider (OpenAI, Claude, etc.)
-    // For now, returning deterministic analysis based on ATS results
-    return this.generateDeterministicAnalysis(atsResult);
-  }
+  private readonly logger = new Logger(AiAnalysisService.name);
 
-  private buildPrompt(atsResult: AtsAnalysisResult): string {
-    return `
-You are an expert resume analyst. Analyze this ATS evaluation and provide detailed feedback.
+  generateAnalysis(atsResult: AtsAnalysisResult): AiAnalysisResponse {
+    this.logger.log(`Generating analysis for ATS score: ${atsResult.score}`);
 
-ATS Analysis Results:
-- Overall Score: ${atsResult.score}/100
-- Formatting: ${atsResult.breakdown.formatting}/100
-- Keywords: ${atsResult.breakdown.keywords}/100  
-- Structure: ${atsResult.breakdown.structure}/100
-- Readability: ${atsResult.breakdown.readability}/100
-
-Resume Details:
-- Contact Info: ${atsResult.analysis.hasContactInfo ? 'Yes' : 'No'}
-- Summary Section: ${atsResult.analysis.hasSummary ? 'Yes' : 'No'}
-- Experience Section: ${atsResult.analysis.hasExperience ? 'Yes' : 'No'}
-- Education Section: ${atsResult.analysis.hasEducation ? 'Yes' : 'No'}
-- Skills Section: ${atsResult.analysis.hasSkills ? 'Yes' : 'No'}
-- Word Count: ${atsResult.analysis.wordCount}
-- Action Verbs: ${atsResult.analysis.actionVerbCount}
-- Keywords Found: ${atsResult.analysis.keywordMatches.join(', ')}
-- Formatting Issues: ${atsResult.analysis.formattingIssues.join(', ')}
-
-Provide a JSON response with this exact structure:
-{
-  "atsScore": number,
-  "summary": "string",
-  "scoreBreakdown": {
-    "formatting": number,
-    "keywords": number,
-    "structure": number,
-    "readability": number
-  },
-  "strengths": ["string"],
-  "improvements": {
-    "structure": ["string"],
-    "content": ["string"],
-    "keywords": ["string"]
-  }
-}
-
-Be specific, actionable, and encouraging. Focus on practical improvements.
-    `.trim();
-  }
-
-  private generateDeterministicAnalysis(atsResult: AtsAnalysisResult): AiAnalysisResponse {
-    const strengths: string[] = [];
-    const improvements = {
-      structure: [] as string[],
-      content: [] as string[],
-      keywords: [] as string[]
-    };
-
-    // Generate strengths
-    if (atsResult.analysis.hasContactInfo) {
-      strengths.push('Clear contact information is easily accessible to recruiters');
-    }
-    if (atsResult.analysis.hasSummary) {
-      strengths.push('Professional summary provides quick overview of qualifications');
-    }
-    if (atsResult.analysis.actionVerbCount > 5) {
-      strengths.push('Strong use of action verbs demonstrates impact and achievements');
-    }
-    if (atsResult.analysis.keywordMatches.length > 5) {
-      strengths.push(`Good keyword optimization with ${atsResult.analysis.keywordMatches.length} relevant technical terms`);
-    }
-    if (atsResult.breakdown.formatting > 80) {
-      strengths.push('Clean formatting ensures ATS compatibility');
-    }
-
-    // Generate improvements
-    if (!atsResult.analysis.hasSummary) {
-      improvements.structure.push('Add a professional summary section at the top');
-    }
-    if (!atsResult.analysis.hasExperience) {
-      improvements.structure.push('Include detailed work experience section');
-    }
-    if (!atsResult.analysis.hasEducation) {
-      improvements.structure.push('Add education section with degrees and certifications');
-    }
-    if (!atsResult.analysis.hasSkills) {
-      improvements.structure.push('Create a dedicated technical skills section');
-    }
-
-    if (atsResult.analysis.wordCount < 200) {
-      improvements.content.push('Expand content to provide more detail about experience and achievements');
-    }
-    if (atsResult.analysis.actionVerbCount < 5) {
-      improvements.content.push('Use more action verbs to describe achievements and responsibilities');
-    }
-
-    const missingKeywords = this.techKeywords.filter(keyword => 
-      !atsResult.analysis.keywordMatches.includes(keyword)
-    ).slice(0, 5);
-    
-    if (missingKeywords.length > 0) {
-      improvements.keywords.push(`Consider adding relevant keywords: ${missingKeywords.join(', ')}`);
-    }
-
-    if (atsResult.analysis.formattingIssues.length > 0) {
-      improvements.content.push(...atsResult.analysis.formattingIssues);
-    }
-
-    // Generate summary
-    const summary = this.generateSummary(atsResult, strengths.length);
+    const strengths = this.identifyStrengths(atsResult);
+    const improvements = this.identifyImprovements(atsResult);
+    const improvementPriority = this.prioritizeImprovements(atsResult);
+    const summary = this.generateSummary(atsResult);
+    const scoreBreakdown = this.buildScoreBreakdown(atsResult);
 
     return {
-      atsScore: atsResult.score,
       summary,
-      scoreBreakdown: atsResult.breakdown,
       strengths,
-      improvements
+      improvements,
+      improvementPriority,
+      scoreBreakdown,
+      penalties: atsResult.penalties,
     };
   }
 
-  private generateSummary(atsResult: AtsAnalysisResult, strengthCount: number): string {
-    if (atsResult.score >= 80) {
-      return `Your resume demonstrates strong ATS compatibility with a score of ${atsResult.score}/100. The document is well-structured and optimized for automated screening systems, with clear sections and relevant technical keywords. You have ${strengthCount} key strengths that make your profile stand out to recruiters.`;
-    } else if (atsResult.score >= 60) {
-      return `Your resume shows moderate ATS compatibility at ${atsResult.score}/100. While you have some solid elements like ${strengthCount} identified strengths, there are specific improvements needed to enhance automated screening performance. Focus on structure and keyword optimization to increase visibility.`;
-    } else {
-      return `Your resume needs significant improvements for ATS compatibility with a score of ${atsResult.score}/100. The current format may struggle with automated screening systems. However, you have ${strengthCount} positive elements to build upon. Address the structural and content recommendations to dramatically improve your resume's effectiveness.`;
+  // ─── Strengths ────────────────────────────────────────────────────────
+
+  private identifyStrengths(result: AtsAnalysisResult): string[] {
+    const strengths: string[] = [];
+    const { analysis, breakdown } = result;
+
+    if (analysis.hasContactInfo) {
+      strengths.push('Contact information is present and accessible');
     }
+    if (breakdown.structure >= 80) {
+      strengths.push('Well-organized with clear section headers');
+    } else if (breakdown.structure >= 60) {
+      strengths.push('Decent structure with most key sections present');
+    }
+    if (analysis.actionVerbCount >= 10) {
+      strengths.push(`Strong use of action verbs (${analysis.actionVerbCount} found) — shows measurable impact`);
+    } else if (analysis.actionVerbCount >= 5) {
+      strengths.push(`Good use of action verbs (${analysis.actionVerbCount} found)`);
+    }
+    if (analysis.hasMeasurableAchievements) {
+      strengths.push('Includes quantified achievements — demonstrates real impact');
+    }
+    if (breakdown.keywords >= 60) {
+      strengths.push(`Good keyword coverage (${analysis.keywordMatches.length} tech keywords matched)`);
+    }
+    if (analysis.wordCount >= 300 && analysis.wordCount <= 800) {
+      strengths.push('Resume length is appropriate for a single-page resume');
+    }
+    if (breakdown.formatting >= 80) {
+      strengths.push('Clean formatting — ATS-friendly structure');
+    }
+    if (analysis.jobMatchAnalysis && analysis.jobMatchAnalysis.matchPercentage >= 70) {
+      strengths.push(`Strong job match (${analysis.jobMatchAnalysis.matchPercentage}%) — resume aligns well with the job description`);
+    }
+
+    return strengths.length > 0
+      ? strengths
+      : ['Resume has been submitted for review — consider enhancing with specific skills and achievements'];
   }
 
-  private readonly techKeywords = [
-    'javascript', 'typescript', 'react', 'vue', 'angular', 'node.js', 'express', 'nest.js',
-    'python', 'django', 'flask', 'java', 'spring', 'c#', '.net', 'php', 'laravel',
-    'sql', 'mongodb', 'postgresql', 'mysql', 'redis', 'aws', 'azure', 'gcp', 'docker',
-    'kubernetes', 'git', 'agile', 'scrum', 'rest api', 'graphql', 'microservices',
-    'html', 'css', 'tailwind', 'bootstrap', 'sass', 'webpack', 'babel'
-  ];
+  // ─── Improvements ────────────────────────────────────────────────────
+
+  private identifyImprovements(result: AtsAnalysisResult): string[] {
+    const improvements: string[] = [];
+    const { analysis, breakdown } = result;
+
+    // Structure improvements
+    if (!analysis.hasExperience) {
+      improvements.push('Add a clear "Experience" or "Work Experience" section header');
+    }
+    if (!analysis.hasSkills) {
+      improvements.push('Add a "Skills" or "Technical Skills" section listing your key technologies');
+    }
+    if (!analysis.hasSummary) {
+      improvements.push('Add a brief professional summary at the top of your resume');
+    }
+    if (!analysis.hasEducation) {
+      improvements.push('Include an Education section with your degree and institution');
+    }
+
+    // Content improvements
+    if (!analysis.hasMeasurableAchievements) {
+      improvements.push('Add measurable achievements (e.g., "Improved page load time by 40%", "Led a team of 8")');
+    }
+    if (analysis.actionVerbCount < 5) {
+      improvements.push('Start experience descriptions with strong action verbs (developed, implemented, optimized)');
+    }
+    if (analysis.wordCount < 200) {
+      improvements.push('Resume is too short — expand experience descriptions with specific accomplishments');
+    }
+    if (analysis.wordCount > 900) {
+      improvements.push('Resume may be too long — focus on most relevant and recent experience');
+    }
+
+    // Keywords
+    if (breakdown.keywords < 40) {
+      improvements.push('Include more industry-relevant technical keywords in your skills and experience sections');
+    }
+
+    // Formatting
+    if (breakdown.formatting < 60) {
+      improvements.push(`Fix formatting issues: ${analysis.formattingIssues.join('; ')}`);
+    }
+
+    // Job match
+    if (analysis.jobMatchAnalysis) {
+      const { missingKeywords, matchPercentage } = analysis.jobMatchAnalysis;
+      if (matchPercentage < 50 && missingKeywords.length > 0) {
+        const top5 = missingKeywords.slice(0, 5).join(', ');
+        improvements.push(`Your resume is missing key terms from the job description: ${top5}`);
+      }
+    }
+
+    return improvements;
+  }
+
+  // ─── Improvement Priority ─────────────────────────────────────────────
+
+  private prioritizeImprovements(result: AtsAnalysisResult): AiAnalysisResponse['improvementPriority'] {
+    const priorities: AiAnalysisResponse['improvementPriority'] = [];
+    const { analysis, breakdown, penalties } = result;
+
+    // Map penalties to actionable improvements with estimated score gains
+    for (const penalty of penalties) {
+      let action = '';
+      let impact = '';
+
+      switch (penalty.reason) {
+        case 'Missing Skills section':
+          action = 'Add a "Skills" section listing your technical competencies';
+          impact = 'ATS systems scan for a dedicated skills section — this is critical';
+          break;
+        case 'Missing Experience section':
+          action = 'Add a clear "Work Experience" section with your roles';
+          impact = 'Most weight in ATS scoring comes from professional experience';
+          break;
+        case 'Missing contact information':
+          action = 'Add email, phone number, or LinkedIn URL';
+          impact = 'Recruiters need contact information to reach you';
+          break;
+        case 'No measurable achievements (numbers, percentages, metrics)':
+          action = 'Quantify at least 3-5 achievements with numbers or percentages';
+          impact = 'Quantified results make your experience more credible and impactful';
+          break;
+        case 'Resume content too short (< 150 words)':
+          action = 'Expand your resume to at least 300+ words with detailed experience';
+          impact = 'Short resumes lack the detail ATS systems need to evaluate';
+          break;
+        case 'Too few action verbs':
+          action = 'Rewrite experience bullets starting with verbs like "Developed", "Optimized", "Led"';
+          impact = 'Action verbs signal initiative and direct contribution';
+          break;
+        default:
+          action = `Address: ${penalty.reason}`;
+          impact = 'Will improve overall score';
+      }
+
+      priorities.push({
+        action,
+        impact,
+        estimatedScoreGain: penalty.points,
+      });
+    }
+
+    // Add non-penalty improvements
+    if (breakdown.keywords < 40 && !penalties.some(p => p.reason.includes('Skills'))) {
+      priorities.push({
+        action: 'Add more relevant technical keywords to your skills section',
+        impact: 'Keywords account for 35% of your ATS score',
+        estimatedScoreGain: 10,
+      });
+    }
+
+    // Sort by estimated score gain (highest first)
+    priorities.sort((a, b) => b.estimatedScoreGain - a.estimatedScoreGain);
+
+    return priorities.slice(0, 5);
+  }
+
+  // ─── Summary ──────────────────────────────────────────────────────────
+
+  private generateSummary(result: AtsAnalysisResult): string {
+    const { score, analysis, penalties } = result;
+
+    if (score >= 80) {
+      return `Excellent ATS compatibility (${score}/100). Your resume is well-structured with strong keyword coverage and clear formatting. It should pass most ATS filters and reach human reviewers successfully.`;
+    }
+    if (score >= 60) {
+      const topIssue = penalties.length > 0
+        ? ` The main area to address: ${penalties[0].reason.toLowerCase()}.`
+        : '';
+      return `Good ATS compatibility (${score}/100). Your resume covers the basics but has room for improvement.${topIssue} With targeted adjustments, you can significantly improve your chances of passing ATS filters.`;
+    }
+    if (score >= 40) {
+      return `Moderate ATS compatibility (${score}/100). Your resume has ${penalties.length} issues that are reducing your score. Focus on the improvement priorities below to strengthen your resume's performance with automated screening systems.`;
+    }
+
+    return `Low ATS compatibility (${score}/100). Your resume needs significant improvements to pass most ATS filters. Focus on adding required sections (Experience, Skills), including measurable achievements, and matching keywords from your target job descriptions. Review the improvement priorities below for specific actions.`;
+  }
+
+  // ─── Score Breakdown ──────────────────────────────────────────────────
+
+  private buildScoreBreakdown(result: AtsAnalysisResult): AiAnalysisResponse['scoreBreakdown'] {
+    const { breakdown } = result;
+
+    return [
+      {
+        category: 'Skills Match',
+        score: breakdown.keywords,
+        weight: '35%',
+        details: breakdown.keywords >= 60
+          ? 'Good technical keyword coverage'
+          : 'Need more relevant technical keywords',
+      },
+      {
+        category: 'Experience Relevance',
+        score: breakdown.readability,
+        weight: '25%',
+        details: breakdown.readability >= 60
+          ? 'Strong experience descriptions with action verbs'
+          : 'Add action verbs and quantified achievements',
+      },
+      {
+        category: 'Structure',
+        score: breakdown.structure,
+        weight: '20%',
+        details: breakdown.structure >= 80
+          ? 'Well-organized with clear sections'
+          : 'Missing key sections — add Experience, Skills, Education',
+      },
+      {
+        category: 'Formatting',
+        score: breakdown.formatting,
+        weight: '10%',
+        details: breakdown.formatting >= 80
+          ? 'Clean, ATS-friendly formatting'
+          : 'Fix formatting issues for better ATS parsing',
+      },
+      {
+        category: 'Job Match',
+        score: breakdown.jobMatch,
+        weight: '10%',
+        details: breakdown.jobMatch >= 60
+          ? 'Good alignment with target job'
+          : 'Tailor resume keywords to match the job description',
+      },
+    ];
+  }
 }

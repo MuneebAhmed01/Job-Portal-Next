@@ -1,24 +1,28 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Upload, FileText, CheckCircle, AlertCircle, TrendingUp, Target, Award, RefreshCw } from 'lucide-react';
+import { X, Upload, FileText, CheckCircle, AlertCircle, TrendingUp, Target, Award, RefreshCw, AlertTriangle, Zap } from 'lucide-react';
 
 interface ResumeAnalysis {
   atsScore: number;
   summary: string;
   scoreBreakdown: {
-    formatting: number;
-    keywords: number;
-    structure: number;
-    readability: number;
-    jobMatch: number;
-  };
+    category: string;
+    score: number;
+    weight: string;
+    details: string;
+  }[];
   strengths: string[];
-  improvements: {
-    structure: string[];
-    content: string[];
-    keywords: string[];
-  };
+  improvements: string[];
+  improvementPriority: {
+    action: string;
+    impact: string;
+    estimatedScoreGain: number;
+  }[];
+  penalties: {
+    reason: string;
+    points: number;
+  }[];
   jobMatchAnalysis?: {
     skillMatches: string[];
     experienceMatches: string[];
@@ -65,18 +69,18 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
 
     const formData = new FormData();
     formData.append('file', selectedFile);
-    
+
     if (jobDescription.trim()) {
       formData.append('jobDescription', jobDescription);
     }
-    
+
     if (jobTitle.trim()) {
       formData.append('jobTitle', jobTitle);
     }
 
     try {
       setUploadState('analyzing');
-      
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/resume-analyzer/analyze`, {
         method: 'POST',
         body: formData,
@@ -127,11 +131,11 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={closeOverlay}
       />
-      
+
       {/* Overlay Content */}
       <div className="relative glass-dark rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-slide-up">
         {/* Header */}
@@ -167,7 +171,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
                   id="resume-upload"
                   disabled={uploadState !== 'idle'}
                 />
-                <label 
+                <label
                   htmlFor="resume-upload"
                   className="cursor-pointer flex flex-col items-center gap-4"
                 >
@@ -198,7 +202,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
                     disabled={uploadState !== 'idle'}
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Job Description (Optional - for better ATS matching)
@@ -276,37 +280,27 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
               {/* Score Breakdown */}
               <div className="glass rounded-xl p-6">
                 <h4 className="text-lg font-bold text-white mb-4">Score Breakdown</h4>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <div className="text-center">
-                    <div className={`text-2xl font-bold ${getScoreColor(analysis.scoreBreakdown.formatting)}`}>
-                      {analysis.scoreBreakdown.formatting}
+                <div className="space-y-3">
+                  {analysis.scoreBreakdown.map((item, index) => (
+                    <div key={index}>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-300">{item.category}</span>
+                          <span className="text-xs glass px-2 py-0.5 rounded-full text-gray-500">{item.weight}</span>
+                        </div>
+                        <span className={`text-sm font-bold ${getScoreColor(item.score)}`}>{item.score}/100</span>
+                      </div>
+                      <div className="w-full bg-white/10 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full transition-all duration-500 ${item.score >= 80 ? 'bg-green-500' :
+                              item.score >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                            }`}
+                          style={{ width: `${item.score}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">{item.details}</p>
                     </div>
-                    <div className="text-sm text-gray-400">Formatting</div>
-                  </div>
-                  <div className="text-center">
-                    <div className={`text-2xl font-bold ${getScoreColor(analysis.scoreBreakdown.keywords)}`}>
-                      {analysis.scoreBreakdown.keywords}
-                    </div>
-                    <div className="text-sm text-gray-400">Keywords</div>
-                  </div>
-                  <div className="text-center">
-                    <div className={`text-2xl font-bold ${getScoreColor(analysis.scoreBreakdown.structure)}`}>
-                      {analysis.scoreBreakdown.structure}
-                    </div>
-                    <div className="text-sm text-gray-400">Structure</div>
-                  </div>
-                  <div className="text-center">
-                    <div className={`text-2xl font-bold ${getScoreColor(analysis.scoreBreakdown.readability)}`}>
-                      {analysis.scoreBreakdown.readability}
-                    </div>
-                    <div className="text-sm text-gray-400">Readability</div>
-                  </div>
-                  <div className="text-center">
-                    <div className={`text-2xl font-bold ${getScoreColor(analysis.scoreBreakdown.jobMatch)}`}>
-                      {analysis.scoreBreakdown.jobMatch}
-                    </div>
-                    <div className="text-sm text-gray-400">Job Match</div>
-                  </div>
+                  ))}
                 </div>
               </div>
 
@@ -317,7 +311,7 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
                     <Target className="text-blue-400" size={20} />
                     Job Description Match Analysis
                   </h4>
-                  
+
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-300">Overall Match</span>
@@ -326,11 +320,10 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
                       </span>
                     </div>
                     <div className="w-full bg-white/10 rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-500 ${
-                          analysis.jobMatchAnalysis.matchPercentage >= 80 ? 'bg-green-500' :
-                          analysis.jobMatchAnalysis.matchPercentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`}
+                      <div
+                        className={`h-2 rounded-full transition-all duration-500 ${analysis.jobMatchAnalysis.matchPercentage >= 80 ? 'bg-green-500' :
+                            analysis.jobMatchAnalysis.matchPercentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}
                         style={{ width: `${analysis.jobMatchAnalysis.matchPercentage}%` }}
                       />
                     </div>
@@ -410,61 +403,62 @@ export default function ResumeAnalyzerOverlay({ isOpen, onClose }: ResumeAnalyze
                 </div>
               )}
 
-              {/* Improvements */}
-              <div className="glass rounded-xl p-6">
-                <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <AlertCircle className="text-yellow-400" size={20} />
-                  Recommendations for Improvement
-                </h4>
-                
-                {(analysis.improvements.structure.length > 0 || 
-                  analysis.improvements.content.length > 0 || 
-                  analysis.improvements.keywords.length > 0) && (
-                  <div className="space-y-4">
-                    {analysis.improvements.structure.length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium text-orange-400 mb-2">Structure</p>
-                        <ul className="space-y-1">
-                          {analysis.improvements.structure.map((item, index) => (
-                            <li key={index} className="text-gray-300 text-sm flex items-start gap-2">
-                              <span className="w-1 h-1 bg-orange-400 rounded-full mt-1.5 shrink-0" />
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
+              {/* Penalties */}
+              {analysis.penalties && analysis.penalties.length > 0 && (
+                <div className="glass rounded-xl p-6">
+                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <AlertTriangle className="text-red-400" size={20} />
+                    Score Penalties
+                  </h4>
+                  <div className="space-y-2">
+                    {analysis.penalties.map((penalty, index) => (
+                      <div key={index} className="flex items-center justify-between glass-dark rounded-lg p-3">
+                        <span className="text-sm text-gray-300">{penalty.reason}</span>
+                        <span className="text-sm font-bold text-red-400">-{penalty.points} pts</span>
                       </div>
-                    )}
-                    
-                    {analysis.improvements.content.length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium text-orange-400 mb-2">Content</p>
-                        <ul className="space-y-1">
-                          {analysis.improvements.content.map((item, index) => (
-                            <li key={index} className="text-gray-300 text-sm flex items-start gap-2">
-                              <span className="w-1 h-1 bg-blue-400 rounded-full mt-1.5 shrink-0" />
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    
-                    {analysis.improvements.keywords.length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium text-orange-400 mb-2">Keywords</p>
-                        <ul className="space-y-1">
-                          {analysis.improvements.keywords.map((item, index) => (
-                            <li key={index} className="text-gray-300 text-sm flex items-start gap-2">
-                              <span className="w-1 h-1 bg-orange-400 rounded-full mt-1.5 shrink-0" />
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    ))}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+
+              {/* Improvement Priority */}
+              {analysis.improvementPriority && analysis.improvementPriority.length > 0 && (
+                <div className="glass rounded-xl p-6">
+                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <Zap className="text-yellow-400" size={20} />
+                    Top Improvements (by Impact)
+                  </h4>
+                  <div className="space-y-3">
+                    {analysis.improvementPriority.map((item, index) => (
+                      <div key={index} className="glass-dark rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-white">{item.action}</span>
+                          <span className="text-xs font-bold text-green-400">+{item.estimatedScoreGain} pts</span>
+                        </div>
+                        <p className="text-xs text-gray-400">{item.impact}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Improvements */}
+              {analysis.improvements && analysis.improvements.length > 0 && (
+                <div className="glass rounded-xl p-6">
+                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <AlertCircle className="text-yellow-400" size={20} />
+                    Recommendations for Improvement
+                  </h4>
+                  <ul className="space-y-2">
+                    {analysis.improvements.map((item, index) => (
+                      <li key={index} className="text-gray-300 text-sm flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full mt-1.5 shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="flex gap-3">

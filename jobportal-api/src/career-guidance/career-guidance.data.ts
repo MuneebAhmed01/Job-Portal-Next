@@ -1,257 +1,286 @@
-import { SkillMapping, CareerCategory } from './career-guidance.types';
+import { CategoryDefinition, ScoringConfig } from './career-guidance.types';
 
-export interface CareerPath {
+// ─── Scoring Configuration ────────────────────────────────────────────
+// All thresholds in one place — no magic numbers scattered in code.
+
+export const scoringConfig: ScoringConfig = {
+  coreWeight: 60,
+  supportingWeight: 30,
+  adjacentWeight: 10,
+  minimumPrimaryThreshold: 20,
+  minimumSecondaryThreshold: 15,
+  combinationRatioThreshold: 0.55, // Raised back up; denominator cap handles scoring boost
+};
+
+// ─── Skill Categories ─────────────────────────────────────────────────
+// RULE: Each skill appears in EXACTLY ONE category.
+//       If a skill is relevant to multiple domains (e.g. Python),
+//       it goes in the PRIMARY domain and is NOT duplicated.
+//       The combination-role detection handles cross-domain inference.
+
+export const careerCategories: CategoryDefinition[] = [
+  {
+    name: 'Frontend Development',
+    skills: [
+      { canonical: 'React', aliases: ['react', 'reactjs', 'react.js'], importance: 'core' },
+      { canonical: 'Vue.js', aliases: ['vue', 'vuejs', 'vue.js'], importance: 'core' },
+      { canonical: 'Angular', aliases: ['angular', 'angularjs'], importance: 'core' },
+      { canonical: 'JavaScript', aliases: ['javascript', 'js', 'ecmascript', 'es6'], importance: 'core' },
+      { canonical: 'TypeScript', aliases: ['typescript', 'ts'], importance: 'core' },
+      { canonical: 'HTML5', aliases: ['html', 'html5'], importance: 'supporting' },
+      { canonical: 'CSS3', aliases: ['css', 'css3'], importance: 'supporting' },
+      { canonical: 'Tailwind CSS', aliases: ['tailwind', 'tailwindcss', 'tailwind css'], importance: 'supporting' },
+      { canonical: 'Next.js', aliases: ['nextjs', 'next.js'], importance: 'supporting' },
+      { canonical: 'Svelte', aliases: ['svelte'], importance: 'supporting' },
+      { canonical: 'Redux', aliases: ['redux', 'redux toolkit', 'rtk'], importance: 'supporting' },
+      { canonical: 'SASS/SCSS', aliases: ['sass', 'scss', 'less'], importance: 'adjacent' },
+      { canonical: 'Webpack', aliases: ['webpack', 'vite', 'rollup', 'parcel'], importance: 'adjacent' },
+      { canonical: 'Jest', aliases: ['jest', 'testing library', 'react testing library', 'vitest'], importance: 'adjacent' },
+      { canonical: 'Responsive Design', aliases: ['responsive', 'mobile first', 'adaptive design'], importance: 'adjacent' },
+    ]
+  },
+  {
+    name: 'Backend Development',
+    skills: [
+      { canonical: 'Node.js', aliases: ['node', 'nodejs', 'node.js'], importance: 'core' },
+      { canonical: 'Express.js', aliases: ['express', 'expressjs', 'express.js'], importance: 'core' },
+      { canonical: 'NestJS', aliases: ['nestjs', 'nest.js', 'nest'], importance: 'core' },
+      { canonical: 'Django', aliases: ['django'], importance: 'core' },
+      { canonical: 'Spring Boot', aliases: ['spring', 'springboot', 'spring boot', 'spring framework'], importance: 'core' },
+      { canonical: 'REST APIs', aliases: ['rest', 'rest api', 'restful', 'api design'], importance: 'core' },
+      { canonical: 'Flask', aliases: ['flask'], importance: 'supporting' },
+      { canonical: 'FastAPI', aliases: ['fastapi', 'fast api'], importance: 'supporting' },
+      { canonical: 'GraphQL', aliases: ['graphql', 'apollo'], importance: 'supporting' },
+      { canonical: 'gRPC', aliases: ['grpc'], importance: 'supporting' },
+      { canonical: 'Authentication', aliases: ['authentication', 'auth', 'jwt', 'oauth'], importance: 'supporting' },
+      { canonical: 'Ruby on Rails', aliases: ['ruby', 'rails', 'ruby on rails', 'ror'], importance: 'adjacent' },
+      { canonical: 'PHP', aliases: ['php', 'laravel', 'symfony'], importance: 'adjacent' },
+      { canonical: 'C#/.NET', aliases: ['c#', 'csharp', 'c sharp', '.net', 'dotnet'], importance: 'adjacent' },
+      { canonical: 'Go', aliases: ['go', 'golang'], importance: 'adjacent' },
+      { canonical: 'PostgreSQL', aliases: ['postgresql', 'postgres', 'psql'], importance: 'supporting' },
+      { canonical: 'MongoDB', aliases: ['mongodb', 'mongo'], importance: 'supporting' },
+      { canonical: 'Docker', aliases: ['docker', 'containerization'], importance: 'adjacent' },
+      { canonical: 'AWS', aliases: ['aws', 'amazon web services'], importance: 'adjacent' },
+    ]
+  },
+  {
+    name: 'AI/ML Engineering',
+    skills: [
+      { canonical: 'Python', aliases: ['python', 'py', 'python3'], importance: 'core' },
+      { canonical: 'TensorFlow', aliases: ['tensorflow', 'tf'], importance: 'core' },
+      { canonical: 'PyTorch', aliases: ['pytorch', 'torch'], importance: 'core' },
+      { canonical: 'Machine Learning', aliases: ['machine learning', 'ml'], importance: 'core' },
+      { canonical: 'Deep Learning', aliases: ['deep learning', 'dl', 'neural networks', 'neural network'], importance: 'core' },
+      { canonical: 'Computer Vision', aliases: ['computer vision', 'opencv', 'image processing'], importance: 'supporting' },
+      { canonical: 'NLP', aliases: ['nlp', 'natural language processing', 'llm', 'large language model'], importance: 'supporting' },
+      { canonical: 'Scikit-learn', aliases: ['scikit-learn', 'sklearn', 'scikit learn'], importance: 'supporting' },
+      { canonical: 'Keras', aliases: ['keras'], importance: 'supporting' },
+      { canonical: 'Data Science', aliases: ['data science', 'datascience'], importance: 'supporting' },
+      { canonical: 'Pandas', aliases: ['pandas'], importance: 'adjacent' },
+      { canonical: 'NumPy', aliases: ['numpy'], importance: 'adjacent' },
+      { canonical: 'MLOps', aliases: ['mlops', 'ml ops', 'model deployment'], importance: 'adjacent' },
+      { canonical: 'Hugging Face', aliases: ['huggingface', 'hugging face', 'transformers'], importance: 'adjacent' },
+    ]
+  },
+  {
+    name: 'UI/UX Design',
+    skills: [
+      { canonical: 'Figma', aliases: ['figma'], importance: 'core' },
+      { canonical: 'UI Design', aliases: ['ui design', 'user interface', 'interface design'], importance: 'core' },
+      { canonical: 'UX Design', aliases: ['ux design', 'user experience', 'ux'], importance: 'core' },
+      { canonical: 'Prototyping', aliases: ['prototyping', 'prototype', 'wireframing', 'wireframe'], importance: 'core' },
+      { canonical: 'User Research', aliases: ['user research', 'usability testing', 'ux research'], importance: 'core' },
+      { canonical: 'Adobe XD', aliases: ['adobe xd', 'xd'], importance: 'supporting' },
+      { canonical: 'Sketch', aliases: ['sketch'], importance: 'supporting' },
+      { canonical: 'Design Systems', aliases: ['design systems', 'component library', 'style guide'], importance: 'supporting' },
+      { canonical: 'Interaction Design', aliases: ['interaction design', 'motion design', 'microinteractions'], importance: 'supporting' },
+      { canonical: 'InVision', aliases: ['invision'], importance: 'adjacent' },
+      { canonical: 'Framer', aliases: ['framer'], importance: 'adjacent' },
+    ]
+  },
+  {
+    name: 'Graphic Design',
+    skills: [
+      { canonical: 'Adobe Photoshop', aliases: ['photoshop', 'ps', 'adobe photoshop'], importance: 'core' },
+      { canonical: 'Adobe Illustrator', aliases: ['illustrator', 'adobe illustrator'], importance: 'core' },
+      { canonical: 'Branding', aliases: ['branding', 'brand design', 'brand identity', 'logo design'], importance: 'core' },
+      { canonical: 'Adobe InDesign', aliases: ['indesign', 'adobe indesign'], importance: 'core' },
+      { canonical: 'Typography', aliases: ['typography', 'fonts', 'type design'], importance: 'supporting' },
+      { canonical: 'Color Theory', aliases: ['color theory', 'color psychology'], importance: 'supporting' },
+      { canonical: 'Digital Illustration', aliases: ['illustration', 'digital art', 'vector art'], importance: 'supporting' },
+      { canonical: 'Print Design', aliases: ['print design', 'publishing', 'layout design'], importance: 'supporting' },
+      { canonical: 'Canva', aliases: ['canva'], importance: 'adjacent' },
+      { canonical: 'CorelDRAW', aliases: ['coreldraw', 'corel draw'], importance: 'adjacent' },
+      { canonical: 'Affinity Designer', aliases: ['affinity designer', 'affinity'], importance: 'adjacent' },
+    ]
+  },
+  {
+    name: 'Database Engineering',
+    skills: [
+      { canonical: 'PostgreSQL', aliases: ['postgresql', 'postgres', 'psql'], importance: 'core' },
+      { canonical: 'MongoDB', aliases: ['mongodb', 'mongo'], importance: 'core' },
+      { canonical: 'MySQL', aliases: ['mysql'], importance: 'core' },
+      { canonical: 'SQL', aliases: ['sql'], importance: 'core' },
+      { canonical: 'Database Design', aliases: ['database design', 'schema design', 'db design', 'normalization'], importance: 'core' },
+      { canonical: 'Redis', aliases: ['redis', 'caching'], importance: 'supporting' },
+      { canonical: 'Elasticsearch', aliases: ['elasticsearch', 'elastic search'], importance: 'supporting' },
+      { canonical: 'Prisma', aliases: ['prisma'], importance: 'supporting' },
+      { canonical: 'TypeORM', aliases: ['typeorm'], importance: 'adjacent' },
+      { canonical: 'Sequelize', aliases: ['sequelize'], importance: 'adjacent' },
+      { canonical: 'Cassandra', aliases: ['cassandra'], importance: 'adjacent' },
+      { canonical: 'DynamoDB', aliases: ['dynamodb'], importance: 'adjacent' },
+    ]
+  },
+  {
+    name: 'DevOps & Cloud',
+    skills: [
+      { canonical: 'Docker', aliases: ['docker', 'containerization', 'containers'], importance: 'core' },
+      { canonical: 'Kubernetes', aliases: ['kubernetes', 'k8s', 'kubectl'], importance: 'core' },
+      { canonical: 'AWS', aliases: ['aws', 'amazon web services', 'ec2', 's3', 'lambda'], importance: 'core' },
+      { canonical: 'CI/CD', aliases: ['ci/cd', 'cicd', 'continuous integration', 'continuous deployment', 'jenkins', 'github actions', 'gitlab ci'], importance: 'core' },
+      { canonical: 'Terraform', aliases: ['terraform', 'infrastructure as code', 'iac'], importance: 'core' },
+      { canonical: 'Azure', aliases: ['azure', 'microsoft azure'], importance: 'supporting' },
+      { canonical: 'GCP', aliases: ['gcp', 'google cloud', 'google cloud platform'], importance: 'supporting' },
+      { canonical: 'Linux', aliases: ['linux', 'unix', 'bash', 'shell scripting', 'ubuntu'], importance: 'supporting' },
+      { canonical: 'Ansible', aliases: ['ansible', 'configuration management'], importance: 'supporting' },
+      { canonical: 'Monitoring', aliases: ['prometheus', 'grafana', 'datadog', 'monitoring'], importance: 'adjacent' },
+      { canonical: 'Git', aliases: ['git', 'github', 'gitlab', 'version control'], importance: 'adjacent' },
+      { canonical: 'Nginx', aliases: ['nginx', 'apache', 'reverse proxy'], importance: 'adjacent' },
+    ]
+  },
+  {
+    name: 'Mobile Development',
+    skills: [
+      { canonical: 'React Native', aliases: ['react native', 'reactnative'], importance: 'core' },
+      { canonical: 'Flutter', aliases: ['flutter', 'dart'], importance: 'core' },
+      { canonical: 'Swift', aliases: ['swift', 'ios development'], importance: 'core' },
+      { canonical: 'Kotlin', aliases: ['kotlin', 'android development'], importance: 'core' },
+      { canonical: 'iOS', aliases: ['ios'], importance: 'supporting' },
+      { canonical: 'Android', aliases: ['android'], importance: 'supporting' },
+      { canonical: 'Mobile UI', aliases: ['mobile ui', 'mobile design', 'app design'], importance: 'supporting' },
+      { canonical: 'Expo', aliases: ['expo'], importance: 'adjacent' },
+      { canonical: 'Ionic', aliases: ['ionic', 'cordova'], importance: 'adjacent' },
+    ]
+  },
+  {
+    name: 'Cybersecurity',
+    skills: [
+      { canonical: 'Penetration Testing', aliases: ['penetration testing', 'pen testing', 'pentest', 'ethical hacking'], importance: 'core' },
+      { canonical: 'Network Security', aliases: ['network security', 'firewall'], importance: 'core' },
+      { canonical: 'Security Auditing', aliases: ['security audit', 'vulnerability assessment', 'security assessment'], importance: 'core' },
+      { canonical: 'OWASP', aliases: ['owasp', 'web security', 'application security', 'appsec'], importance: 'core' },
+      { canonical: 'Cryptography', aliases: ['cryptography', 'encryption', 'ssl/tls'], importance: 'supporting' },
+      { canonical: 'SIEM', aliases: ['siem', 'splunk', 'security monitoring'], importance: 'supporting' },
+      { canonical: 'Identity Management', aliases: ['iam', 'identity access management', 'sso'], importance: 'supporting' },
+      { canonical: 'Cloud Security', aliases: ['cloud security', 'aws security', 'azure security'], importance: 'adjacent' },
+    ]
+  },
+  {
+    name: 'Blockchain/Web3',
+    skills: [
+      { canonical: 'Solidity', aliases: ['solidity'], importance: 'core' },
+      { canonical: 'Ethereum', aliases: ['ethereum', 'eth', 'evm'], importance: 'core' },
+      { canonical: 'Smart Contracts', aliases: ['smart contracts', 'smartcontract', 'contract development'], importance: 'core' },
+      { canonical: 'Web3.js', aliases: ['web3', 'web3.js', 'ethers.js', 'ethers'], importance: 'core' },
+      { canonical: 'DeFi', aliases: ['defi', 'decentralized finance'], importance: 'supporting' },
+      { canonical: 'NFT', aliases: ['nft', 'nft development'], importance: 'supporting' },
+      { canonical: 'Hyperledger', aliases: ['hyperledger', 'fabric', 'enterprise blockchain'], importance: 'supporting' },
+      { canonical: 'Rust', aliases: ['rust', 'solana'], importance: 'adjacent' },
+    ]
+  },
+  {
+    name: 'Game Development',
+    skills: [
+      { canonical: 'Unity', aliases: ['unity', 'unity3d'], importance: 'core' },
+      { canonical: 'Unreal Engine', aliases: ['unreal', 'unreal engine', 'ue4', 'ue5'], importance: 'core' },
+      { canonical: 'C++', aliases: ['c++', 'cpp'], importance: 'core' },
+      { canonical: 'Game Design', aliases: ['game design', 'level design', 'game mechanics'], importance: 'core' },
+      { canonical: 'C# (Game)', aliases: ['unity scripting'], importance: 'supporting' },
+      { canonical: 'Blender', aliases: ['blender', '3d modeling', '3d art'], importance: 'supporting' },
+      { canonical: 'Godot', aliases: ['godot'], importance: 'supporting' },
+      { canonical: 'Game Physics', aliases: ['game physics', 'collision detection'], importance: 'adjacent' },
+    ]
+  },
+  {
+    name: 'QA & Testing',
+    skills: [
+      { canonical: 'Test Automation', aliases: ['test automation', 'automated testing', 'automation framework'], importance: 'core' },
+      { canonical: 'Selenium', aliases: ['selenium', 'webdriver'], importance: 'core' },
+      { canonical: 'Cypress', aliases: ['cypress', 'e2e testing', 'end to end testing'], importance: 'core' },
+      { canonical: 'API Testing', aliases: ['api testing', 'postman', 'rest assured'], importance: 'core' },
+      { canonical: 'Performance Testing', aliases: ['performance testing', 'load testing', 'jmeter', 'k6'], importance: 'supporting' },
+      { canonical: 'Manual Testing', aliases: ['manual testing', 'test cases', 'test plans'], importance: 'supporting' },
+      { canonical: 'JUnit', aliases: ['junit', 'testng'], importance: 'supporting' },
+      { canonical: 'BDD/TDD', aliases: ['bdd', 'tdd', 'behavior driven', 'test driven'], importance: 'adjacent' },
+    ]
+  },
+  {
+    name: 'Data Engineering',
+    skills: [
+      { canonical: 'Apache Spark', aliases: ['spark', 'apache spark', 'pyspark'], importance: 'core' },
+      { canonical: 'Kafka', aliases: ['kafka', 'apache kafka', 'event streaming'], importance: 'core' },
+      { canonical: 'ETL', aliases: ['etl', 'extract transform load', 'data pipeline'], importance: 'core' },
+      { canonical: 'Data Warehouse', aliases: ['data warehouse', 'snowflake', 'redshift', 'bigquery'], importance: 'core' },
+      { canonical: 'Hadoop', aliases: ['hadoop', 'hdfs', 'mapreduce'], importance: 'supporting' },
+      { canonical: 'Airflow', aliases: ['airflow', 'apache airflow', 'workflow orchestration'], importance: 'supporting' },
+      { canonical: 'dbt', aliases: ['dbt', 'data build tool'], importance: 'supporting' },
+      { canonical: 'Dagster', aliases: ['dagster', 'prefect'], importance: 'adjacent' },
+    ]
+  },
+  {
+    name: 'Embedded Systems',
+    skills: [
+      { canonical: 'C', aliases: ['c language', 'embedded c'], importance: 'core' },
+      { canonical: 'Microcontrollers', aliases: ['microcontroller', 'mcu', 'arduino', 'raspberry pi'], importance: 'core' },
+      { canonical: 'RTOS', aliases: ['rtos', 'real time os', 'freertos'], importance: 'core' },
+      { canonical: 'Embedded Linux', aliases: ['embedded linux', 'yocto', 'buildroot'], importance: 'core' },
+      { canonical: 'IoT', aliases: ['iot', 'internet of things'], importance: 'supporting' },
+      { canonical: 'FPGA', aliases: ['fpga', 'vhdl', 'verilog'], importance: 'supporting' },
+      { canonical: 'ARM', aliases: ['arm', 'arm cortex', 'stm32'], importance: 'supporting' },
+      { canonical: 'Embedded C++', aliases: ['embedded cpp'], importance: 'adjacent' },
+    ]
+  },
+  {
+    name: 'Java Development',
+    skills: [
+      { canonical: 'Java', aliases: ['java', 'core java', 'java8', 'java11', 'java17'], importance: 'core' },
+    ]
+  },
+];
+
+// ─── Combination Roles ────────────────────────────────────────────────
+
+export interface CombinationRole {
+  categories: [string, string];
+  result: string;
+}
+
+export const combinationRoles: CombinationRole[] = [
+  { categories: ['Frontend Development', 'Backend Development'], result: 'Full-Stack Development' },
+  { categories: ['AI/ML Engineering', 'Data Engineering'], result: 'ML Platform Engineering' },
+  { categories: ['DevOps & Cloud', 'Backend Development'], result: 'Platform Engineering' },
+  { categories: ['UI/UX Design', 'Frontend Development'], result: 'Design Engineering' },
+  { categories: ['Cybersecurity', 'DevOps & Cloud'], result: 'Cloud Security Engineering' },
+  { categories: ['AI/ML Engineering', 'Backend Development'], result: 'AI Backend Engineering' },
+  { categories: ['Database Engineering', 'Backend Development'], result: 'Data Platform Engineering' },
+  { categories: ['Graphic Design', 'UI/UX Design'], result: 'Product Design Lead' },
+  { categories: ['Mobile Development', 'UI/UX Design'], result: 'Mobile Design Lead' },
+  { categories: ['Embedded Systems', 'DevOps & Cloud'], result: 'IoT Platform Engineering' },
+];
+
+// ─── Career Path Definitions ──────────────────────────────────────────
+
+export interface CareerPathDef {
   title: string;
   description: string;
   keyResponsibilities: string[];
   whyItFits: string;
   relevantJobTitles: string[];
-  matchScore: number;
+  baseMatchScore: number;
   category: string;
 }
 
-// Skill categories with weights and aliases for fuzzy matching
-export const careerCategories: CareerCategory[] = [
-  {
-    name: 'AI/ML Engineering',
-    weightMultiplier: 1.2,
-    skills: [
-      { canonical: 'Python', aliases: ['python', 'py', 'python3'], weight: 10 },
-      { canonical: 'TensorFlow', aliases: ['tensorflow', 'tf', 'tensor flow'], weight: 12 },
-      { canonical: 'PyTorch', aliases: ['pytorch', 'torch', 'py torch'], weight: 12 },
-      { canonical: 'Machine Learning', aliases: ['machine learning', 'ml', 'machinelearning', 'machin learn'], weight: 15 },
-      { canonical: 'Deep Learning', aliases: ['deep learning', 'dl', 'deeplearning', 'deep learn', 'neural networks', 'neural network', 'neural net'], weight: 14 },
-      { canonical: 'Computer Vision', aliases: ['computer vision', 'cv', 'opencv', 'image processing'], weight: 11 },
-      { canonical: 'NLP', aliases: ['nlp', 'natural language processing', 'natural language', 'text processing', 'llm', 'large language model'], weight: 12 },
-      { canonical: 'Keras', aliases: ['keras'], weight: 8 },
-      { canonical: 'Scikit-learn', aliases: ['scikit-learn', 'sklearn', 'scikit learn', 'sci-kit'], weight: 9 },
-      { canonical: 'Pandas', aliases: ['pandas', 'pd'], weight: 7 },
-      { canonical: 'NumPy', aliases: ['numpy', 'np', 'num py'], weight: 7 },
-      { canonical: 'Data Science', aliases: ['data science', 'datascience', 'data scientist'], weight: 10 },
-      { canonical: 'MLOps', aliases: ['mlops', 'ml ops', 'model deployment'], weight: 10 },
-      { canonical: 'Hugging Face', aliases: ['huggingface', 'hugging face', 'transformers'], weight: 9 },
-      { canonical: 'AI Frameworks', aliases: ['jax', 'mxnet', 'caffe', 'theano'], weight: 8 },
-    ]
-  },
-  {
-    name: 'UI/UX Designer',
-    weightMultiplier: 1.15,
-    skills: [
-      { canonical: 'Figma', aliases: ['figma'], weight: 12 },
-      { canonical: 'Adobe XD', aliases: ['adobe xd', 'xd', 'adobexd'], weight: 10 },
-      { canonical: 'Sketch', aliases: ['sketch'], weight: 9 },
-      { canonical: 'UI Design', aliases: ['ui design', 'user interface', 'interface design', 'ui'], weight: 14 },
-      { canonical: 'UX Design', aliases: ['ux design', 'user experience', 'experience design', 'ux', 'uxdesign'], weight: 14 },
-      { canonical: 'Prototyping', aliases: ['prototyping', 'prototype', 'wireframing', 'wireframe'], weight: 10 },
-      { canonical: 'User Research', aliases: ['user research', 'usability testing', 'user testing', 'ux research'], weight: 11 },
-      { canonical: 'Design Systems', aliases: ['design systems', 'component library', 'style guide'], weight: 9 },
-      { canonical: 'Interaction Design', aliases: ['interaction design', 'motion design', 'microinteractions'], weight: 10 },
-      { canonical: 'Adobe Photoshop', aliases: ['photoshop', 'ps', 'adobe photoshop'], weight: 7 },
-      { canonical: 'Adobe Illustrator', aliases: ['illustrator', 'ai', 'adobe illustrator'], weight: 7 },
-      { canonical: 'InVision', aliases: ['invision', 'invision studio'], weight: 8 },
-      { canonical: 'Framer', aliases: ['framer'], weight: 8 },
-    ]
-  },
-  {
-    name: 'Graphic Designer',
-    weightMultiplier: 1.1,
-    skills: [
-      { canonical: 'Adobe Photoshop', aliases: ['photoshop', 'ps', 'adobe photoshop', 'photo shop'], weight: 12 },
-      { canonical: 'Adobe Illustrator', aliases: ['illustrator', 'ai', 'adobe illustrator', 'illustator'], weight: 12 },
-      { canonical: 'Adobe InDesign', aliases: ['indesign', 'in design', 'adobe indesign'], weight: 10 },
-      { canonical: 'Branding', aliases: ['branding', 'brand design', 'brand identity', 'logo design'], weight: 11 },
-      { canonical: 'Typography', aliases: ['typography', 'fonts', 'type design'], weight: 9 },
-      { canonical: 'Color Theory', aliases: ['color theory', 'color psychology', 'palette design'], weight: 8 },
-      { canonical: 'Print Design', aliases: ['print design', 'publishing', 'layout design'], weight: 9 },
-      { canonical: 'Digital Illustration', aliases: ['illustration', 'digital art', 'vector art', 'drawing'], weight: 10 },
-      { canonical: 'Canva', aliases: ['canva'], weight: 6 },
-      { canonical: 'CorelDRAW', aliases: ['coreldraw', 'corel draw', 'corel'], weight: 8 },
-      { canonical: 'Affinity Designer', aliases: ['affinity designer', 'affinity'], weight: 7 },
-    ]
-  },
-  {
-    name: 'Frontend Development',
-    weightMultiplier: 1.0,
-    skills: [
-      { canonical: 'React', aliases: ['react', 'reactjs', 'react.js', 'jsx'], weight: 12 },
-      { canonical: 'Vue.js', aliases: ['vue', 'vuejs', 'vue.js'], weight: 11 },
-      { canonical: 'Angular', aliases: ['angular', 'angularjs', 'ng'], weight: 11 },
-      { canonical: 'TypeScript', aliases: ['typescript', 'ts', 'type script'], weight: 10 },
-      { canonical: 'JavaScript', aliases: ['javascript', 'js', 'java script', 'ecmascript', 'es6', 'es2015'], weight: 10 },
-      { canonical: 'HTML5', aliases: ['html', 'html5', 'markup'], weight: 9 },
-      { canonical: 'CSS3', aliases: ['css', 'css3', 'stylesheets', 'styling'], weight: 9 },
-      { canonical: 'Tailwind CSS', aliases: ['tailwind', 'tailwindcss', 'tailwind css'], weight: 10 },
-      { canonical: 'Next.js', aliases: ['nextjs', 'next.js', 'next'], weight: 11 },
-      { canonical: 'Svelte', aliases: ['svelte', 'svetle'], weight: 9 },
-      { canonical: 'Redux', aliases: ['redux', 'redux toolkit', 'rtk'], weight: 9 },
-      { canonical: 'Webpack', aliases: ['webpack', 'vite', 'rollup', 'parcel', 'bundler'], weight: 7 },
-      { canonical: 'Jest', aliases: ['jest', 'testing library', 'react testing library'], weight: 8 },
-      { canonical: 'SASS/SCSS', aliases: ['sass', 'scss', 'less', 'css preprocessor'], weight: 7 },
-      { canonical: 'Responsive Design', aliases: ['responsive', 'mobile first', 'adaptive design'], weight: 8 },
-    ]
-  },
-  {
-    name: 'Backend Development',
-    weightMultiplier: 1.0,
-    skills: [
-      { canonical: 'Node.js', aliases: ['node', 'nodejs', 'node.js', 'ndejs', 'nodjs', 'nods'], weight: 12 },
-      { canonical: 'Express.js', aliases: ['express', 'expressjs', 'express.js'], weight: 10 },
-      { canonical: 'NestJS', aliases: ['nestjs', 'nest.js', 'nest'], weight: 10 },
-      { canonical: 'Python', aliases: ['python', 'py', 'python3', 'py3'], weight: 11 },
-      { canonical: 'Django', aliases: ['django'], weight: 10 },
-      { canonical: 'Flask', aliases: ['flask'], weight: 8 },
-      { canonical: 'FastAPI', aliases: ['fastapi', 'fast api'], weight: 9 },
-      { canonical: 'Java', aliases: ['java', 'core java', 'java8', 'java11'], weight: 11 },
-      { canonical: 'Spring Boot', aliases: ['spring', 'springboot', 'spring boot', 'spring framework'], weight: 10 },
-      { canonical: 'C#', aliases: ['c#', 'csharp', 'c sharp', '.net', 'dotnet', 'dot net'], weight: 10 },
-      { canonical: 'Go', aliases: ['go', 'golang', 'go lang'], weight: 9 },
-      { canonical: 'Ruby on Rails', aliases: ['ruby', 'rails', 'ruby on rails', 'ror'], weight: 8 },
-      { canonical: 'PHP', aliases: ['php', 'laravel', 'symfony', 'codeigniter'], weight: 8 },
-      { canonical: 'REST APIs', aliases: ['rest', 'rest api', 'restful', 'api design'], weight: 10 },
-      { canonical: 'GraphQL', aliases: ['graphql', 'graph ql', 'apollo'], weight: 9 },
-      { canonical: 'gRPC', aliases: ['grpc'], weight: 8 },
-      { canonical: 'Authentication', aliases: ['authentication', 'auth', 'jwt', 'oauth', 'session management', 'login', 'signin'], weight: 10 },
-    ]
-  },
-  {
-    name: 'Database Engineering',
-    weightMultiplier: 1.05,
-    skills: [
-      { canonical: 'PostgreSQL', aliases: ['postgresql', 'postgres', 'psql', 'pg'], weight: 11 },
-      { canonical: 'MongoDB', aliases: ['mongodb', 'mongo', 'mongo db', 'nosql'], weight: 10 },
-      { canonical: 'MySQL', aliases: ['mysql', 'my sql', 'sql'], weight: 10 },
-      { canonical: 'Redis', aliases: ['redis', 'caching', 'cache'], weight: 9 },
-      { canonical: 'Elasticsearch', aliases: ['elasticsearch', 'elastic search', 'es'], weight: 8 },
-      { canonical: 'Prisma', aliases: ['prisma', 'orm'], weight: 8 },
-      { canonical: 'TypeORM', aliases: ['typeorm', 'type orm'], weight: 7 },
-      { canonical: 'Sequelize', aliases: ['sequelize', 'sequel'], weight: 7 },
-      { canonical: 'Database Design', aliases: ['database design', 'schema design', 'db design', 'normalization'], weight: 10 },
-      { canonical: 'SQL', aliases: ['sql', 'structured query language', 't-sql', 'plsql'], weight: 10 },
-      { canonical: 'Cassandra', aliases: ['cassandra'], weight: 7 },
-      { canonical: 'DynamoDB', aliases: ['dynamodb', 'dynamo db', 'aws dynamodb'], weight: 8 },
-    ]
-  },
-  {
-    name: 'DevOps & Cloud',
-    weightMultiplier: 1.1,
-    skills: [
-      { canonical: 'Docker', aliases: ['docker', 'containerization', 'containers'], weight: 11 },
-      { canonical: 'Kubernetes', aliases: ['kubernetes', 'k8s', 'kube', 'kubectl'], weight: 12 },
-      { canonical: 'AWS', aliases: ['aws', 'amazon web services', 'amazon cloud', 'ec2', 's3', 'lambda'], weight: 12 },
-      { canonical: 'Azure', aliases: ['azure', 'microsoft azure', 'ms azure'], weight: 11 },
-      { canonical: 'GCP', aliases: ['gcp', 'google cloud', 'google cloud platform'], weight: 11 },
-      { canonical: 'CI/CD', aliases: ['ci/cd', 'cicd', 'ci cd', 'continuous integration', 'continuous deployment', 'jenkins', 'github actions', 'gitlab ci'], weight: 11 },
-      { canonical: 'Terraform', aliases: ['terraform', 'infrastructure as code', 'iac'], weight: 10 },
-      { canonical: 'Ansible', aliases: ['ansible', 'configuration management'], weight: 8 },
-      { canonical: 'Linux', aliases: ['linux', 'unix', 'bash', 'shell scripting', 'ubuntu', 'centos'], weight: 9 },
-      { canonical: 'Monitoring', aliases: ['prometheus', 'grafana', 'datadog', 'new relic', 'monitoring'], weight: 8 },
-      { canonical: 'Git', aliases: ['git', 'github', 'gitlab', 'bitbucket', 'version control'], weight: 8 },
-      { canonical: 'Nginx', aliases: ['nginx', 'apache', 'web server', 'reverse proxy'], weight: 7 },
-    ]
-  },
-  {
-    name: 'Mobile Development',
-    weightMultiplier: 1.0,
-    skills: [
-      { canonical: 'React Native', aliases: ['react native', 'reactnative', 'rn'], weight: 12 },
-      { canonical: 'Flutter', aliases: ['flutter', 'dart'], weight: 11 },
-      { canonical: 'Swift', aliases: ['swift', 'ios', 'ios development'], weight: 11 },
-      { canonical: 'Kotlin', aliases: ['kotlin', 'android', 'android development'], weight: 11 },
-      { canonical: 'iOS', aliases: ['ios', 'iphone', 'ipad', 'apple development'], weight: 10 },
-      { canonical: 'Android', aliases: ['android', 'java android'], weight: 10 },
-      { canonical: 'Mobile UI', aliases: ['mobile ui', 'mobile design', 'app design'], weight: 9 },
-      { canonical: 'Expo', aliases: ['expo'], weight: 7 },
-      { canonical: 'Ionic', aliases: ['ionic', 'cordova', 'phonegap'], weight: 6 },
-    ]
-  },
-  {
-    name: 'Cybersecurity',
-    weightMultiplier: 1.15,
-    skills: [
-      { canonical: 'Penetration Testing', aliases: ['penetration testing', 'pen testing', 'pentest', 'ethical hacking'], weight: 12 },
-      { canonical: 'Network Security', aliases: ['network security', 'firewall', 'ids/ips'], weight: 11 },
-      { canonical: 'Cryptography', aliases: ['cryptography', 'encryption', 'ssl/tls', 'certificates'], weight: 10 },
-      { canonical: 'Security Auditing', aliases: ['security audit', 'vulnerability assessment', 'security assessment'], weight: 11 },
-      { canonical: 'OWASP', aliases: ['owasp', 'web security', 'application security', 'appsec'], weight: 10 },
-      { canonical: 'SIEM', aliases: ['siem', 'splunk', 'security monitoring'], weight: 9 },
-      { canonical: 'Identity Management', aliases: ['iam', 'identity access management', 'oauth', 'sso', 'authentication'], weight: 9 },
-      { canonical: 'Cloud Security', aliases: ['cloud security', 'aws security', 'azure security'], weight: 10 },
-    ]
-  },
-  {
-    name: 'Blockchain/Web3',
-    weightMultiplier: 1.1,
-    skills: [
-      { canonical: 'Solidity', aliases: ['solidity', 'sol'], weight: 12 },
-      { canonical: 'Ethereum', aliases: ['ethereum', 'eth', 'evm'], weight: 11 },
-      { canonical: 'Smart Contracts', aliases: ['smart contracts', 'smartcontract', 'contract development'], weight: 12 },
-      { canonical: 'Web3.js', aliases: ['web3', 'web3.js', 'ethers.js', 'ethers'], weight: 10 },
-      { canonical: 'DeFi', aliases: ['defi', 'decentralized finance'], weight: 9 },
-      { canonical: 'NFT', aliases: ['nft', 'non-fungible token', 'nft development'], weight: 8 },
-      { canonical: 'Hyperledger', aliases: ['hyperledger', 'fabric', 'enterprise blockchain'], weight: 8 },
-      { canonical: 'Rust', aliases: ['rust', 'rustlang', 'solana', 'near protocol'], weight: 9 },
-    ]
-  },
-  {
-    name: 'Game Development',
-    weightMultiplier: 1.0,
-    skills: [
-      { canonical: 'Unity', aliases: ['unity', 'unity3d', 'unity 3d'], weight: 12 },
-      { canonical: 'Unreal Engine', aliases: ['unreal', 'unreal engine', 'ue4', 'ue5'], weight: 12 },
-      { canonical: 'C++', aliases: ['c++', 'cpp', 'c plus plus'], weight: 11 },
-      { canonical: 'C#', aliases: ['c#', 'csharp', 'unity scripting'], weight: 10 },
-      { canonical: 'Game Design', aliases: ['game design', 'level design', 'game mechanics'], weight: 10 },
-      { canonical: 'Blender', aliases: ['blender', '3d modeling', '3d art'], weight: 9 },
-      { canonical: 'Godot', aliases: ['godot'], weight: 8 },
-      { canonical: 'Game Physics', aliases: ['physics', 'game physics', 'collision detection'], weight: 8 },
-    ]
-  },
-  {
-    name: 'QA & Testing',
-    weightMultiplier: 0.95,
-    skills: [
-      { canonical: 'Selenium', aliases: ['selenium', 'webdriver'], weight: 10 },
-      { canonical: 'Cypress', aliases: ['cypress', 'e2e testing', 'end to end testing'], weight: 10 },
-      { canonical: 'JUnit', aliases: ['junit', 'testng', 'java testing'], weight: 8 },
-      { canonical: 'Test Automation', aliases: ['test automation', 'automated testing', 'automation framework'], weight: 11 },
-      { canonical: 'Performance Testing', aliases: ['performance testing', 'load testing', 'jmeter', 'k6'], weight: 9 },
-      { canonical: 'Manual Testing', aliases: ['manual testing', 'test cases', 'test plans'], weight: 8 },
-      { canonical: 'API Testing', aliases: ['api testing', 'postman', 'rest assured'], weight: 9 },
-      { canonical: 'BDD/TDD', aliases: ['bdd', 'tdd', 'behavior driven', 'test driven'], weight: 8 },
-    ]
-  },
-  {
-    name: 'Data Engineering',
-    weightMultiplier: 1.1,
-    skills: [
-      { canonical: 'Apache Spark', aliases: ['spark', 'apache spark', 'pyspark'], weight: 11 },
-      { canonical: 'Hadoop', aliases: ['hadoop', 'hdfs', 'mapreduce'], weight: 9 },
-      { canonical: 'Kafka', aliases: ['kafka', 'apache kafka', 'event streaming'], weight: 10 },
-      { canonical: 'Airflow', aliases: ['airflow', 'apache airflow', 'workflow orchestration'], weight: 9 },
-      { canonical: 'ETL', aliases: ['etl', 'extract transform load', 'data pipeline'], weight: 10 },
-      { canonical: 'Data Warehouse', aliases: ['data warehouse', 'snowflake', 'redshift', 'bigquery', 'dwh'], weight: 10 },
-      { canonical: 'dbt', aliases: ['dbt', 'data build tool'], weight: 8 },
-      { canonical: 'Apache Airflow', aliases: ['prefect', 'dagster'], weight: 7 },
-    ]
-  },
-  {
-    name: 'Embedded Systems',
-    weightMultiplier: 1.0,
-    skills: [
-      { canonical: 'C', aliases: ['c', 'c language', 'embedded c'], weight: 11 },
-      { canonical: 'C++', aliases: ['c++', 'cpp', 'embedded cpp'], weight: 10 },
-      { canonical: 'Microcontrollers', aliases: ['microcontroller', 'mcu', 'arduino', 'raspberry pi', 'rpi'], weight: 10 },
-      { canonical: 'RTOS', aliases: ['rtos', 'real time os', 'free rtos', 'freertos'], weight: 9 },
-      { canonical: 'Embedded Linux', aliases: ['embedded linux', 'yocto', 'buildroot'], weight: 9 },
-      { canonical: 'IoT', aliases: ['iot', 'internet of things', 'sensor', 'actuator'], weight: 9 },
-      { canonical: 'FPGA', aliases: ['fpga', 'vhdl', 'verilog', 'hdl'], weight: 8 },
-      { canonical: 'ARM', aliases: ['arm', 'arm cortex', 'stm32'], weight: 8 },
-    ]
-  },
-];
-
-// Career path definitions
-export const careerPaths: Record<string, CareerPath[]> = {
+export const careerPaths: Record<string, CareerPathDef[]> = {
   'Frontend Development': [
     {
       title: 'Frontend Developer',
@@ -259,7 +288,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Component architecture', 'Performance optimization', 'State management', 'UI implementation'],
       whyItFits: 'Your frontend framework expertise qualifies you for development roles',
       relevantJobTitles: ['Frontend Developer', 'Frontend Engineer', 'UI Developer', 'React Developer'],
-      matchScore: 94,
+      baseMatchScore: 94,
       category: 'Frontend Development'
     },
     {
@@ -268,7 +297,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Frontend development', 'Backend API integration', 'Database design', 'Deployment'],
       whyItFits: 'Adding backend skills to your frontend expertise opens full-stack opportunities',
       relevantJobTitles: ['Full-Stack Developer', 'MERN Stack Developer', 'JavaScript Full-Stack Engineer'],
-      matchScore: 82,
+      baseMatchScore: 82,
       category: 'Full-Stack Development'
     },
     {
@@ -277,7 +306,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Architecture decisions', 'Technical leadership', 'Code standards', 'Performance strategy'],
       whyItFits: 'Your broad frontend knowledge positions you for architecture roles',
       relevantJobTitles: ['Frontend Architect', 'Principal Frontend Engineer', 'UI Architect'],
-      matchScore: 78,
+      baseMatchScore: 78,
       category: 'Frontend Development'
     }
   ],
@@ -288,7 +317,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['API development', 'Database design', 'System architecture', 'Performance tuning'],
       whyItFits: 'Your backend skills are perfect for development roles',
       relevantJobTitles: ['Backend Developer', 'Backend Engineer', 'API Developer', 'Server Developer'],
-      matchScore: 93,
+      baseMatchScore: 93,
       category: 'Backend Development'
     },
     {
@@ -297,7 +326,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Server-side logic', 'Client-side integration', 'Database management', 'API design'],
       whyItFits: 'Learning frontend technologies would make you a versatile full-stack developer',
       relevantJobTitles: ['Full-Stack Developer', 'Software Engineer', 'Web Developer'],
-      matchScore: 75,
+      baseMatchScore: 75,
       category: 'Full-Stack Development'
     },
     {
@@ -306,7 +335,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Platform architecture', 'Developer experience', 'Infrastructure APIs', 'System reliability'],
       whyItFits: 'Your backend expertise extends well to platform engineering',
       relevantJobTitles: ['Platform Engineer', 'Infrastructure Engineer', 'Backend Platform Engineer'],
-      matchScore: 80,
+      baseMatchScore: 80,
       category: 'Platform Engineering'
     }
   ],
@@ -317,7 +346,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Frontend development', 'Backend API design', 'Database architecture', 'Deployment'],
       whyItFits: 'Your combined frontend and backend skills make you a versatile full-stack developer',
       relevantJobTitles: ['Full-Stack Developer', 'MERN Stack Developer', 'JavaScript Full-Stack Engineer', 'Web Developer'],
-      matchScore: 95,
+      baseMatchScore: 95,
       category: 'Full-Stack Development'
     },
     {
@@ -326,7 +355,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Application architecture', 'Full-cycle development', 'Code optimization', 'System integration'],
       whyItFits: 'Your broad skill set aligns well with general software engineering roles',
       relevantJobTitles: ['Software Engineer', 'Application Developer', 'Software Developer', 'Full-Stack Engineer'],
-      matchScore: 88,
+      baseMatchScore: 88,
       category: 'Software Engineering'
     },
     {
@@ -335,7 +364,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Technical leadership', 'Architecture decisions', 'Code reviews', 'Team mentoring'],
       whyItFits: 'Your comprehensive knowledge prepares you for technical leadership',
       relevantJobTitles: ['Technical Lead', 'Team Lead', 'Engineering Lead', 'Tech Lead'],
-      matchScore: 82,
+      baseMatchScore: 82,
       category: 'Technical Leadership'
     }
   ],
@@ -346,7 +375,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['User research', 'Wireframing and prototyping', 'Design systems', 'Usability testing'],
       whyItFits: 'Your UI/UX tool expertise positions you for design roles',
       relevantJobTitles: ['UI/UX Designer', 'Product Designer', 'Interaction Designer', 'Experience Designer'],
-      matchScore: 95,
+      baseMatchScore: 95,
       category: 'UI/UX Design'
     },
     {
@@ -355,7 +384,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Design implementation', 'Component libraries', 'Design system maintenance', 'Prototyping'],
       whyItFits: 'Learning frontend development would make you a powerful design engineer',
       relevantJobTitles: ['Design Engineer', 'Design Technologist', 'Creative Developer'],
-      matchScore: 78,
+      baseMatchScore: 78,
       category: 'Design Engineering'
     },
     {
@@ -364,7 +393,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Product strategy', 'Design execution', 'Cross-functional collaboration', 'Design metrics'],
       whyItFits: 'Your broad design skills fit product design perfectly',
       relevantJobTitles: ['Product Designer', 'Digital Product Designer', 'UX Product Designer'],
-      matchScore: 88,
+      baseMatchScore: 88,
       category: 'UI/UX Design'
     }
   ],
@@ -375,7 +404,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Train and optimize ML models', 'Deploy models to production', 'Build ML pipelines', 'Monitor model performance'],
       whyItFits: 'Your strong foundation in ML frameworks and Python is perfect for this role',
       relevantJobTitles: ['ML Engineer', 'AI Engineer', 'Deep Learning Engineer', 'MLOps Engineer'],
-      matchScore: 95,
+      baseMatchScore: 95,
       category: 'AI/ML Engineering'
     },
     {
@@ -384,7 +413,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['API development for ML', 'Model serving infrastructure', 'Data pipelines', 'Scalable architectures'],
       whyItFits: 'Combining backend skills with AI expertise creates a specialized niche',
       relevantJobTitles: ['AI Backend Engineer', 'ML Platform Engineer', 'AI Infrastructure Engineer'],
-      matchScore: 85,
+      baseMatchScore: 85,
       category: 'AI Backend Engineering'
     },
     {
@@ -393,7 +422,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Statistical analysis', 'Predictive modeling', 'Data visualization', 'Business insights'],
       whyItFits: 'Your data science and ML skills align well with data science roles',
       relevantJobTitles: ['Data Scientist', 'Lead Data Scientist', 'Quantitative Analyst'],
-      matchScore: 88,
+      baseMatchScore: 88,
       category: 'AI/ML Engineering'
     }
   ],
@@ -404,7 +433,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Brand design', 'Marketing materials', 'Digital illustrations', 'Print design'],
       whyItFits: 'Your Adobe Creative Suite skills are ideal for graphic design',
       relevantJobTitles: ['Graphic Designer', 'Visual Designer', 'Brand Designer', 'Creative Designer'],
-      matchScore: 93,
+      baseMatchScore: 93,
       category: 'Graphic Design'
     },
     {
@@ -413,7 +442,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Interface design', 'User research', 'Prototyping', 'Design systems'],
       whyItFits: 'Your visual design skills are a strong foundation for UI/UX work',
       relevantJobTitles: ['UI Designer', 'Visual UI Designer', 'Digital Designer'],
-      matchScore: 75,
+      baseMatchScore: 75,
       category: 'UI/UX Design'
     },
     {
@@ -422,7 +451,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Creative vision', 'Team leadership', 'Client presentations', 'Brand strategy'],
       whyItFits: 'Your strong design foundation can lead to art direction',
       relevantJobTitles: ['Art Director', 'Creative Director', 'Visual Director'],
-      matchScore: 70,
+      baseMatchScore: 70,
       category: 'Graphic Design'
     }
   ],
@@ -433,7 +462,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['CI/CD pipelines', 'Cloud architecture', 'Infrastructure automation', 'Monitoring'],
       whyItFits: 'Your DevOps and cloud skills are in high demand',
       relevantJobTitles: ['DevOps Engineer', 'Site Reliability Engineer', 'Cloud Engineer', 'Platform Engineer'],
-      matchScore: 94,
+      baseMatchScore: 94,
       category: 'DevOps & Cloud'
     },
     {
@@ -442,7 +471,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Cloud security architecture', 'Compliance', 'Security automation', 'Risk assessment'],
       whyItFits: 'Adding security expertise to your cloud skills creates a valuable specialization',
       relevantJobTitles: ['Cloud Security Engineer', 'DevSecOps Engineer', 'Security Architect'],
-      matchScore: 82,
+      baseMatchScore: 82,
       category: 'Cloud Security Engineering'
     },
     {
@@ -451,7 +480,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Cloud strategy', 'Architecture design', 'Cost optimization', 'Security compliance'],
       whyItFits: 'Your cloud expertise positions you for architecture roles',
       relevantJobTitles: ['Cloud Architect', 'AWS/Azure/GCP Architect', 'Solutions Architect'],
-      matchScore: 85,
+      baseMatchScore: 85,
       category: 'DevOps & Cloud'
     }
   ],
@@ -462,7 +491,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Mobile app development', 'Performance optimization', 'Native integrations', 'App store deployment'],
       whyItFits: 'Your mobile development skills qualify you for development roles',
       relevantJobTitles: ['Mobile Developer', 'iOS Developer', 'Android Developer', 'React Native Developer'],
-      matchScore: 93,
+      baseMatchScore: 93,
       category: 'Mobile Development'
     },
     {
@@ -471,7 +500,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Technical leadership', 'Architecture decisions', 'Code reviews', 'Team mentoring'],
       whyItFits: 'Your mobile expertise prepares you for leadership roles',
       relevantJobTitles: ['Mobile Tech Lead', 'Mobile Engineer', 'Mobile Architect'],
-      matchScore: 85,
+      baseMatchScore: 85,
       category: 'Mobile Development'
     },
     {
@@ -480,7 +509,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Mobile frontend', 'Backend APIs', 'Database integration', 'Push notifications'],
       whyItFits: 'Backend skills would complement your mobile expertise for end-to-end development',
       relevantJobTitles: ['Full-Stack Mobile Developer', 'Mobile Backend Developer'],
-      matchScore: 72,
+      baseMatchScore: 72,
       category: 'Full-Stack Development'
     }
   ],
@@ -491,7 +520,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Security assessments', 'Vulnerability management', 'Incident response', 'Security tooling'],
       whyItFits: 'Your security skills are critical for modern organizations',
       relevantJobTitles: ['Security Engineer', 'Cybersecurity Engineer', 'Application Security Engineer'],
-      matchScore: 95,
+      baseMatchScore: 95,
       category: 'Cybersecurity'
     },
     {
@@ -500,7 +529,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Vulnerability assessment', 'Penetration testing', 'Security reports', 'Remediation guidance'],
       whyItFits: 'Your penetration testing skills are highly specialized',
       relevantJobTitles: ['Penetration Tester', 'Ethical Hacker', 'Security Consultant'],
-      matchScore: 90,
+      baseMatchScore: 90,
       category: 'Cybersecurity'
     },
     {
@@ -509,7 +538,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Security automation', 'Pipeline integration', 'Vulnerability scanning', 'Compliance'],
       whyItFits: 'Adding DevOps skills to your security expertise creates a high-demand role',
       relevantJobTitles: ['DevSecOps Engineer', 'Security Automation Engineer'],
-      matchScore: 78,
+      baseMatchScore: 78,
       category: 'Cloud Security Engineering'
     }
   ],
@@ -520,7 +549,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Schema design', 'Query optimization', 'Data modeling', 'Database scaling'],
       whyItFits: 'Your database skills qualify you for specialized DB roles',
       relevantJobTitles: ['Database Engineer', 'DBA', 'Data Architect', 'Database Developer'],
-      matchScore: 92,
+      baseMatchScore: 92,
       category: 'Database Engineering'
     },
     {
@@ -529,7 +558,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Data pipelines', 'ETL processes', 'Data warehousing', 'Platform architecture'],
       whyItFits: 'Backend development skills would enhance your data platform capabilities',
       relevantJobTitles: ['Data Platform Engineer', 'Data Infrastructure Engineer'],
-      matchScore: 80,
+      baseMatchScore: 80,
       category: 'Data Platform Engineering'
     },
     {
@@ -538,7 +567,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['API development', 'Database integration', 'Performance tuning', 'Data security'],
       whyItFits: 'Your database expertise is a strong foundation for backend development',
       relevantJobTitles: ['Backend Developer', 'Database Developer', 'API Developer'],
-      matchScore: 75,
+      baseMatchScore: 75,
       category: 'Backend Development'
     }
   ],
@@ -549,7 +578,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Data pipelines', 'ETL processes', 'Data warehousing', 'Big data processing'],
       whyItFits: 'Your data engineering skills are in high demand',
       relevantJobTitles: ['Data Engineer', 'Big Data Engineer', 'Analytics Engineer', 'ETL Developer'],
-      matchScore: 93,
+      baseMatchScore: 93,
       category: 'Data Engineering'
     },
     {
@@ -558,7 +587,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['ML pipelines', 'Feature stores', 'Model deployment', 'Data versioning'],
       whyItFits: 'Adding ML knowledge to your data engineering creates a specialized niche',
       relevantJobTitles: ['ML Platform Engineer', 'MLOps Engineer', 'AI Infrastructure Engineer'],
-      matchScore: 82,
+      baseMatchScore: 82,
       category: 'ML Platform Engineering'
     },
     {
@@ -567,7 +596,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Data strategy', 'Architecture design', 'Data governance', 'Scalability planning'],
       whyItFits: 'Your data expertise positions you for architecture leadership',
       relevantJobTitles: ['Data Architect', 'Enterprise Data Architect', 'Big Data Architect'],
-      matchScore: 85,
+      baseMatchScore: 85,
       category: 'Data Engineering'
     }
   ],
@@ -578,7 +607,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Test automation', 'Framework development', 'CI/CD integration', 'Quality strategy'],
       whyItFits: 'Your testing and automation skills fit SDET roles',
       relevantJobTitles: ['SDET', 'Test Automation Engineer', 'QA Automation Engineer'],
-      matchScore: 91,
+      baseMatchScore: 91,
       category: 'QA & Testing'
     },
     {
@@ -587,7 +616,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Test strategy', 'Team management', 'Process improvement', 'Quality metrics'],
       whyItFits: 'Your testing expertise prepares you for QA leadership',
       relevantJobTitles: ['QA Lead', 'QA Manager', 'Test Lead', 'Quality Engineer'],
-      matchScore: 85,
+      baseMatchScore: 85,
       category: 'QA & Testing'
     },
     {
@@ -596,7 +625,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Pipeline automation', 'Test integration', 'Release management', 'Infrastructure'],
       whyItFits: 'Your automation skills are a strong foundation for DevOps',
       relevantJobTitles: ['DevOps Engineer', 'Automation Engineer', 'Release Engineer'],
-      matchScore: 75,
+      baseMatchScore: 75,
       category: 'DevOps & Cloud'
     }
   ],
@@ -607,7 +636,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Smart contract development', 'DApp creation', 'Web3 integration', 'Security audits'],
       whyItFits: 'Your Web3 skills are perfect for blockchain development',
       relevantJobTitles: ['Blockchain Developer', 'Web3 Developer', 'Solidity Developer', 'Smart Contract Developer'],
-      matchScore: 94,
+      baseMatchScore: 94,
       category: 'Blockchain/Web3'
     },
     {
@@ -616,7 +645,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Smart contract development', 'Protocol design', 'Security', 'Yield optimization'],
       whyItFits: 'Your blockchain skills apply well to DeFi development',
       relevantJobTitles: ['DeFi Developer', 'Blockchain Engineer', 'Protocol Developer'],
-      matchScore: 88,
+      baseMatchScore: 88,
       category: 'Blockchain/Web3'
     },
     {
@@ -625,7 +654,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Frontend development', 'Smart contracts', 'Web3 integration', 'Wallet integration'],
       whyItFits: 'Frontend skills would make you a complete Web3 developer',
       relevantJobTitles: ['Full-Stack Web3 Developer', 'dApp Developer', 'Web3 Full-Stack Engineer'],
-      matchScore: 78,
+      baseMatchScore: 78,
       category: 'Full-Stack Development'
     }
   ],
@@ -636,7 +665,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Game programming', 'Engine development', 'Gameplay systems', 'Performance optimization'],
       whyItFits: 'Your game engine skills qualify you for game dev roles',
       relevantJobTitles: ['Game Developer', 'Unity Developer', 'Unreal Developer', 'Gameplay Programmer'],
-      matchScore: 93,
+      baseMatchScore: 93,
       category: 'Game Development'
     },
     {
@@ -645,7 +674,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Game mechanics', 'Level design', 'Balance', 'Player experience'],
       whyItFits: 'Your game development background supports design roles',
       relevantJobTitles: ['Game Designer', 'Level Designer', 'Systems Designer'],
-      matchScore: 80,
+      baseMatchScore: 80,
       category: 'Game Development'
     },
     {
@@ -654,7 +683,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Graphics programming', 'Shader development', 'Rendering optimization', 'Visual effects'],
       whyItFits: 'Your engine skills can specialize into graphics programming',
       relevantJobTitles: ['Graphics Programmer', 'Rendering Engineer', 'Technical Artist'],
-      matchScore: 75,
+      baseMatchScore: 75,
       category: 'Game Development'
     }
   ],
@@ -665,7 +694,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Firmware development', 'Hardware integration', 'RTOS programming', 'Device drivers'],
       whyItFits: 'Your embedded skills qualify you for specialized hardware roles',
       relevantJobTitles: ['Embedded Engineer', 'Firmware Developer', 'IoT Developer', 'Hardware Engineer'],
-      matchScore: 92,
+      baseMatchScore: 92,
       category: 'Embedded Systems'
     },
     {
@@ -674,7 +703,7 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['IoT protocols', 'Sensor integration', 'Cloud connectivity', 'Edge computing'],
       whyItFits: 'Your embedded skills are perfect for IoT development',
       relevantJobTitles: ['IoT Developer', 'IoT Engineer', 'Connected Devices Engineer'],
-      matchScore: 88,
+      baseMatchScore: 88,
       category: 'IoT Platform Engineering'
     },
     {
@@ -683,61 +712,71 @@ export const careerPaths: Record<string, CareerPath[]> = {
       keyResponsibilities: ['Robot programming', 'Motion control', 'Sensor fusion', 'Autonomous systems'],
       whyItFits: 'Your embedded expertise applies well to robotics',
       relevantJobTitles: ['Robotics Engineer', 'Robot Programmer', 'Automation Engineer'],
-      matchScore: 78,
+      baseMatchScore: 78,
       category: 'Embedded Systems'
+    }
+  ],
+  'Java Development': [
+    {
+      title: 'Java Developer',
+      description: 'Build enterprise applications with Java ecosystem',
+      keyResponsibilities: ['Application development', 'API design', 'System architecture', 'Performance optimization'],
+      whyItFits: 'Your Java skills are in demand for enterprise development',
+      relevantJobTitles: ['Java Developer', 'Software Engineer', 'Backend Developer'],
+      baseMatchScore: 90,
+      category: 'Java Development'
     }
   ]
 };
 
-// Combination roles for hybrid skill sets
-export const combinationRoles = [
-  { categories: ['Frontend Development', 'Backend Development'], result: 'Full-Stack Development', weight: 1.3 },
-  { categories: ['AI/ML Engineering', 'Data Engineering'], result: 'ML Platform Engineering', weight: 1.25 },
-  { categories: ['DevOps & Cloud', 'Backend Development'], result: 'Platform Engineering', weight: 1.2 },
-  { categories: ['UI/UX Design', 'Frontend Development'], result: 'Design Engineering', weight: 1.2 },
-  { categories: ['Cybersecurity', 'DevOps & Cloud'], result: 'Cloud Security Engineering', weight: 1.25 },
-  { categories: ['AI/ML Engineering', 'Backend Development'], result: 'AI Backend Engineering', weight: 1.2 },
-  { categories: ['Database Engineering', 'Backend Development'], result: 'Data Platform Engineering', weight: 1.15 },
-  { categories: ['Graphic Design', 'UI/UX Design'], result: 'Product Design Lead', weight: 1.2 },
-  { categories: ['Mobile Development', 'UI/UX Design'], result: 'Mobile Design Lead', weight: 1.15 },
-  { categories: ['Embedded Systems', 'DevOps & Cloud'], result: 'IoT Platform Engineering', weight: 1.2 },
-];
+// ─── Skill Reasons for Missing Skills ─────────────────────────────────
 
-// Skill reasons for missing skills
 export const skillReasons: Record<string, Record<string, string>> = {
   'Frontend Development': {
+    'React': 'Most in-demand frontend framework',
     'TypeScript': 'Adds type safety to JavaScript projects',
-    'Testing': 'Critical for production code quality',
-    'Performance': 'Essential for fast user experiences',
     'Redux': 'State management for complex applications',
+    'Jest': 'Critical for production code quality',
+    'Responsive Design': 'Essential for modern web experiences',
   },
   'Backend Development': {
-    'Docker': 'Containerization is industry standard',
-    'CI/CD': 'Automated deployment is essential',
-    'Testing': 'Backend reliability requires thorough testing',
-    'Security': 'Protecting APIs and data is critical',
+    'Node.js': 'Versatile runtime for server-side JavaScript',
+    'REST APIs': 'Foundation of web service communication',
+    'Authentication': 'Protecting APIs and user data is critical',
+    'GraphQL': 'Modern query language for APIs',
+    'Go': 'High-performance backend language',
   },
   'UI/UX Design': {
     'Figma': 'Industry-standard design tool',
     'Prototyping': 'Essential for user testing',
     'Design Systems': 'Scale design across products',
     'User Research': 'Data-driven design decisions',
+    'UX Design': 'Core competency for product roles',
   },
   'AI/ML Engineering': {
+    'Python': 'Primary language for ML development',
+    'TensorFlow': 'Industry-standard deep learning framework',
+    'PyTorch': 'Preferred framework in research and production',
     'MLOps': 'Deploy and scale ML models',
-    'Cloud': 'Train models on scalable infrastructure',
-    'Docker': 'Containerize ML applications',
-    'Testing': 'Ensure model reliability',
+    'Deep Learning': 'Enable complex pattern recognition',
   },
   'DevOps & Cloud': {
+    'Docker': 'Container standard for deployment',
     'Kubernetes': 'Orchestrate containers at scale',
     'Terraform': 'Infrastructure as code best practice',
-    'Monitoring': 'Ensure system reliability',
-    'Security': 'Secure cloud infrastructure',
+    'CI/CD': 'Automated deployment is essential',
+    'AWS': 'Dominant cloud platform',
+  },
+  'Database Engineering': {
+    'SQL': 'Foundation of data querying',
+    'PostgreSQL': 'Most advanced open-source database',
+    'Database Design': 'Core competency for data roles',
+    'Redis': 'Essential caching technology',
   },
 };
 
-// Learning approaches per category
+// ─── Learning Approaches ──────────────────────────────────────────────
+
 export const learningApproaches: Record<string, { title: string; steps: { action: string; description: string }[] }[]> = {
   'Frontend Development': [
     {
@@ -906,7 +945,8 @@ export const learningApproaches: Record<string, { title: string; steps: { action
   ],
 };
 
-// Career title mappings
+// ─── Career Title Map ─────────────────────────────────────────────────
+
 export const careerTitleMap: Record<string, string> = {
   'AI/ML Engineering': 'AI/ML Engineer',
   'UI/UX Design': 'UI/UX Designer',
@@ -923,9 +963,21 @@ export const careerTitleMap: Record<string, string> = {
   'QA & Testing': 'SDET',
   'Data Engineering': 'Data Engineer',
   'Embedded Systems': 'Embedded Engineer',
+  'Java Development': 'Java Developer',
+  // Combination roles
+  'Design Engineering': 'Design Engineer',
+  'Platform Engineering': 'Platform Engineer',
+  'Cloud Security Engineering': 'Cloud Security Engineer',
+  'AI Backend Engineering': 'AI Backend Engineer',
+  'Data Platform Engineering': 'Data Platform Engineer',
+  'Product Design Lead': 'Product Design Lead',
+  'Mobile Design Lead': 'Mobile Design Lead',
+  'ML Platform Engineering': 'ML Platform Engineer',
+  'IoT Platform Engineering': 'IoT Platform Engineer',
 };
 
-// Default learning approach for unknown categories
+// ─── Default Learning Approach ────────────────────────────────────────
+
 export const defaultLearningApproach = [
   {
     title: 'Build Strong Foundations',

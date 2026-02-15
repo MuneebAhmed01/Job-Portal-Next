@@ -1,14 +1,58 @@
-export interface SkillMapping {
+// ─── Skill & Category Definitions ──────────────────────────────────────
+
+export type SkillImportance = 'core' | 'supporting' | 'adjacent';
+
+export interface SkillDefinition {
   canonical: string;
   aliases: string[];
-  weight: number;
+  importance: SkillImportance;
 }
 
-export interface CareerCategory {
+export interface CategoryDefinition {
   name: string;
-  skills: SkillMapping[];
-  weightMultiplier: number;
+  skills: SkillDefinition[];
 }
+
+// ─── Scoring Config ────────────────────────────────────────────────────
+
+export interface ScoringConfig {
+  /** Weight given to core skill matches (out of 100) */
+  coreWeight: number;
+  /** Weight given to supporting skill matches (out of 100) */
+  supportingWeight: number;
+  /** Weight given to adjacent skill matches (out of 100) */
+  adjacentWeight: number;
+  /** Minimum normalized score for top category to be considered a valid match */
+  minimumPrimaryThreshold: number;
+  /** Minimum normalized score for 2nd category to qualify for combination role */
+  minimumSecondaryThreshold: number;
+  /** Minimum ratio (secondary/primary) to trigger combination role */
+  combinationRatioThreshold: number;
+}
+
+// ─── Scoring Results ───────────────────────────────────────────────────
+
+export interface CategoryScore {
+  category: string;
+  matchedSkills: string[];
+  coreMatched: number;
+  coreTotal: number;
+  supportingMatched: number;
+  supportingTotal: number;
+  adjacentMatched: number;
+  adjacentTotal: number;
+  normalizedScore: number; // 0–100
+}
+
+export interface DebugTrace {
+  inputSkills: string[];
+  normalizedInputSkills: string[];
+  categoryScores: CategoryScore[];
+  decisionReason: string;
+  combinationRatio: number | null;
+}
+
+// ─── Career Path ───────────────────────────────────────────────────────
 
 export interface CareerPath {
   title: string;
@@ -20,6 +64,8 @@ export interface CareerPath {
   category: string;
 }
 
+// ─── Final Analysis Response ───────────────────────────────────────────
+
 export interface CareerAnalysis {
   careerSummary: string;
   primaryCareerTitle: string;
@@ -27,7 +73,7 @@ export interface CareerAnalysis {
   skillBreakdown: {
     category: string;
     matchedSkills: string[];
-    weight: number;
+    normalizedScore: number;
     percentage: number;
   }[];
   recommendedCareerPaths: CareerPath[];
@@ -46,4 +92,5 @@ export interface CareerAnalysis {
       description: string;
     }[];
   }[];
+  debugTrace?: DebugTrace;
 }

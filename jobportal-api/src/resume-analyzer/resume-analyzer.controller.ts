@@ -1,8 +1,8 @@
-import { 
-  Controller, 
-  Post, 
-  UseInterceptors, 
-  UploadedFile, 
+import {
+  Controller,
+  Post,
+  UseInterceptors,
+  UploadedFile,
   Body,
   BadRequestException,
   ParseFilePipeBuilder,
@@ -14,7 +14,7 @@ import { AnalyzeResumeDto } from './dto/analyze-resume.dto';
 
 @Controller('resume-analyzer')
 export class ResumeAnalyzerController {
-  constructor(private readonly resumeAnalyzerService: ResumeAnalyzerService) {}
+  constructor(private readonly resumeAnalyzerService: ResumeAnalyzerService) { }
 
   @Post('analyze')
   @UseInterceptors(FileInterceptor('file'))
@@ -32,14 +32,20 @@ export class ResumeAnalyzerController {
           exceptionFactory: (error) => new BadRequestException(error),
         }),
     )
-    file: any,
+    file: Express.Multer.File,
+    @Body('jobDescription') jobDescription?: string,
+    @Body('jobTitle') jobTitle?: string,
   ) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
 
-    const dto: AnalyzeResumeDto = { file };
-    
+    const dto: AnalyzeResumeDto = {
+      file,
+      jobDescription: jobDescription || undefined,
+      jobTitle: jobTitle || undefined,
+    };
+
     try {
       const analysis = await this.resumeAnalyzerService.analyzeResume(dto);
       return {

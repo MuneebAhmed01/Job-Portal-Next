@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PdfExtractorService } from './services/pdf-extractor.service';
-import { AtsScorerService, AtsAnalysisResult } from './services/ats-scorer.service';
-import { AiAnalysisService, AiAnalysisResponse } from './services/ai-analysis.service';
+import { AtsScorerService } from './services/ats-scorer.service';
+import { AiAnalysisService } from './services/ai-analysis.service';
 import { AnalyzeResumeDto } from './dto/analyze-resume.dto';
 
 @Injectable()
@@ -10,9 +10,9 @@ export class ResumeAnalyzerService {
     private readonly pdfExtractorService: PdfExtractorService,
     private readonly atsScorerService: AtsScorerService,
     private readonly aiAnalysisService: AiAnalysisService,
-  ) {}
+  ) { }
 
-  async analyzeResume(dto: AnalyzeResumeDto): Promise<AiAnalysisResponse> {
+  async analyzeResume(dto: AnalyzeResumeDto) {
     // Validate PDF
     const isValidPdf = await this.pdfExtractorService.isValidPdf(dto.file.buffer);
     if (!isValidPdf) {
@@ -27,11 +27,21 @@ export class ResumeAnalyzerService {
     }
 
     // Perform ATS analysis with job description if provided
-    const atsResult: AtsAnalysisResult = this.atsScorerService.analyzeResume(resumeText, dto.jobDescription);
+    const atsResult = this.atsScorerService.analyzeResume(resumeText, dto.jobDescription);
 
     // Generate AI-powered analysis
-    const aiResponse = await this.aiAnalysisService.generateAnalysis(atsResult);
+    const aiResponse = this.aiAnalysisService.generateAnalysis(atsResult);
 
-    return aiResponse;
+    // Compose response matching frontend expectations
+    return {
+      atsScore: atsResult.score,
+      summary: aiResponse.summary,
+      scoreBreakdown: aiResponse.scoreBreakdown,
+      strengths: aiResponse.strengths,
+      improvements: aiResponse.improvements,
+      improvementPriority: aiResponse.improvementPriority,
+      penalties: aiResponse.penalties,
+      jobMatchAnalysis: atsResult.analysis.jobMatchAnalysis || undefined,
+    };
   }
 }
