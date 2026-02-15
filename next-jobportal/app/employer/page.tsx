@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { Briefcase, Plus, Users, DollarSign, FileText, X } from 'lucide-react';
-import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import { employerJobPostSchema, getZodErrors } from '@/lib/validations';
+
+type ApplicationStatus = 'PENDING' | 'REVIEWED' | 'ACCEPTED' | 'REJECTED';
 
 interface Job {
   id: string;
@@ -12,7 +13,8 @@ interface Job {
   description: string;
   skills: string;
   budget: string;
-  applicants: any[];
+  applicants?: any[];
+  applications?: { id: string; status: ApplicationStatus; employeeId: string; employee: { id: string; name: string; email: string } }[];
   createdAt: string;
 }
 
@@ -83,6 +85,36 @@ export default function EmployerDashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUpdateStatus = async (jobId: string, applicationId: string, status: ApplicationStatus) => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/jobs/${jobId}/applicants/${applicationId}/status`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify({ status }),
+        }
+      );
+      if (res.ok) fetchJobs();
+    } catch (error) {
+      console.error('Failed to update status:', error);
+    }
+  };
+
+  const ensureReviewedThen = async (
+    jobId: string,
+    app: { id: string; status?: string; employeeId?: string; employee?: { id: string } },
+    then: () => void
+  ) => {
+    if ((app.status || 'PENDING') === 'PENDING') {
+      await handleUpdateStatus(jobId, app.id, 'REVIEWED');
+    }
+    then();
   };
 
   return (
@@ -184,19 +216,21 @@ export default function EmployerDashboard() {
                   </div>
                   <div className="flex items-center gap-2 glass px-3 py-1 rounded-full">
                     <Users className="text-purple-400" size={16} />
-                    <span className="text-sm text-gray-300">{job.applicants?.length || 0} applicants</span>
+                    <span className="text-sm text-gray-300">{applications(job).length} applicants</span>
                   </div>
                 </div>
 
                 <p className="text-gray-300 mb-4 line-clamp-2">{job.description}</p>
 
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {job.skills.split(',').map((skill, idx) => (
-                    <span key={idx} className="glass px-3 py-1 rounded-full text-sm text-gray-300">
-                      {skill.trim()}
-                    </span>
-                  ))}
-                </div>
+                {(job.skills != null && job.skills !== '') && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {(job.skills || '').split(',').map((skill, idx) => (
+                      <span key={idx} className="glass px-3 py-1 rounded-full text-sm text-gray-300">
+                        {skill.trim()}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between">
                   {job.budget && (
@@ -216,24 +250,63 @@ export default function EmployerDashboard() {
                 {selectedJob?.id === job.id && (
                   <div className="mt-6 pt-6 border-t border-white/10">
                     <h4 className="text-lg font-bold text-white mb-4">Applicants</h4>
-                    {job.applicants?.length > 0 ? (
+                    {applications(job).length > 0 ? (
                       <div className="space-y-3">
-                        {job.applicants.map((applicant: any) => (
-                          <Link
-                            key={applicant.id}
-                            href={`/applicant/${applicant.id}`}
-                            className="flex items-center gap-4 p-4 glass rounded-xl hover-lift"
-                          >
-                            <div className="w-10 h-10 bg-linear-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                              <Users className="text-white" size={18} />
+                        {applications(job).map((app: any) => {
+                          const emp = app.employee ?? app;
+                          const name = emp.name ?? '';
+                          const email = emp.email ?? '';
+                          const employeeId = emp.id ?? app.employeeId;
+                          const status = app.status || 'PENDING';
+                          return (
+                            <div key={app.id} className="flex items-center gap-4 p-4 glass rounded-xl">
+                              <button
+                                type="button"
+                                onClick={() => ensureReviewedThen(job.id, app, () => { window.location.href = `/applicant/${employeeId}`; })}
+                                className="flex items-center gap-4 flex-1 min-w-0 text-left"
+                              >
+                                <div className="w-10 h-10 bg-linear-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shrink-0">
+                                  <Users className="text-white" size={18} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-white">{name}</p>
+                                  <p className="text-sm text-gray-400">{email}</p>
+                                </div>
+                              </button>
+                              <span className={`shrink-0 px-2 py-0.5 rounded text-xs ${
+                                status === 'ACCEPTED' ? 'bg-green-600/30 text-green-400' :
+                                status === 'REJECTED' ? 'bg-red-600/30 text-red-400' :
+                                status === 'REVIEWED' ? 'bg-blue-600/30 text-blue-400' :
+                                'bg-gray-600/30 text-gray-400'
+                              }`}>
+                                {status}
+                              </span>
+                              {status !== 'REJECTED' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateStatus(job.id, app.id, 'REJECTED')}
+                                  className="shrink-0 bg-red-600/80 hover:bg-red-600 px-2 py-1 rounded text-sm text-white"
+                                >
+                                  Reject
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => ensureReviewedThen(job.id, app, () => { window.location.href = `/applicant/${employeeId}`; })}
+                                className="shrink-0 text-gray-400 hover:text-white"
+                              >
+                                <FileText size={18} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => ensureReviewedThen(job.id, app, () => { window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}`, '_blank'); })}
+                                className="shrink-0 text-sm text-gray-400 hover:text-white"
+                              >
+                                Contact
+                              </button>
                             </div>
-                            <div className="flex-1">
-                              <p className="font-medium text-white">{applicant.name}</p>
-                              <p className="text-sm text-gray-400">{applicant.email}</p>
-                            </div>
-                            <FileText className="text-gray-400" size={18} />
-                          </Link>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <p className="text-gray-400 text-center py-4">No applicants yet</p>

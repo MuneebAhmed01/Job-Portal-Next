@@ -74,11 +74,19 @@ enum JobType {
   HYBRID
 }
 
+enum ApplicationStatus {
+  PENDING
+  REVIEWED
+  ACCEPTED
+  REJECTED
+}
+
 model JobApplication {
-  id         String   @id @default(cuid())
+  id         String            @id @default(cuid())
   jobId      String
   employeeId String
-  appliedAt  DateTime @default(now())
+  appliedAt  DateTime          @default(now())
+  status     ApplicationStatus @default(PENDING)
 
   job      Job      @relation("JobApplications", fields: [jobId], references: [id], onDelete: Cascade)
   employee Employee @relation("EmployeeApplications", fields: [employeeId], references: [id], onDelete: Cascade)

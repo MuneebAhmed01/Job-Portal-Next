@@ -5,6 +5,8 @@ import { Briefcase, Plus, Users, FileText, TrendingUp, Calendar, DollarSign, Map
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+
 interface Job {
   id: string;
   title: string;
@@ -23,6 +25,8 @@ interface Job {
   };
 }
 
+type ApplicationStatus = 'PENDING' | 'REVIEWED' | 'ACCEPTED' | 'REJECTED';
+
 interface Applicant {
   id: string;
   employeeId: string;
@@ -32,6 +36,7 @@ interface Applicant {
   bio?: string;
   resumePath?: string;
   appliedAt: string;
+  status: ApplicationStatus;
 }
 
 export default function EmployerDashboard() {
@@ -51,7 +56,7 @@ export default function EmployerDashboard() {
 
   const fetchMyJobs = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs`, {
+      const res = await fetch(`${API_URL}/jobs`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -74,7 +79,7 @@ export default function EmployerDashboard() {
         return;
       }
       
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/jobs/${viewingApplicants.id}/applicants`;
+      const url = `${API_URL}/jobs/${viewingApplicants.id}/applicants`;
       
       const res = await fetch(url, {
         headers: {
@@ -93,6 +98,7 @@ export default function EmployerDashboard() {
           bio: app.employee.bio,
           resumePath: app.employee.resumePath,
           appliedAt: app.appliedAt,
+          status: app.status || 'PENDING',
         }));
         setApplicants(mappedApplicants);
       }
@@ -111,7 +117,7 @@ export default function EmployerDashboard() {
 
   const handlePostJob = async (jobData: any) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs`, {
+      const res = await fetch(`${API_URL}/jobs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -145,9 +151,41 @@ export default function EmployerDashboard() {
     setActiveTab('jobs');
   };
 
+  const handleUpdateStatus = async (applicationId: string, status: ApplicationStatus): Promise<boolean> => {
+    if (!viewingApplicants) return false;
+    try {
+      const res = await fetch(
+        `${API_URL}/jobs/${viewingApplicants.id}/applicants/${applicationId}/status`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify({ status }),
+        }
+      );
+      if (res.ok) {
+        await fetchApplicants();
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      return false;
+    }
+  };
+
+  const ensureReviewedThen = async (applicant: Applicant, then: () => void | Promise<void>) => {
+    if (applicant.status === 'PENDING') {
+      await handleUpdateStatus(applicant.id, 'REVIEWED');
+    }
+    await then();
+  };
+
   const handleUpdateJob = async (jobData: any) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs/${editingJob?.id}`, {
+      const res = await fetch(`${API_URL}/jobs/${editingJob?.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -370,53 +408,71 @@ export default function EmployerDashboard() {
                         <p className="text-gray-500 text-sm mt-2">
                           Applied {new Date(applicant.appliedAt).toLocaleDateString()}
                         </p>
+                        <span className={`inline-block mt-2 px-2 py-0.5 rounded text-xs font-medium ${
+                          applicant.status === 'ACCEPTED' ? 'bg-green-600/30 text-green-400' :
+                          applicant.status === 'REJECTED' ? 'bg-red-600/30 text-red-400' :
+                          applicant.status === 'REVIEWED' ? 'bg-blue-600/30 text-blue-400' :
+                          'bg-gray-600/30 text-gray-400'
+                        }`}>
+                          {applicant.status}
+                        </span>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Link 
-                        href={`/applicant/${applicant.employeeId}`}
-                        className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors"
+                    <div className="flex flex-wrap items-center gap-2">
+                      {applicant.status !== 'REJECTED' && (
+                        <button
+                          onClick={() => handleUpdateStatus(applicant.id, 'REJECTED')}
+                          className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm transition-colors text-white"
+                        >
+                          Reject
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => ensureReviewedThen(applicant, () => { window.location.href = `/applicant/${applicant.employeeId}`; })}
+                        className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors text-white"
                       >
                         View Profile
-                      </Link>
+                      </button>
                       {applicant.resumePath && (
                         <button 
                           onClick={async () => {
-                            try {
-                              const token = localStorage.getItem('token');
-                              const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/applicants/${applicant.employeeId}/resume`, {
-                                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-                              });
-                              if (response.ok) {
-                                const blob = await response.blob();
-                                const url = window.URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = `resume-${applicant.name}.pdf`;
-                                document.body.appendChild(a);
-                                a.click();
-                                window.URL.revokeObjectURL(url);
-                                document.body.removeChild(a);
-                              } else {
-                                alert('Resume not available');
+                            await ensureReviewedThen(applicant, async () => {
+                              try {
+                                const token = localStorage.getItem('token');
+                                const response = await fetch(`${API_URL}/applicants/${applicant.employeeId}/resume`, {
+                                  headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                                });
+                                if (response.ok) {
+                                  const blob = await response.blob();
+                                  const url = window.URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = `resume-${applicant.name}.pdf`;
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  window.URL.revokeObjectURL(url);
+                                  document.body.removeChild(a);
+                                } else {
+                                  alert('Resume not available');
+                                }
+                              } catch (error) {
+                                alert('Failed to download resume');
                               }
-                            } catch (error) {
-                              alert('Failed to download resume');
-                            }
+                            });
                           }}
                           className="px-3 py-1 rounded text-sm transition-colors text-white" style={{ backgroundColor: '#F54900' }}
                         >
                           Download Resume
                         </button>
                       )}
-                      <a 
-                        href={`https://mail.google.com/mail/?view=cm&fs=1&to=${applicant.email}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm transition-colors"
+                      <button
+                        type="button"
+                        onClick={() => ensureReviewedThen(applicant, () => { window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${applicant.email}`, '_blank'); })}
+                        className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm transition-colors text-white"
                       >
                         Contact
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </div>

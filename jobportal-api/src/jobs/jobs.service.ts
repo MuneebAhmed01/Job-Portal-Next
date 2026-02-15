@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
 import { SearchJobsDto } from './dto/search-jobs.dto';
 import { JobSearchQueryBuilder } from './job-search-query.builder';
 import { PrismaService } from '../lib/prisma/prisma.service';
 import { JobCacheService } from '../redis/job-cache.service';
 import { DraftStorageService } from '../redis/draft-storage.service';
-import { JobStatus } from '../lib/prisma/client';
+import { ApplicationStatus, JobStatus } from '../lib/prisma/client';
 
 @Injectable()
 export class JobsService {
@@ -292,6 +292,57 @@ export class JobsService {
       },
       orderBy: {
         appliedAt: 'desc',
+      },
+    });
+  }
+
+  private getAllowedNextStatuses(current: ApplicationStatus): ApplicationStatus[] {
+    switch (current) {
+      case ApplicationStatus.PENDING:
+        return [ApplicationStatus.REVIEWED];
+      case ApplicationStatus.REVIEWED:
+        return [ApplicationStatus.ACCEPTED, ApplicationStatus.REJECTED];
+      case ApplicationStatus.ACCEPTED:
+      case ApplicationStatus.REJECTED:
+        return [];
+      default:
+        return [];
+    }
+  }
+
+  async updateApplicationStatus(
+    applicationId: string,
+    status: ApplicationStatus,
+    employerId: string,
+  ) {
+    const application = await this.prisma.jobApplication.findUnique({
+      where: { id: applicationId },
+      include: { job: true },
+    });
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+    if (application.job.employerId !== employerId) {
+      throw new ForbiddenException('You can only update applications for your own jobs');
+    }
+    const allowed = this.getAllowedNextStatuses(application.status);
+    if (!allowed.includes(status)) {
+      throw new BadRequestException('Invalid status transition');
+    }
+    return this.prisma.jobApplication.update({
+      where: { id: applicationId },
+      data: { status },
+      include: {
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            bio: true,
+            resumePath: true,
+          },
+        },
       },
     });
   }

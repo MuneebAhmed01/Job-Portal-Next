@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Delete, Body, UseGuards, Request, Param, Put, Query, UsePipes } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Patch, Body, UseGuards, Request, Param, Put, Query, UsePipes } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { DraftStorageService } from '../redis/draft-storage.service';
 import { createJobSchema, type CreateJobDto } from './dto/create-job.dto';
 import { searchJobsSchema, type SearchJobsDto } from './dto/search-jobs.dto';
+import { updateApplicationStatusSchema, type UpdateApplicationStatusDto } from './dto/update-application-status.dto';
+import { ApplicationStatus } from '../lib/prisma/client';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 
@@ -104,6 +106,21 @@ export class JobsController {
   async getJobApplicants(@Param('id') id: string, @Request() req: any) {
     const employerId = req.user.sub;
     return this.jobsService.findApplicants(id, employerId);
+  }
+
+  @Patch(':id/applicants/:applicationId/status')
+  @UseGuards(JwtAuthGuard)
+  async updateApplicationStatus(
+    @Param('applicationId') applicationId: string,
+    @Body(new ZodValidationPipe(updateApplicationStatusSchema)) body: UpdateApplicationStatusDto,
+    @Request() req: any,
+  ) {
+    const employerId = req.user.sub;
+    return this.jobsService.updateApplicationStatus(
+      applicationId,
+      body.status as ApplicationStatus,
+      employerId,
+    );
   }
 
   /* ------------------------------------------------------------------ */

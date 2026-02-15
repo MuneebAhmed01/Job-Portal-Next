@@ -24,6 +24,7 @@ interface Job {
   employer?: Employer;
   saved?: boolean;
   applied?: boolean;
+  applicationStatus?: 'PENDING' | 'REVIEWED' | 'ACCEPTED' | 'REJECTED';
 }
 
 export default function EmployeeDashboard() {
@@ -94,7 +95,8 @@ export default function EmployeeDashboard() {
           ...application.job,
           appliedAt: application.appliedAt,
           applicationId: application.id,
-          applied: true, // Always true since these are applied jobs
+          applied: true,
+          applicationStatus: application.status || 'PENDING',
         }));
         
         // Check which applied jobs are also saved
@@ -406,8 +408,13 @@ export default function EmployeeDashboard() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm">
-                        Applied
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        job.applicationStatus === 'ACCEPTED' ? 'bg-green-600/30 text-green-400' :
+                        job.applicationStatus === 'REJECTED' ? 'bg-red-600/30 text-red-400' :
+                        job.applicationStatus === 'REVIEWED' ? 'bg-blue-600/30 text-blue-400' :
+                        'bg-gray-600/30 text-gray-400'
+                      }`}>
+                        {job.applicationStatus ?? 'PENDING'}
                       </span>
                     </div>
                   </div>
