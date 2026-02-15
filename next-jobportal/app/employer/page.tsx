@@ -29,6 +29,7 @@ export default function EmployerDashboard() {
   });
   const [loading, setLoading] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [viewingApplicants, setViewingApplicants] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -115,6 +116,20 @@ export default function EmployerDashboard() {
       await handleUpdateStatus(jobId, app.id, 'REVIEWED');
     }
     then();
+  };
+
+  const applications = (job: Job) => {
+    return job.applications || job.applicants || [];
+  };
+
+  const handleViewApplicants = (job: Job) => {
+    setSelectedJob(job);
+    setViewingApplicants(true);
+  };
+
+  const handleBackToJobs = () => {
+    setViewingApplicants(false);
+    setSelectedJob(null);
   };
 
   return (
@@ -206,74 +221,40 @@ export default function EmployerDashboard() {
             </div>
           )}
 
-          <div className="grid gap-6">
-            {jobs.map((job) => (
-              <div key={job.id} className="glass-dark rounded-2xl p-6 hover-lift">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-white">{job.title}</h3>
-                    <p className="text-gray-400 text-sm">{new Date(job.createdAt).toLocaleDateString()}</p>
-                  </div>
-                  <div className="flex items-center gap-2 glass px-3 py-1 rounded-full">
-                    <Users className="text-purple-400" size={16} />
-                    <span className="text-sm text-gray-300">{applications(job).length} applicants</span>
-                  </div>
+          {viewingApplicants && selectedJob ? (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-2">Applicants for: {selectedJob.title}</h2>
+                  <p className="text-gray-400">{applications(selectedJob).length} total applicants</p>
                 </div>
+                <button
+                  onClick={handleBackToJobs}
+                  className="btn-secondary"
+                >
+                  Back to Jobs
+                </button>
+              </div>
 
-                <p className="text-gray-300 mb-4 line-clamp-2">{job.description}</p>
-
-                {(job.skills != null && job.skills !== '') && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {(job.skills || '').split(',').map((skill, idx) => (
-                      <span key={idx} className="glass px-3 py-1 rounded-full text-sm text-gray-300">
-                        {skill.trim()}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between">
-                  {job.budget && (
-                    <div className="flex items-center gap-2 text-green-400">
-                      <DollarSign size={18} />
-                      <span className="font-medium">{job.budget}</span>
-                    </div>
-                  )}
-                  <button
-                    onClick={() => setSelectedJob(selectedJob?.id === job.id ? null : job)}
-                    className="btn-secondary text-sm"
-                  >
-                    {selectedJob?.id === job.id ? 'Hide Applicants' : 'View Applicants'}
-                  </button>
-                </div>
-
-                {selectedJob?.id === job.id && (
-                  <div className="mt-6 pt-6 border-t border-white/10">
-                    <h4 className="text-lg font-bold text-white mb-4">Applicants</h4>
-                    {applications(job).length > 0 ? (
-                      <div className="space-y-3">
-                        {applications(job).map((app: any) => {
-                          const emp = app.employee ?? app;
-                          const name = emp.name ?? '';
-                          const email = emp.email ?? '';
-                          const employeeId = emp.id ?? app.employeeId;
-                          const status = app.status || 'PENDING';
-                          return (
-                            <div key={app.id} className="flex items-center gap-4 p-4 glass rounded-xl">
-                              <button
-                                type="button"
-                                onClick={() => ensureReviewedThen(job.id, app, () => { window.location.href = `/applicant/${employeeId}`; })}
-                                className="flex items-center gap-4 flex-1 min-w-0 text-left"
-                              >
-                                <div className="w-10 h-10 bg-linear-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shrink-0">
-                                  <Users className="text-white" size={18} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-white">{name}</p>
-                                  <p className="text-sm text-gray-400">{email}</p>
-                                </div>
-                              </button>
-                              <span className={`shrink-0 px-2 py-0.5 rounded text-xs ${
+              {applications(selectedJob).length > 0 ? (
+                <div className="space-y-4">
+                  {applications(selectedJob).map((app: any) => {
+                    const emp = app.employee ?? app;
+                    const name = emp.name ?? '';
+                    const email = emp.email ?? '';
+                    const employeeId = emp.id ?? app.employeeId;
+                    const status = app.status || 'PENDING';
+                    return (
+                      <div key={app.id} className="glass-dark rounded-2xl p-6">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-4 flex-1">
+                            <div className="w-12 h-12 bg-linear-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shrink-0">
+                              <Users className="text-white" size={20} />
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-semibold text-white text-lg">{name}</p>
+                              <p className="text-gray-400">{email}</p>
+                              <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium ${
                                 status === 'ACCEPTED' ? 'bg-green-600/30 text-green-400' :
                                 status === 'REJECTED' ? 'bg-red-600/30 text-red-400' :
                                 status === 'REVIEWED' ? 'bg-blue-600/30 text-blue-400' :
@@ -281,41 +262,106 @@ export default function EmployerDashboard() {
                               }`}>
                                 {status}
                               </span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col gap-2 ml-4">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => ensureReviewedThen(selectedJob.id, app, () => { window.location.href = `/applicant/${employeeId}`; })}
+                                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-medium transition-colors"
+                              >
+                                View Profile
+                              </button>
+                              <button
+                                onClick={() => ensureReviewedThen(selectedJob.id, app, () => { window.location.href = `/applicant/${employeeId}`; })}
+                                className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+                              >
+                                <FileText size={16} />
+                              </button>
+                            </div>
+                            <div className="flex gap-2">
                               {status !== 'REJECTED' && (
                                 <button
-                                  type="button"
-                                  onClick={() => handleUpdateStatus(job.id, app.id, 'REJECTED')}
-                                  className="shrink-0 bg-red-600/80 hover:bg-red-600 px-2 py-1 rounded text-sm text-white"
+                                  onClick={() => handleUpdateStatus(selectedJob.id, app.id, status === 'ACCEPTED' ? 'REVIEWED' : 'ACCEPTED')}
+                                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-medium transition-colors"
+                                >
+                                  {status === 'ACCEPTED' ? 'Shortlisted' : 'Shortlist'}
+                                </button>
+                              )}
+                              {status !== 'REJECTED' && (
+                                <button
+                                  onClick={() => handleUpdateStatus(selectedJob.id, app.id, 'REJECTED')}
+                                  className="px-4 py-2 bg-red-600/80 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors"
                                 >
                                   Reject
                                 </button>
                               )}
                               <button
-                                type="button"
-                                onClick={() => ensureReviewedThen(job.id, app, () => { window.location.href = `/applicant/${employeeId}`; })}
-                                className="shrink-0 text-gray-400 hover:text-white"
-                              >
-                                <FileText size={18} />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => ensureReviewedThen(job.id, app, () => { window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}`, '_blank'); })}
-                                className="shrink-0 text-sm text-gray-400 hover:text-white"
+                                onClick={() => ensureReviewedThen(selectedJob.id, app, () => { window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}`, '_blank'); })}
+                                className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
                               >
                                 Contact
                               </button>
                             </div>
-                          );
-                        })}
+                          </div>
+                        </div>
                       </div>
-                    ) : (
-                      <p className="text-gray-400 text-center py-4">No applicants yet</p>
-                    )}
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="glass-dark rounded-2xl p-12 text-center">
+                  <Users className="text-gray-400 mx-auto mb-4" size={48} />
+                  <p className="text-gray-400 text-lg">No applicants yet</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="grid gap-6">
+              {jobs.map((job) => (
+                <div key={job.id} className="glass-dark rounded-2xl p-6 hover-lift">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-white">{job.title}</h3>
+                      <p className="text-gray-400 text-sm">{new Date(job.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex items-center gap-2 glass px-3 py-1 rounded-full">
+                      <Users className="text-purple-400" size={16} />
+                      <span className="text-sm text-gray-300">{applications(job).length} applicants</span>
+                    </div>
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
+
+                  <p className="text-gray-300 mb-4 line-clamp-2">{job.description}</p>
+
+                  {(job.skills != null && job.skills !== '') && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {(job.skills || '').split(',').map((skill, idx) => (
+                        <span key={idx} className="glass px-3 py-1 rounded-full text-sm text-gray-300">
+                          {skill.trim()}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between">
+                    {job.budget && (
+                      <div className="flex items-center gap-2 text-green-400">
+                        <DollarSign size={18} />
+                        <span className="font-medium">{job.budget}</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => handleViewApplicants(job)}
+                      className="btn-secondary text-sm"
+                    >
+                      View Applicants
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </>

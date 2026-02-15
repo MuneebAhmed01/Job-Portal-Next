@@ -39,6 +39,17 @@ export default function ApplicantBioPage() {
     }
   };
 
+  const handleBack = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const returnTo = urlParams.get('returnTo');
+    
+    if (returnTo === 'applicants') {
+      router.push('/dashboard');
+    } else {
+      router.back();
+    }
+  };
+
   const downloadResume = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -101,7 +112,7 @@ export default function ApplicantBioPage() {
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="glass-dark rounded-2xl p-8">
             <button
-              onClick={() => router.back()}
+              onClick={handleBack}
               className="mb-6 flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
             >
               <ArrowLeft size={20} />

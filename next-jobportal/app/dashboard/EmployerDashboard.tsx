@@ -5,7 +5,7 @@ import { Briefcase, Plus, Users, FileText, TrendingUp, Calendar, DollarSign, Map
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 interface Job {
   id: string;
@@ -45,7 +45,6 @@ export default function EmployerDashboard() {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [loading, setLoading] = useState(true);
   const [showJobForm, setShowJobForm] = useState(false);
-  const [activeTab, setActiveTab] = useState<'jobs' | 'applicants'>('jobs');
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [viewingApplicants, setViewingApplicants] = useState<Job | null>(null);
 
@@ -117,6 +116,9 @@ export default function EmployerDashboard() {
 
   const handlePostJob = async (jobData: any) => {
     try {
+      console.log('Sending job data:', jobData);
+      console.log('Token:', localStorage.getItem('token'));
+      
       const res = await fetch(`${API_URL}/jobs`, {
         method: 'POST',
         headers: {
@@ -125,6 +127,14 @@ export default function EmployerDashboard() {
         },
         body: JSON.stringify(jobData)
       });
+
+      console.log('Response status:', res.status);
+      console.log('Response ok:', res.ok);
+      
+      if (!res.ok) {
+        const errorData = await res.text();
+        console.log('Error response:', errorData);
+      }
 
       if (res.ok) {
         setShowJobForm(false);
@@ -143,12 +153,19 @@ export default function EmployerDashboard() {
 
   const handleViewApplicants = (job: Job) => {
     setViewingApplicants(job);
-    setActiveTab('applicants');
   };
 
   const handleBackToJobs = () => {
     setViewingApplicants(null);
-    setActiveTab('jobs');
+  };
+
+  // Format salary range for display
+  const formatSalaryRange = (range: string) => {
+    const match = range.match(/\$(\d+).*?-(\d+)/);
+    if (match) {
+      return `$${match[1]}k-$${match[2]}k`;
+    }
+    return range;
   };
 
   const handleUpdateStatus = async (applicationId: string, status: ApplicationStatus): Promise<boolean> => {
@@ -267,35 +284,166 @@ export default function EmployerDashboard() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex gap-4 border-b border-gray-700">
-          <button
-            onClick={() => setActiveTab('jobs')}
-            className={`pb-3 px-1 border-b-2 transition-colors ${
-              activeTab === 'jobs'
-                ? 'border-orange-500 text-orange-500'
-                : 'border-transparent text-gray-400 hover:text-white'
-            }`}
-          >
-            My Jobs ({jobs.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('applicants')}
-            className={`pb-3 px-1 border-b-2 transition-colors ${
-              activeTab === 'applicants'
-                ? 'border-orange-500 text-orange-500'
-                : 'border-transparent text-gray-400 hover:text-white'
-            }`}
-          >
-            Applicants ({applicants.length})
-          </button>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'jobs' ? (
+        {viewingApplicants ? (
+          <div className="space-y-4">
+            <div className="mb-6 p-4 glass rounded-xl">
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={handleBackToJobs}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-white"
+                >
+                  ← Back to Jobs
+                </button>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">
+                    Applicants for: {viewingApplicants.title}
+                  </h3>
+                  <p className="text-gray-400 text-sm">{viewingApplicants._count?.applications || 0} total applicants</p>
+                </div>
+              </div>
+            </div>
+            {applicants.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="text-gray-600 mx-auto mb-4" size={48} />
+                <h3 className="text-xl font-semibold text-white mb-2">No applicants yet</h3>
+                <p className="text-gray-400">Check back later for new applications</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {applicants.map((applicant) => (
+                  <div key={applicant.id} className="bg-gray-800 rounded-xl p-6">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-4 flex-1">
+                        <div className="w-12 h-12 bg-linear-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shrink-0">
+                          <Users className="text-white" size={20} />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-lg font-semibold text-white">{applicant.name}</h4>
+                          <p className="text-gray-400">{applicant.email}</p>
+                          <p className="text-gray-400">{applicant.phone}</p>
+                          {applicant.bio && (
+                            <p className="text-gray-300 mt-2">{applicant.bio}</p>
+                          )}
+                          <p className="text-gray-500 text-sm mt-2">
+                            Applied {new Date(applicant.appliedAt).toLocaleDateString()}
+                          </p>
+                          <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium ${
+                            applicant.status === 'ACCEPTED' ? 'bg-green-600/30 text-green-400' :
+                            applicant.status === 'REJECTED' ? 'bg-red-600/30 text-red-400' :
+                            applicant.status === 'REVIEWED' ? 'bg-blue-600/30 text-blue-400' :
+                            'bg-gray-600/30 text-gray-400'
+                          }`}>
+                            {applicant.status}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col gap-2 ml-4">
+                        <div className="flex gap-2">
+                          {applicant.resumePath && (
+                            <button 
+                              onClick={async () => {
+                                await ensureReviewedThen(applicant, async () => {
+                                  try {
+                                    const token = localStorage.getItem('token');
+                                    const response = await fetch(`${API_URL}/applicants/${applicant.employeeId}/resume`, {
+                                      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                                    });
+                                    if (response.ok) {
+                                      const blob = await response.blob();
+                                      const url = window.URL.createObjectURL(blob);
+                                      const a = document.createElement('a');
+                                      a.href = url;
+                                      a.download = `resume-${applicant.name}.pdf`;
+                                      document.body.appendChild(a);
+                                      a.click();
+                                      window.URL.revokeObjectURL(url);
+                                      document.body.removeChild(a);
+                                    } else {
+                                      alert('Resume not available');
+                                    }
+                                  } catch (error) {
+                                    alert('Failed to download resume');
+                                  }
+                                });
+                              }}
+                              className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+                              title="Resume"
+                            >
+                              <FileText size={16} />
+                            </button>
+                          )}
+                          {applicant.status !== 'REJECTED' && (
+                            <button
+                              onClick={() => {
+                                ensureReviewedThen(applicant, () => { 
+                                  window.location.href = `/applicant/${applicant.employeeId}?returnTo=applicants`; 
+                                });
+                              }}
+                              className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+                              title="View Profile"
+                            >
+                              <Users size={16} />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => ensureReviewedThen(applicant, () => { window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${applicant.email}`, '_blank'); })}
+                            className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+                            title="Contact"
+                          >
+                            Contact
+                          </button>
+                        </div>
+                        <div className="flex gap-2">
+                          {applicant.status === 'REJECTED' ? (
+                            <button
+                              className="px-6 py-2 bg-red-600/80 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors"
+                              disabled
+                            >
+                              Rejected
+                            </button>
+                          ) : applicant.status !== 'ACCEPTED' && (
+                            <button
+                              onClick={() => {
+                                if (confirm('Are you sure you want to reject this applicant?')) {
+                                  handleUpdateStatus(applicant.id, 'REJECTED');
+                                }
+                              }}
+                              className="px-4 py-2 bg-red-600/80 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors"
+                            >
+                              Reject
+                            </button>
+                          )}
+                          {applicant.status === 'ACCEPTED' ? (
+                            <button
+                              className="px-6 py-2 bg-green-600/80 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors"
+                              disabled
+                            >
+                              Shortlisted
+                            </button>
+                          ) : applicant.status !== 'REJECTED' && (
+                            <button
+                              onClick={() => {
+                                if (confirm('Are you sure you want to shortlist this applicant?')) {
+                                  handleUpdateStatus(applicant.id, 'ACCEPTED');
+                                }
+                              }}
+                              className="px-4 py-2 bg-green-600/80 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors"
+                            >
+                              Shortlist
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
           <div className="space-y-4">
             {loading ? (
               <div className="text-center py-8">
@@ -328,7 +476,7 @@ export default function EmployerDashboard() {
                         )}
                         <span className="flex items-center gap-1">
                           <DollarSign size={16} />
-                          {job.salaryRange}
+                          {formatSalaryRange(job.salaryRange)}
                         </span>
                         <span className="flex items-center gap-1">
                           <Calendar size={16} />
@@ -357,123 +505,6 @@ export default function EmployerDashboard() {
                     >
                       Edit Job
                     </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {viewingApplicants && (
-              <div className="mb-6 p-4 glass rounded-xl">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">
-                      Applicants for: {viewingApplicants.title}
-                    </h3>
-                    <p className="text-gray-400 text-sm">{viewingApplicants.employer?.companyName || user?.companyName}</p>
-                  </div>
-                  <button
-                    onClick={handleBackToJobs}
-                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-white"
-                  >
-                    ← Back to Jobs
-                  </button>
-                </div>
-              </div>
-            )}
-            {applicants.length === 0 ? (
-              <div className="text-center py-12">
-                <Users className="text-gray-600 mx-auto mb-4" size={48} />
-                <h3 className="text-xl font-semibold text-white mb-2">No applicants yet</h3>
-                <p className="text-gray-400">When candidates apply to your jobs, they'll appear here</p>
-              </div>
-            ) : (
-              applicants.map((applicant) => (
-                <div key={applicant.id} className="bg-gray-800 rounded-xl p-6 hover:bg-gray-750 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#F54900' }}>
-                        <span className="text-white font-bold">
-                          {applicant.name.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-white">{applicant.name}</h3>
-                        <p className="text-gray-400">{applicant.email}</p>
-                        <p className="text-gray-400">{applicant.phone}</p>
-                        {applicant.bio && (
-                          <p className="text-gray-300 mt-2">{applicant.bio}</p>
-                        )}
-                        <p className="text-gray-500 text-sm mt-2">
-                          Applied {new Date(applicant.appliedAt).toLocaleDateString()}
-                        </p>
-                        <span className={`inline-block mt-2 px-2 py-0.5 rounded text-xs font-medium ${
-                          applicant.status === 'ACCEPTED' ? 'bg-green-600/30 text-green-400' :
-                          applicant.status === 'REJECTED' ? 'bg-red-600/30 text-red-400' :
-                          applicant.status === 'REVIEWED' ? 'bg-blue-600/30 text-blue-400' :
-                          'bg-gray-600/30 text-gray-400'
-                        }`}>
-                          {applicant.status}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {applicant.status !== 'REJECTED' && (
-                        <button
-                          onClick={() => handleUpdateStatus(applicant.id, 'REJECTED')}
-                          className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm transition-colors text-white"
-                        >
-                          Reject
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => ensureReviewedThen(applicant, () => { window.location.href = `/applicant/${applicant.employeeId}`; })}
-                        className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors text-white"
-                      >
-                        View Profile
-                      </button>
-                      {applicant.resumePath && (
-                        <button 
-                          onClick={async () => {
-                            await ensureReviewedThen(applicant, async () => {
-                              try {
-                                const token = localStorage.getItem('token');
-                                const response = await fetch(`${API_URL}/applicants/${applicant.employeeId}/resume`, {
-                                  headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-                                });
-                                if (response.ok) {
-                                  const blob = await response.blob();
-                                  const url = window.URL.createObjectURL(blob);
-                                  const a = document.createElement('a');
-                                  a.href = url;
-                                  a.download = `resume-${applicant.name}.pdf`;
-                                  document.body.appendChild(a);
-                                  a.click();
-                                  window.URL.revokeObjectURL(url);
-                                  document.body.removeChild(a);
-                                } else {
-                                  alert('Resume not available');
-                                }
-                              } catch (error) {
-                                alert('Failed to download resume');
-                              }
-                            });
-                          }}
-                          className="px-3 py-1 rounded text-sm transition-colors text-white" style={{ backgroundColor: '#F54900' }}
-                        >
-                          Download Resume
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => ensureReviewedThen(applicant, () => { window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${applicant.email}`, '_blank'); })}
-                        className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm transition-colors text-white"
-                      >
-                        Contact
-                      </button>
-                    </div>
                   </div>
                 </div>
               ))
@@ -519,6 +550,33 @@ function JobForm({ onSubmit, onCancel, initialData }: {
     type: 'ONSITE' as 'ONSITE' | 'REMOTE' | 'HYBRID'
   });
 
+  const [errors, setErrors] = useState({
+    title: '',
+    location: '',
+    salaryMin: '',
+    salaryMax: '',
+    description: '',
+  });
+
+  // Format salary input to k format
+  const formatSalary = (value: string) => {
+    const num = parseInt(value);
+    if (isNaN(num)) return value;
+    return `${num}k`;
+  };
+
+  // Parse k format to number
+  const parseSalary = (value: string) => {
+    return value.replace('k', '');
+  };
+
+  // Validate salary range
+  const validateSalaryRange = (min: string, max: string) => {
+    const minNum = parseInt(parseSalary(min));
+    const maxNum = parseInt(parseSalary(max));
+    return !isNaN(minNum) && !isNaN(maxNum) && maxNum >= minNum;
+  };
+
   // Update form when initialData changes
   useEffect(() => {
     if (initialData) {
@@ -544,8 +602,43 @@ function JobForm({ onSubmit, onCancel, initialData }: {
     }
   }, [initialData]);
 
+  // Validate form fields
+  const validateForm = () => {
+    const newErrors = {
+      title: '',
+      location: '',
+      salaryMin: '',
+      salaryMax: '',
+      description: '',
+    };
+
+    if (formData.title.length < 3) {
+      newErrors.title = 'Title must be at least 3 characters';
+    }
+    if (formData.location.length < 3) {
+      newErrors.location = 'Location must be at least 3 characters';
+    }
+    if (formData.salaryMin && parseInt(formData.salaryMin) < 1) {
+      newErrors.salaryMin = 'Minimum salary must be at least 1k';
+    }
+    if (formData.salaryMax && parseInt(formData.salaryMax) < 1) {
+      newErrors.salaryMax = 'Maximum salary must be at least 1k';
+    }
+    if (formData.description.length < 18) {
+      newErrors.description = 'Description must be at least 18 characters';
+    }
+
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(error => error !== '');
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     const submitData = {
       title: formData.title,
       location: formData.location,
@@ -567,6 +660,9 @@ function JobForm({ onSubmit, onCancel, initialData }: {
           className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-orange-500 focus:outline-none"
           required
         />
+        {errors.title && (
+          <p className="mt-1 text-sm text-red-400">{errors.title}</p>
+        )}
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Location</label>
@@ -577,26 +673,47 @@ function JobForm({ onSubmit, onCancel, initialData }: {
           className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-orange-500 focus:outline-none"
           required
         />
+        {errors.location && (
+          <p className="mt-1 text-sm text-red-400">{errors.location}</p>
+        )}
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Salary Range ($k)</label>
         <div className="grid grid-cols-2 gap-4">
           <input
-            type="number"
+            type="text"
             value={formData.salaryMin}
-            onChange={(e) => setFormData({ ...formData, salaryMin: e.target.value })}
+            onChange={(e) => {
+              let value = e.target.value.replace(/[^\d]/g, '');
+              
+              // Handle backspace and normal deletion
+              const formatted = formatSalary(value);
+              setFormData({ ...formData, salaryMin: formatted });
+            }}
             className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-orange-500 focus:outline-none"
-            placeholder="Min (e.g. 50)"
+            placeholder="Min (e.g. 80)"
             required
           />
+          {errors.salaryMin && (
+            <p className="mt-1 text-sm text-red-400">{errors.salaryMin}</p>
+          )}
           <input
-            type="number"
+            type="text"
             value={formData.salaryMax}
-            onChange={(e) => setFormData({ ...formData, salaryMax: e.target.value })}
+            onChange={(e) => {
+              let value = e.target.value.replace(/[^\d]/g, '');
+              
+              // Handle backspace and normal deletion
+              const formatted = formatSalary(value);
+              setFormData({ ...formData, salaryMax: formatted });
+            }}
             className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-orange-500 focus:outline-none"
-            placeholder="Max (e.g. 80)"
+            placeholder="Max (e.g. 120)"
             required
           />
+          {errors.salaryMax && (
+            <p className="mt-1 text-sm text-red-400">{errors.salaryMax}</p>
+          )}
         </div>
       </div>
       <div>
@@ -621,6 +738,9 @@ function JobForm({ onSubmit, onCancel, initialData }: {
           className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-orange-500 focus:outline-none"
           required
         />
+        {errors.description && (
+          <p className="mt-1 text-sm text-red-400">{errors.description}</p>
+        )}
       </div>
       <div className="flex gap-3">
         <button
