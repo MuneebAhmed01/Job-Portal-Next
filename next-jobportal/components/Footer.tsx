@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import {
   FaLinkedinIn,
   FaTwitter,
@@ -22,25 +23,19 @@ const Footer: React.FC = () => {
 
           {/* Left - 4 Headings Column */}
           <div className="flex flex-col gap-3 text-gray-400 text-sm">
-            <a href="#" className="hover:text-orange-400 transition duration-300">
-              How It Works
-            </a>
-            <a href="#" className="hover:text-orange-400 transition duration-300">
-              Browse Jobs
-            </a>
-            <a href="#" className="hover:text-orange-400 transition duration-300">
-              Analyze Resume
-            </a>
-            <a href="#" className="hover:text-orange-400 transition duration-300">
-              Career Guidance
-            </a>
+            <Link href="/personalized" className="hover:text-orange-400 transition duration-300">Personalized</Link>
+            <Link href="/career-guidance" className="hover:text-orange-400 transition duration-300">Career Guidance</Link>
+            <Link href="/jobs" className="hover:text-orange-400 transition duration-300">Other Jobs</Link>
+            <Link href="/more" className="hover:text-orange-400 transition duration-300">More</Link>
           </div>
 
           {/* Brand */}
           <div className="relative top-4 -left-4">
-            <h1 className="text-4xl md:text-6xl font-semibold tracking-tight">
-              ✦JobForge
-            </h1>
+            <Link href="/" prefetch={false} className="focus:outline-none">
+              <h1 className="text-4xl md:text-6xl font-semibold tracking-tight cursor-pointer">
+                ✦JobForge
+              </h1>
+            </Link>
           </div>
         </div>
 

@@ -27,14 +27,14 @@ export default function Navbar() {
         
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
           
-          <div className="flex items-center ">
-            <div className="w-9 h-9 text-xl flex items-center justify-center">
+          <Link href="/" className="flex items-center focus:outline-none" prefetch={false}>
+            <div className="w-9 h-9 text-xl flex items-center justify-center cursor-pointer">
               ✦
             </div>
-            <span className="text-white font-semibold text-xl tracking-wide">
+            <span className="text-white font-semibold text-xl tracking-wide cursor-pointer">
               JobForge
             </span>
-          </div>
+          </Link>
 
           <nav className="hidden md:flex items-center gap-10 text-white/80 text-sm font-medium">
             {navLinks.map(link => (
