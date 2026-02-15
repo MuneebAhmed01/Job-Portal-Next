@@ -22,7 +22,7 @@ export interface Job {
 }
 
 export type JobType = 'ONSITE' | 'REMOTE' | 'HYBRID';
-export type SortBy = 'createdAt' | 'salary' | 'relevance';
+export type SortBy = 'createdAt' | 'salary' | 'relevance' | 'salary_desc' | 'salary_asc';
 export type SortOrder = 'asc' | 'desc';
 
 export interface SearchJobsParams {

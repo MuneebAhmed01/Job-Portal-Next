@@ -6,7 +6,7 @@ import ThemeProvider from "@/providers/ThemeProvider";
 import GoogleAuthProvider from "@/providers/GoogleAuthProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import BackToTop from "@/components/BackToTop";
-
+import Footer from "@/components/Footer";
 const inter = Inter({ 
   subsets: ["latin"],
   variable: "--font-inter",
@@ -56,6 +56,7 @@ export default function RootLayout({
               <main>
                 {children}
               </main>
+              <Footer/>
               <BackToTop />
             </AuthProvider>
             </GoogleAuthProvider>

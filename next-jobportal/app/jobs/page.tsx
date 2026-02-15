@@ -17,9 +17,17 @@ const JOB_TYPES: { value: JobType; label: string }[] = [
 
 const SORT_OPTIONS: { value: SortBy; label: string }[] = [
   { value: 'createdAt', label: 'Newest' },
-  { value: 'salary', label: 'Salary' },
+  { value: 'salary_desc', label: 'Salary (High first)' },
+  { value: 'salary_asc', label: 'Salary (Low first)' },
   { value: 'relevance', label: 'Relevance' },
 ];
+
+/** Parse salary input: strip commas/spaces, return number or undefined if invalid */
+function parseSalaryInput(value: string): number | undefined {
+  if (!value || !value.trim()) return undefined;
+  const num = Number(value.replace(/,/g, '').trim());
+  return Number.isFinite(num) && num >= 0 ? num : undefined;
+}
 
 /** Build query string from non-empty params */
 function toQueryString(params: SearchJobsParams): string {
@@ -74,14 +82,22 @@ export default function JobsPage() {
 
   // Build params object from applied filters
   const buildParams = useCallback((): SearchJobsParams => {
-    const params: SearchJobsParams = { page, limit: LIMIT, sortBy: appliedFilters.sortBy };
+    const sortBy = appliedFilters.sortBy;
+    const params: SearchJobsParams = { page, limit: LIMIT };
     if (appliedFilters.keyword.trim()) params.keyword = appliedFilters.keyword.trim();
     if (appliedFilters.type) params.type = appliedFilters.type;
     if (appliedFilters.location.trim()) params.location = appliedFilters.location.trim();
-    if (appliedFilters.minSalary) params.minSalary = Number(appliedFilters.minSalary);
-    if (appliedFilters.maxSalary) params.maxSalary = Number(appliedFilters.maxSalary);
-    if (appliedFilters.sortBy === 'relevance' && !appliedFilters.keyword.trim()) {
-      params.sortBy = 'createdAt'; // fallback when no keyword
+    const min = parseSalaryInput(appliedFilters.minSalary);
+    const max = parseSalaryInput(appliedFilters.maxSalary);
+    if (min !== undefined) params.minSalary = min;
+    if (max !== undefined) params.maxSalary = max;
+    if (sortBy === 'salary_desc' || sortBy === 'salary_asc') {
+      params.sortBy = 'salary';
+      params.sortOrder = sortBy === 'salary_desc' ? 'desc' : 'asc';
+    } else if (sortBy === 'relevance' && !appliedFilters.keyword.trim()) {
+      params.sortBy = 'createdAt';
+    } else {
+      params.sortBy = sortBy === 'relevance' ? 'relevance' : sortBy;
     }
     return params;
   }, [appliedFilters, page]);
@@ -271,28 +287,28 @@ export default function JobsPage() {
                           />
                         </div>
 
-                        {/* Min Salary */}
+                        {/* Min Salary — accepts numbers with or without commas */}
                         <div>
                           <label className="block text-xs text-gray-400 mb-1 font-medium uppercase tracking-wide">Min Salary</label>
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
                             value={minSalary}
                             onChange={(e) => setMinSalary(e.target.value)}
-                            placeholder="$ 0"
-                            min={0}
+                            placeholder="e.g. 100000 or 100,000"
                             className="w-full px-3 py-2 rounded-lg bg-[#181f2a] border border-white/10 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-orange-500/60"
                           />
                         </div>
 
-                        {/* Max Salary */}
+                        {/* Max Salary — accepts numbers with or without commas */}
                         <div>
                           <label className="block text-xs text-gray-400 mb-1 font-medium uppercase tracking-wide">Max Salary</label>
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
                             value={maxSalary}
                             onChange={(e) => setMaxSalary(e.target.value)}
-                            placeholder="$ 0"
-                            min={0}
+                            placeholder="e.g. 500000 or 500,000"
                             className="w-full px-3 py-2 rounded-lg bg-[#181f2a] border border-white/10 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-orange-500/60"
                           />
                         </div>
@@ -325,10 +341,15 @@ export default function JobsPage() {
                 )}
               </div>
 
-              {/* Sort */}
+              {/* Sort — applies immediately (updates appliedFilters so fetch runs) */}
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortBy)}
+                onChange={(e) => {
+                  const value = e.target.value as SortBy;
+                  setSortBy(value);
+                  setAppliedFilters((prev) => ({ ...prev, sortBy: value }));
+                  setPage(1);
+                }}
                 className="px-4 py-2 rounded-full bg-[#181f2a] border border-white/10 text-gray-300 text-sm focus:outline-none focus:border-orange-500/60 transition appearance-none cursor-pointer"
                 style={{ backgroundColor: '#181f2a', color: '#e5e7eb' }}
               >
