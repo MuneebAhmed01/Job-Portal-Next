@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Briefcase, MapPin, DollarSign, Heart, ExternalLink, FileText, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 import JobDetailOverlay from '@/components/JobDetailOverlay';
 
 interface Employer {
@@ -29,6 +30,7 @@ interface Job {
 
 export default function EmployeeDashboard() {
   const { user } = useAuth();
+  const router = useRouter();
   const [savedJobs, setSavedJobs] = useState<Job[]>([]);
   const [appliedJobs, setAppliedJobs] = useState<Job[]>([]);
   const [activeTab, setActiveTab] = useState<'saved' | 'applied'>('saved');
@@ -154,16 +156,8 @@ export default function EmployeeDashboard() {
 
 
   const handleScrollToSection = (sectionId: string) => {
-    // Navigate to home page first if not already there
-    if (window.location.pathname !== '/') {
-      window.location.href = `/#${sectionId}`;
-    } else {
-      // Smooth scroll to section
-      const element = document.getElementById(sectionId);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
+    // Navigate to home page with hash for smooth scrolling
+    router.push(`/#${sectionId}`);
   };
 
   const handleSaveChange = (jobId: string, saved: boolean) => {

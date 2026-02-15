@@ -1,3 +1,5 @@
+'use client';
+
 import { 
   Target, 
   Users, 
@@ -10,6 +12,7 @@ import {
   TrendingUp,
   Heart
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import Testimonials from '@/components/Testimonials';
 import Navbar from '@/components/Navbar';
 
@@ -94,6 +97,21 @@ const team = [
 ];
 
 export default function AboutPage() {
+  const router = useRouter();
+
+  const handleResumeAnalyzerClick = () => {
+    const element = document.getElementById('resume-analyzer');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      router.push('/#resume-analyzer');
+    }
+  };
+
+  const handleBrowseJobsClick = () => {
+    router.push('/jobs');
+  };
+
   return (
     <>
       <div className="relative bg-gradient-to-br from-[#020617] via-[#0b0f19] to-[#0f172a]">
@@ -238,19 +256,19 @@ export default function AboutPage() {
             Join thousands of professionals who&apos;ve transformed their careers with JobForge
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a
-              href="/jobs"
+            <button
+              onClick={handleBrowseJobsClick}
               className="inline-flex items-center gap-2 px-8 py-4 rounded-lg font-semibold transition-colors text-white"
               style={{ backgroundColor: '#F54900' }}
             >
               Browse Jobs
-            </a>
-            <a
-              href="#resume-analyzer"
+            </button>
+            <button
+              onClick={handleResumeAnalyzerClick}
               className="inline-flex items-center gap-2 border-2 border-white text-white hover:bg-white/10 px-8 py-4 rounded-lg font-semibold transition-colors"
             >
               Analyze Your Resume
-            </a>
+            </button>
           </div>
         </div>
       </section>
