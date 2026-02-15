@@ -415,7 +415,7 @@ export default function EmployeeDashboard() {
                   <p className="text-gray-300 line-clamp-2 mb-4">{job.description}</p>
                   <div className="flex items-center justify-between">
                     <p className="text-gray-500 text-sm">
-                      Applied {new Date(job.createdAt).toLocaleDateString()}
+                      Applied {new Date(job.createdAt).toLocaleDateString('en-GB')}
                     </p>
                     <button 
                       onClick={() => handleViewDetails(job)}

@@ -234,7 +234,7 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyCh
                 <Calendar size={18} className="text-purple-400" />
                 <h4 className="font-semibold text-white">Posted</h4>
               </div>
-              <p className="text-gray-200">{new Date(job.createdAt).toLocaleDateString()}</p>
+              <p className="text-gray-200">{new Date(job.createdAt).toLocaleDateString('en-GB')}</p>
             </div>
 
             {/* Applicants Count */}

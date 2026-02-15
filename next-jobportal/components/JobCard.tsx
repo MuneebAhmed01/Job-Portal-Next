@@ -58,7 +58,7 @@ export default function JobCard({ job, onSaveChange, onApplyChange }: JobCardPro
       <div className="mt-4 pt-4 border-t border-gray-700 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-400">
-            Posted {new Date(job.createdAt).toLocaleDateString()}
+            Posted {new Date(job.createdAt).toLocaleDateString('en-GB')}
           </span>
           {job._count?.applications !== undefined && (
             <span className="flex items-center gap-1 text-xs text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full">

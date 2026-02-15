@@ -324,7 +324,7 @@ export default function EmployerDashboard() {
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-xl font-bold text-white">{job.title}</h3>
-                      <p className="text-gray-400 text-sm">{new Date(job.createdAt).toLocaleDateString()}</p>
+                      <p className="text-gray-400 text-sm">{new Date(job.createdAt).toLocaleDateString('en-GB')}</p>
                     </div>
                     <div className="flex items-center gap-2 glass px-3 py-1 rounded-full">
                       <Users className="text-purple-400" size={16} />

@@ -6,8 +6,19 @@ import {
   FaGithub,
   FaInstagram,
 } from "react-icons/fa";
+import { useRouter } from 'next/navigation';
 
 const Footer: React.FC = () => {
+  const router = useRouter();
+
+  const handleCareerGuidanceClick = () => {
+    router.push('/#career-guidance');
+  };
+
+  const handleResumeAnalyzerClick = () => {
+    router.push('/#resume-analyzer');
+  };
+
   return (
     <footer className="relative bg-black text-white overflow-hidden h-[26vh] min-h-[210px] flex items-center">
       
@@ -23,10 +34,10 @@ const Footer: React.FC = () => {
 
           {/* Left - 4 Headings Column */}
           <div className="flex flex-col gap-3 text-gray-400 text-sm">
-            <Link href="/personalized" className="hover:text-orange-400 transition duration-300">Personalized</Link>
-            <Link href="/career-guidance" className="hover:text-orange-400 transition duration-300">Career Guidance</Link>
-            <Link href="/jobs" className="hover:text-orange-400 transition duration-300">Other Jobs</Link>
-            <Link href="/more" className="hover:text-orange-400 transition duration-300">More</Link>
+            <Link href="/about" className="hover:text-orange-400 transition duration-300">About Our Platform</Link>
+            <Link href="/jobs" className="hover:text-orange-400 transition duration-300">Browse Jobs</Link>
+            <button onClick={handleCareerGuidanceClick} className="text-left hover:text-orange-400 transition duration-300">Career Guidance</button>
+            <button onClick={handleResumeAnalyzerClick} className="text-left hover:text-orange-400 transition duration-300">Analyze Your Resume</button>
           </div>
 
           {/* Brand */}

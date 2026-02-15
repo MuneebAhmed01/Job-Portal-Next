@@ -327,7 +327,7 @@ export default function EmployerDashboard() {
                             <p className="text-gray-300 mt-2">{applicant.bio}</p>
                           )}
                           <p className="text-gray-500 text-sm mt-2">
-                            Applied {new Date(applicant.appliedAt).toLocaleDateString()}
+                            Applied {new Date(applicant.appliedAt).toLocaleDateString('en-GB')}
                           </p>
                           <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium ${
                             applicant.status === 'ACCEPTED' ? 'bg-green-600/30 text-green-400' :
@@ -487,7 +487,7 @@ export default function EmployerDashboard() {
                     <div className="text-right">
                       <p className="text-orange-400 font-medium">{job._count?.applications || job.applications?.length || 0} Applicants</p>
                       <p className="text-gray-400 text-sm">
-                        Posted {new Date(job.createdAt).toLocaleDateString()}
+                        Posted {new Date(job.createdAt).toLocaleDateString('en-GB')}
                       </p>
                     </div>
                   </div>
