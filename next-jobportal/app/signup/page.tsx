@@ -165,7 +165,7 @@ export default function SignupPage() {
           </button>
         </div>
         
-        <div className="flex-1 flex items-center justify-center px-6 pb-6 sm:px-12 sm:pb-12 lg:pt-6">
+        <div className="flex-1 flex items-center justify-center px-6 pb-8 sm:px-12 sm:pb-16 lg:pt-6">
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-8">

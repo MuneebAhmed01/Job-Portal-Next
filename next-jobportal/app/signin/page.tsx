@@ -176,7 +176,7 @@ export default function SigninPage() {
         <div className="flex-1 flex items-center justify-center px-6 pb-6 sm:px-12 sm:pb-12 lg:pt-6">
         <div className="w-full max-w-md">
           {/* Header */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-white mb-2">
               {isAdminMode ? 'Admin Sign In' : 'Sign In'}
             </h2>
@@ -187,7 +187,7 @@ export default function SigninPage() {
           
           {/* User Type Toggle - Only for non-admin */}
           {!isAdminMode && (
-            <div className="flex bg-slate-800 rounded-xl p-1 mb-8">
+            <div className="flex bg-slate-800 rounded-xl p-1 mb-6">
               <button
                 type="button"
                 onClick={() => setUserType('employee')}
@@ -214,12 +214,12 @@ export default function SigninPage() {
           )}
           
           {error && (
-            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 text-sm">
+            <div className="mb-4 p-4 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 text-sm">
               {error}
             </div>
           )}
           
-          <form onSubmit={handleSubmit} noValidate className="space-y-5">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
@@ -279,7 +279,7 @@ export default function SigninPage() {
           {/* Google Sign-In - Only for non-admin */}
           {!isAdminMode && (
             <>
-              <div className="relative my-6">
+              <div className="relative my-4">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-700" />
                 </div>
@@ -293,7 +293,7 @@ export default function SigninPage() {
           
           {/* Sign Up Link - Only for non-admin */}
           {!isAdminMode && (
-            <p className="mt-8 text-center text-gray-400">
+            <p className="mt-6 text-center text-gray-400">
               Don&apos;t have an account?{' '}
               <Link href="/signup" className="text-orange-500 hover:text-orange-400 font-medium transition-colors">
                 Sign Up
@@ -305,7 +305,7 @@ export default function SigninPage() {
           {isAdminMode && (
             <button
               onClick={toggleAdminMode}
-              className="mt-8 w-full text-center text-gray-500 hover:text-gray-300 text-sm transition-colors"
+              className="mt-6 w-full text-center text-gray-500 hover:text-gray-300 text-sm transition-colors"
             >
               ← Back to User Sign In
             </button>

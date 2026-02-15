@@ -246,7 +246,7 @@ export default function AboutPage() {
               Browse Jobs
             </a>
             <a
-              href="/resume-analyzer"
+              href="#resume-analyzer"
               className="inline-flex items-center gap-2 border-2 border-white text-white hover:bg-white/10 px-8 py-4 rounded-lg font-semibold transition-colors"
             >
               Analyze Your Resume
