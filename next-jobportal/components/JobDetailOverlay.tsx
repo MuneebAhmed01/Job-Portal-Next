@@ -1,23 +1,36 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, MapPin, DollarSign, Building2, Clock, Calendar, Heart, FileText, Briefcase, Users } from 'lucide-react';
+import { X, MapPin, DollarSign, Building2, Clock, Calendar, Heart, FileText, Briefcase, Users, Trash2 } from 'lucide-react';
 import { Job } from '@/types/job';
 import { useAuth } from '@/contexts/AuthContext';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
 
 interface JobDetailOverlayProps {
   job: Job;
   onClose: () => void;
   onSaveChange?: (jobId: string, saved: boolean) => void;
   onApplyChange?: (jobId: string, applied: boolean) => void;
+  onWithdrawChange?: (jobId: string) => void;
 }
 
-export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyChange }: JobDetailOverlayProps) {
-  const { user, token } = useAuth();
+export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyChange, onWithdrawChange }: JobDetailOverlayProps) {
+  const { user, token, isEmployer } = useAuth();
   const [applying, setApplying] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
   const [applied, setApplied] = useState(false);
   const [saved, setSaved] = useState(job.saved || false);
   const [error, setError] = useState('');
+
+  // Format salary range for display
+  const formatSalaryRange = (range: string) => {
+    const match = range.match(/\$(\d+)[kK]?.-?\$?(\d+)[kK]?/);
+    if (match) {
+      return `$${match[1]}k-$${match[2]}k`;
+    }
+    return range;
+  };
 
   // Sync saved state with job prop when it changes
   useEffect(() => {
@@ -36,7 +49,7 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyCh
     }
 
     try {
-      const response = await fetch(`http://localhost:3002/jobs/${job.id}/save`, {
+      const response = await fetch(`${API_URL}/jobs/${job.id}/save`, {
         method: saved ? 'DELETE' : 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,11 +89,16 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyCh
       return;
     }
 
+    if (isEmployer) {
+      setError('Employers cannot apply to jobs');
+      return;
+    }
+
     setApplying(true);
     setError('');
 
     try {
-      const response = await fetch(`http://localhost:3002/jobs/${job.id}/apply`, {
+      const response = await fetch(`${API_URL}/jobs/${job.id}/apply`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -123,6 +141,64 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyCh
       setError(err instanceof Error ? err.message : 'Failed to apply');
     } finally {
       setApplying(false);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    if (!user) {
+      setError('Please sign in to withdraw application');
+      return;
+    }
+
+    if (isEmployer) {
+      setError('Employers cannot withdraw applications');
+      return;
+    }
+
+    if (!confirm('Are you sure you want to withdraw your application? This action cannot be undone.')) {
+      return;
+    }
+
+    setWithdrawing(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_URL}/jobs/${job.id}/apply`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        
+        // Handle 401 Unauthorized - token expired or invalid
+        if (response.status === 401) {
+          setError('Your session has expired. Please log in again.');
+          // Clear the invalid token from localStorage
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          return;
+        }
+        
+        throw new Error(data.message || 'Failed to withdraw application');
+      }
+
+      setApplied(false);
+      setError('');
+      // Notify parent component of withdrawal
+      if (onWithdrawChange) {
+        onWithdrawChange(job.id);
+      }
+      if (onApplyChange) {
+        onApplyChange(job.id, false);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to withdraw application');
+    } finally {
+      setWithdrawing(false);
     }
   };
 
@@ -194,7 +270,7 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyCh
                   <DollarSign size={18} className="text-green-400" />
                   <h4 className="font-semibold text-white">Salary Range</h4>
                 </div>
-                <p className="text-gray-200 text-lg font-medium">{job.salaryRange}</p>
+                <p className="text-gray-200 text-lg font-medium">{formatSalaryRange(job.salaryRange)}</p>
               </div>
             )}
 
@@ -310,7 +386,7 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyCh
               <div className="text-center">
                 <button
                   disabled
-                  className="w-full py-4 bg-green-600/20 border border-green-500/30 text-green-400 rounded-xl font-semibold cursor-default flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-green-600/20 border border-green-500/30 text-green-400 rounded-xl font-semibold cursor-default flex items-center justify-center gap-2 mb-3"
                 >
                   <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs">✓</span>
@@ -318,7 +394,23 @@ export default function JobDetailOverlay({ job, onClose, onSaveChange, onApplyCh
                   Applied Successfully
                 </button>
                 <p className="text-sm text-gray-400 mt-2">
-                  Application sent! Employer will review your profile.
+                  Applied on {new Date(job.createdAt).toLocaleDateString('en-GB')} • Employer will review your profile.
+                </p>
+              </div>
+            ) : isEmployer ? (
+              <div className="text-center">
+                <button
+                  disabled
+                  className="w-full py-4 bg-gray-600/20 border border-gray-500/30 text-gray-400 rounded-xl font-semibold cursor-default flex items-center justify-center gap-2"
+                >
+                  <Briefcase size={20} />
+                  Employers Cannot Apply
+                </button>
+                <p className="text-sm text-gray-400 mt-3 flex items-center justify-center gap-2 leading-relaxed">
+                  <span className="w-4 h-4 bg-yellow-500/20 rounded-full flex items-center justify-center shrink-0">
+                    <span className="text-yellow-400 text-xs">!</span>
+                  </span>
+                  <span className="text-center">Only employees can apply to jobs</span>
                 </p>
               </div>
             ) : (

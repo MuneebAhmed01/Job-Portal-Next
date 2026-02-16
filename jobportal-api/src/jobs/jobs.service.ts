@@ -137,6 +137,9 @@ export class JobsService {
   async findByEmployer(employerId: string) {
     return this.prisma.job.findMany({
       where: { employerId },
+      orderBy: {
+        createdAt: 'desc',
+      },
       include: {
         _count: {
           select: { applications: true }
@@ -163,6 +166,9 @@ export class JobsService {
 
     const jobs = await this.prisma.job.findMany({
       where: { status: JobStatus.ACTIVE },
+      orderBy: {
+        createdAt: 'desc',
+      },
       include: {
         employer: {
           select: {
@@ -236,7 +242,16 @@ export class JobsService {
     });
   }
 
-  async applyToJob(jobId: string, employeeId: string) {
+  async applyToJob(jobId: string, userId: string) {
+    // First check if the user exists in the Employee table
+    const employee = await this.prisma.employee.findUnique({
+      where: { id: userId },
+    });
+    
+    if (!employee) {
+      throw new ForbiddenException('Only employees can apply to jobs');
+    }
+
     const job = await this.prisma.job.findUnique({
       where: { id: jobId },
     });
@@ -254,7 +269,7 @@ export class JobsService {
       where: {
         jobId_employeeId: {
           jobId,
-          employeeId,
+          employeeId: userId,
         },
       },
     });
@@ -267,11 +282,39 @@ export class JobsService {
     const application = await this.prisma.jobApplication.create({
       data: {
         jobId,
-        employeeId,
+        employeeId: userId,
       },
     });
     
     return { message: 'Application submitted successfully', application };
+  }
+
+  async withdrawApplication(jobId: string, employeeId: string) {
+    // Check if application exists
+    const existingApplication = await this.prisma.jobApplication.findUnique({
+      where: {
+        jobId_employeeId: {
+          jobId,
+          employeeId,
+        },
+      },
+    });
+
+    if (!existingApplication) {
+      throw new NotFoundException('Application not found');
+    }
+
+    // Delete the application
+    await this.prisma.jobApplication.delete({
+      where: {
+        jobId_employeeId: {
+          jobId,
+          employeeId,
+        },
+      },
+    });
+
+    return { message: 'Application withdrawn successfully' };
   }
 
   async findEmployeeApplications(employeeId: string) {
@@ -470,6 +513,30 @@ export class JobsService {
     await this.jobCache.invalidateJob(id);
 
     return closed;
+  }
+
+  async deleteJob(id: string, employerId: string) {
+    const job = await this.prisma.job.findUnique({
+      where: { id },
+    });
+
+    if (!job) {
+      throw new NotFoundException('Job not found');
+    }
+
+    if (job.employerId !== employerId) {
+      throw new ForbiddenException('You can only delete your own jobs');
+    }
+
+    // Delete the job (this will cascade delete applications and saved jobs due to foreign key constraints)
+    await this.prisma.job.delete({
+      where: { id },
+    });
+
+    // Bust cache
+    await this.jobCache.invalidateJob(id);
+
+    return { message: 'Job deleted successfully' };
   }
 
   async getJobById(id: string) {

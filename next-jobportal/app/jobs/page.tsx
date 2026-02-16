@@ -106,10 +106,19 @@ export default function JobsPage() {
     setLoading(true);
     setError('');
     try {
-      const qs = toQueryString(buildParams());
-      const res = await fetch(`${API_URL}/jobs/search?${qs}`);
+      const params = buildParams();
+      console.log('Fetching jobs with params:', params);
+      const qs = toQueryString(params);
+      console.log('Query string:', qs);
+      const url = `${API_URL}/jobs/search?${qs}`;
+      console.log('Full URL:', url);
+      
+      const res = await fetch(url);
+      console.log('Response status:', res.status);
+      
       if (!res.ok) throw new Error('Failed to fetch jobs');
       const json: PaginatedJobs = await res.json();
+      console.log('Response data:', json);
 
       // Enrich with saved/applied status when logged in
       if (user && token) {
@@ -133,17 +142,39 @@ export default function JobsPage() {
       }
 
       setResult(json);
-    } catch {
+    } catch (err) {
+      console.error('Error fetching jobs:', err);
       setError('Failed to load jobs. Make sure the backend is running.');
     } finally {
       setLoading(false);
     }
   }, [buildParams, user, token]);
 
+  // Debounced search for keyword input
+  useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    
+    debounceRef.current = setTimeout(() => {
+      setAppliedFilters(prev => ({
+        ...prev,
+        keyword
+      }));
+      setPage(1);
+    }, 300); // 300ms debounce
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [keyword]);
+
   // Fetch whenever appliedFilters or page changes
   useEffect(() => {
     fetchJobs();
-  }, [appliedFilters.keyword, appliedFilters.type, appliedFilters.location, appliedFilters.minSalary, appliedFilters.maxSalary, appliedFilters.sortBy, page]);
+  }, [fetchJobs]);
 
   // Apply filters function
   const applyFilters = () => {
@@ -192,6 +223,13 @@ export default function JobsPage() {
     setResult((prev) => ({
       ...prev,
       data: prev.data.map((j) => (j.id === jobId ? { ...j, applied } : j)),
+    }));
+  };
+
+  const handleWithdrawChange = (jobId: string) => {
+    setResult((prev) => ({
+      ...prev,
+      data: prev.data.map((j) => (j.id === jobId ? { ...j, applied: false } : j)),
     }));
   };
 
@@ -410,6 +448,7 @@ export default function JobsPage() {
                   job={job}
                   onSaveChange={handleSaveChange}
                   onApplyChange={handleApplyChange}
+                  onWithdrawChange={handleWithdrawChange}
                 />
               ))}
             </div>

@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Briefcase, MapPin, DollarSign, Heart, ExternalLink, FileText, TrendingUp } from 'lucide-react';
+import { Briefcase, MapPin, DollarSign, Heart, ExternalLink, FileText, TrendingUp, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import JobDetailOverlay from '@/components/JobDetailOverlay';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
 
 interface Employer {
   id: string;
@@ -46,7 +48,7 @@ export default function EmployeeDashboard() {
   const fetchSavedJobs = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:3002/jobs/employee/saved', {
+      const res = await fetch(`${API_URL}/jobs/employee/saved`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -56,7 +58,7 @@ export default function EmployeeDashboard() {
         console.log('Saved jobs data:', data);
         
         // Also fetch applied jobs to check which saved jobs are also applied
-        const appliedRes = await fetch('http://localhost:3002/jobs/employee/applications', {
+        const appliedRes = await fetch(`${API_URL}/jobs/employee/applications`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -85,7 +87,7 @@ export default function EmployeeDashboard() {
 
   const fetchAppliedJobs = async () => {
     try {
-      const res = await fetch('http://localhost:3002/jobs/employee/applications', {
+      const res = await fetch(`${API_URL}/jobs/employee/applications`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -102,7 +104,7 @@ export default function EmployeeDashboard() {
         }));
         
         // Check which applied jobs are also saved
-        const savedRes = await fetch('http://localhost:3002/jobs/employee/saved', {
+        const savedRes = await fetch(`${API_URL}/jobs/employee/saved`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -139,7 +141,7 @@ export default function EmployeeDashboard() {
 
   const handleApplyJob = async (jobId: string) => {
     try {
-      const res = await fetch(`http://localhost:3002/jobs/${jobId}/apply`, {
+      const res = await fetch(`${API_URL}/jobs/${jobId}/apply`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -151,6 +153,40 @@ export default function EmployeeDashboard() {
       }
     } catch (error) {
       console.error('Failed to apply job:', error);
+    }
+  };
+
+  const handleWithdrawApplication = async (jobId: string) => {
+    if (!confirm('Are you sure you want to withdraw your application? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/jobs/${jobId}/apply`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (res.ok) {
+        // Update both saved and applied jobs lists
+        setSavedJobs(prev => prev.map(job => 
+          job.id === jobId ? { ...job, applied: false } : job
+        ));
+        setAppliedJobs(prev => prev.filter(job => job.id !== jobId));
+        
+        // Update selected job if it's currently open
+        if (selectedJob && selectedJob.id === jobId) {
+          setSelectedJob(prev => prev ? { ...prev, applied: false } : null);
+        }
+      } else {
+        const errorData = await res.json();
+        alert(errorData.message || 'Failed to withdraw application');
+      }
+    } catch (error) {
+      console.error('Failed to withdraw application:', error);
+      alert('Failed to withdraw application');
     }
   };
 
@@ -214,13 +250,28 @@ export default function EmployeeDashboard() {
         return prev;
       });
     } else {
-      // Remove from applied jobs (this case shouldn't normally happen)
+      // Remove from applied jobs (this case happens when withdrawing)
       setAppliedJobs(prev => prev.filter(job => job.id !== jobId));
     }
 
     // Update the selected job if it's currently open
     if (selectedJob && selectedJob.id === jobId) {
       setSelectedJob(prev => prev ? { ...prev, applied } : null);
+    }
+  };
+
+  const handleWithdrawChange = (jobId: string) => {
+    // Update saved jobs list to reflect withdrawn status
+    setSavedJobs(prev => prev.map(job => 
+      job.id === jobId ? { ...job, applied: false } : job
+    ));
+    
+    // Remove from applied jobs
+    setAppliedJobs(prev => prev.filter(job => job.id !== jobId));
+    
+    // Update the selected job if it's currently open
+    if (selectedJob && selectedJob.id === jobId) {
+      setSelectedJob(prev => prev ? { ...prev, applied: false } : null);
     }
   };
 
@@ -417,12 +468,22 @@ export default function EmployeeDashboard() {
                     <p className="text-gray-500 text-sm">
                       Applied {new Date(job.createdAt).toLocaleDateString('en-GB')}
                     </p>
-                    <button 
-                      onClick={() => handleViewDetails(job)}
-                      className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors"
-                    >
-                      View Details
-                    </button>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => handleWithdrawApplication(job.id)}
+                        className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm"
+                        title="Withdraw Application"
+                      >
+                        <Trash2 size={14} />
+                        Withdraw
+                      </button>
+                      <button 
+                        onClick={() => handleViewDetails(job)}
+                        className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors"
+                      >
+                        View Details
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))
@@ -438,6 +499,7 @@ export default function EmployeeDashboard() {
           onClose={handleCloseJobDetail}
           onSaveChange={handleSaveChange}
           onApplyChange={handleApplyChange}
+          onWithdrawChange={handleWithdrawChange}
         />
       )}
     </div>

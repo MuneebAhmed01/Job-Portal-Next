@@ -8,10 +8,20 @@ interface JobCardProps {
   job: Job;
   onSaveChange?: (jobId: string, saved: boolean) => void;
   onApplyChange?: (jobId: string, applied: boolean) => void;
+  onWithdrawChange?: (jobId: string) => void;
 }
 
-export default function JobCard({ job, onSaveChange, onApplyChange }: JobCardProps) {
+export default function JobCard({ job, onSaveChange, onApplyChange, onWithdrawChange }: JobCardProps) {
   const [showDetails, setShowDetails] = useState(false);
+
+  // Format salary range for display
+  const formatSalaryRange = (range: string) => {
+    const match = range.match(/\$(\d+)[kK]?.-?\$?(\d+)[kK]?/);
+    if (match) {
+      return `$${match[1]}k-$${match[2]}k`;
+    }
+    return range;
+  };
 
   return (
     <>
@@ -26,7 +36,7 @@ export default function JobCard({ job, onSaveChange, onApplyChange }: JobCardPro
           </p>
         </div>
         <span className="bg-linear-to-t900 text-green-200 text-sm px-3 py-1 rounded-full whitespace-nowrap shrink-0">
-          {job.salaryRange}
+          {formatSalaryRange(job.salaryRange)}
         </span>
       </div>
       
@@ -83,6 +93,7 @@ export default function JobCard({ job, onSaveChange, onApplyChange }: JobCardPro
         onClose={() => setShowDetails(false)}
         onSaveChange={onSaveChange}
         onApplyChange={onApplyChange}
+        onWithdrawChange={onWithdrawChange}
       />
     )}
   </>

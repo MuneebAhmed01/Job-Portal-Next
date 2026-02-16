@@ -73,6 +73,13 @@ export class JobsController {
     return this.jobsService.applyToJob(id, employeeId);
   }
 
+  @Delete(':id/apply')
+  @UseGuards(JwtAuthGuard)
+  async withdrawApplication(@Param('id') id: string, @Request() req: any) {
+    const employeeId = req.user.sub;
+    return this.jobsService.withdrawApplication(id, employeeId);
+  }
+
   @Post(':id/save')
   @UseGuards(JwtAuthGuard)
   async saveJob(@Param('id') id: string, @Request() req: any) {
@@ -92,6 +99,13 @@ export class JobsController {
   async updateJob(@Param('id') id: string, @Body() updateJobDto: CreateJobDto, @Request() req: any) {
     const employerId = req.user.sub;
     return this.jobsService.updateJob(id, updateJobDto, employerId);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async deleteJob(@Param('id') id: string, @Request() req: any) {
+    const employerId = req.user.sub;
+    return this.jobsService.deleteJob(id, employerId);
   }
 
   @Post(':id/close')

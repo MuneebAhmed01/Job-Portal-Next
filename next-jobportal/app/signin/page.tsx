@@ -127,13 +127,13 @@ export default function SigninPage() {
             <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#F54900' }}>
               <Building2 className="text-white" size={24} />
             </div>
-            <span className="text-2xl font-bold text-white">JobPortal</span>
+            <span className="text-2xl font-bold text-white">JobForge</span>
           </div>
           
           {/* Headline */}
           <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-6">
             Welcome Back to<br />
-            <span className="text-transparent bg-clip-text bg-linear-to-r from-orange-400 to-orange-600">JobPortal</span>
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-orange-400 to-orange-600">JobForge</span>
           </h1>
           
           <p className="text-gray-400 text-lg mb-10 max-w-md">
@@ -232,7 +232,7 @@ export default function SigninPage() {
                   className={`w-full pl-12 pr-4 py-3 bg-slate-800 border rounded-xl text-white placeholder-gray-500 focus:outline-none transition-colors ${
                     isAdminMode ? 'border-red-500/30 focus:border-red-500' : 'border-slate-700 focus:border-orange-500'
                   }`}
-                  placeholder={isAdminMode ? 'admin@gmail.com' : 'you@example.com'}
+                  placeholder={isAdminMode ? 'Enter Your Credentials' : 'you@example.com'}
                 />
               </div>
               {fieldErrors.email && <p className="mt-1 text-sm text-red-400">{fieldErrors.email}</p>}

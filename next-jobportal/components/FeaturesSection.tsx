@@ -44,7 +44,7 @@ export default function FeaturesSection() {
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
         }
-      }, 100); // Small delay to ensure DOM is ready
+      }, 100);
     }
   }, []);
 

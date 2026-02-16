@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Briefcase, Plus, Users, FileText, TrendingUp, Calendar, DollarSign, MapPin } from 'lucide-react';
+import { Briefcase, Plus, Users, FileText, TrendingUp, Calendar, DollarSign, MapPin, Trash2, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 
@@ -161,7 +161,7 @@ export default function EmployerDashboard() {
 
   // Format salary range for display
   const formatSalaryRange = (range: string) => {
-    const match = range.match(/\$(\d+).*?-(\d+)/);
+    const match = range.match(/\$(\d+)[kK]?.-?\$?(\d+)[kK]?/);
     if (match) {
       return `$${match[1]}k-$${match[2]}k`;
     }
@@ -218,6 +218,31 @@ export default function EmployerDashboard() {
       }
     } catch (error) {
       console.error('Failed to update job:', error);
+    }
+  };
+
+  const handleDeleteJob = async (jobId: string) => {
+    if (!confirm('Are you sure you want to delete this job? This action cannot be undone and will remove all applications.')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/jobs/${jobId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (res.ok) {
+        fetchMyJobs(); // Refresh the jobs list
+      } else {
+        const errorData = await res.json();
+        alert(errorData.message || 'Failed to delete job');
+      }
+    } catch (error) {
+      console.error('Failed to delete job:', error);
+      alert('Failed to delete job');
     }
   };
 
@@ -505,6 +530,13 @@ export default function EmployerDashboard() {
                     >
                       Edit Job
                     </button>
+                    <button 
+                      onClick={() => handleDeleteJob(job.id)}
+                      className="bg-red-700 hover:bg-red-900 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      <Trash2 size={16} />
+                      
+                    </button>
                   </div>
                 </div>
               ))
@@ -515,8 +547,25 @@ export default function EmployerDashboard() {
 
       {/* Job Form Modal */}
       {showJobForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowJobForm(false);
+              setEditingJob(null);
+            }
+          }}
+        >
+          <div className="bg-gray-800 rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto relative">
+            <button
+              onClick={() => {
+                setShowJobForm(false);
+                setEditingJob(null);
+              }}
+              className="absolute top-4 right-4 p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+            >
+              <X size={20} className="text-white" />
+            </button>
             <h2 className="text-2xl font-bold mb-6">
               {editingJob ? 'Edit Job' : 'Post New Job'}
             </h2>

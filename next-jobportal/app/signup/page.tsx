@@ -123,7 +123,7 @@ export default function SignupPage() {
             <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#F54900' }}>
               <Building2 className="text-white" size={24} />
             </div>
-            <span className="text-2xl font-bold text-white">JobPortal</span>
+            <span className="text-2xl font-bold text-white">JobForge</span>
           </div>
           
           {/* Headline */}
