@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -8,6 +8,7 @@ import { User, Mail, Lock, Phone, FileText, Building2, Loader2, CheckCircle2, Ar
 import { useAuth } from '@/contexts/AuthContext';
 import { employeeSignupSchema, employerSignupSchema, getZodErrors } from '@/lib/validations';
 import GoogleLoginButton from '@/components/GoogleLoginButton';
+import { ParsedResume } from '@/types/resume';
 
 type UserType = 'employee' | 'employer';
 
@@ -28,6 +29,70 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [autoFilled, setAutoFilled] = useState(false);
+  const [resumeUrl, setResumeUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle resume auto-fill
+  const handleResumeParsed = (parsedData: ParsedResume, url: string) => {
+    setFormData(prev => ({
+      ...prev,
+      name: parsedData.fullName || prev.name,
+      email: parsedData.email || prev.email,
+      phone: parsedData.phone || prev.phone,
+      bio: parsedData.bio || prev.bio
+    }));
+    setAutoFilled(true);
+    setResumeUrl(url);
+  };
+
+  // Handle file upload and processing
+  const handleResumeUpload = async (file: File) => {
+    if (!file) return;
+
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      setError('Only PDF files are allowed');
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File size exceeds 5MB limit');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('resume', file);
+
+      const response = await fetch('/api/resume/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        setResume(file);
+        handleResumeParsed(result.data.parsedResume, result.data.resumeUrl);
+      } else {
+        setError(result.error || 'Failed to upload resume');
+      }
+    } catch (error) {
+      setError('Failed to upload resume. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Open file dialog
+  const openFileDialog = () => {
+    fileInputRef.current?.click();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,6 +127,7 @@ export default function SignupPage() {
       
       if (formData.bio) formDataToSend.append('bio', formData.bio);
       if (resume) formDataToSend.append('resume', resume);
+      if (resumeUrl) formDataToSend.append('resumeUrl', resumeUrl);
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/signup`, {
         method: 'POST',
@@ -80,16 +146,6 @@ export default function SignupPage() {
       setError(err instanceof Error ? err.message : 'Signup failed');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      setResume(file);
-      setError('');
-    } else if (file) {
-      setError('Please upload a PDF file');
     }
   };
 
@@ -293,24 +349,41 @@ export default function SignupPage() {
             {/* Resume - Employee Only */}
             {userType === 'employee' && (
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Resume (PDF, Optional)</label>
-                <div className="relative">
+                <label className="block text-sm font-medium text-gray-300 mb-2">Upload Resume to Auto-fill</label>
+                
+                {/* Unified upload button */}
+                <div className="space-y-3">
                   <input
+                    ref={fileInputRef}
                     type="file"
                     accept=".pdf"
-                    onChange={handleFileChange}
+                    onChange={(e) => e.target.files?.[0] && handleResumeUpload(e.target.files[0])}
                     className="hidden"
-                    id="resume-upload"
                   />
-                  <label
-                    htmlFor="resume-upload"
-                    className="flex items-center gap-3 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-750 hover:border-slate-600 transition-colors"
+                  
+                  <button
+                    type="button"
+                    onClick={openFileDialog}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2 p-3 bg-slate-800 border border-slate-700 rounded-xl text-gray-300 hover:bg-slate-750 hover:border-slate-600 transition-colors disabled:opacity-50"
                   >
-                    <FileText className="text-gray-500" size={18} />
-                    <span className="text-gray-400 truncate">
-                      {resume ? resume.name : 'Choose PDF file'}
-                    </span>
-                  </label>
+                    <FileText size={18} />
+                    <span>{loading ? 'Processing...' : resume ? 'Change Resume' : 'Upload Resume to Auto-fill'}</span>
+                  </button>
+                  
+                  {/* Auto-fill indicator */}
+                  {autoFilled && (
+                    <div className="p-2 bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 text-xs text-center">
+                      ✓ Form auto-filled from resume
+                    </div>
+                  )}
+                  
+                  {/* Resume file info */}
+                  {resume && (
+                    <div className="p-2 bg-slate-800 border border-slate-700 rounded-lg text-gray-400 text-xs">
+                      📄 {resume.name}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

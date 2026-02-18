@@ -35,6 +35,50 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
   const [resume, setResume] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [autoFilled, setAutoFilled] = useState(false);
+
+  // Handle direct file upload and parsing
+  const handleDirectResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      setError('Please upload a PDF file');
+      return;
+    }
+
+    setResume(file);
+    setError('');
+
+    // Parse resume for auto-fill
+    try {
+      const formData = new FormData();
+      formData.append('resume', file);
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/resume/parse`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to parse resume');
+      }
+
+      const parsedData = await response.json();
+      
+      setFormData(prev => ({
+        ...prev,
+        name: parsedData.fullName || prev.name,
+        email: parsedData.email || prev.email,
+        phone: parsedData.phone || prev.phone,
+        bio: parsedData.bio || prev.bio
+      }));
+      setAutoFilled(true);
+    } catch (err) {
+      console.error('Resume parsing failed:', err);
+      // Still keep the file even if parsing fails
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,16 +146,6 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
       setError(err instanceof Error ? err.message : 'Authentication failed');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      setResume(file);
-      setError('');
-    } else {
-      setError('Please upload a PDF file');
     }
   };
 
@@ -210,23 +244,38 @@ export default function AuthOverlay({ isOpen, onClose }: AuthOverlayProps) {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Resume (PDF required)</label>
-                  <div className="relative">
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="resume-upload"
-                    />
-                    <label
-                      htmlFor="resume-upload"
-                      className="flex items-center gap-3 p-3 bg-white/10 border border-white/20 rounded-xl cursor-pointer hover:bg-white/20 transition-colors"
-                    >
-                      <FileText className="text-gray-400" size={18} />
-                      <span className="text-gray-300 truncate">
-                        {resume ? resume.name : 'Upload PDF Resume'}
-                      </span>
-                    </label>
+                  <div className="space-y-3">
+                    {/* Combined upload and auto-fill button */}
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        onChange={handleDirectResumeUpload}
+                        className="hidden"
+                        id="resume-upload-autofill"
+                      />
+                      <label
+                        htmlFor="resume-upload-autofill"
+                        className="flex items-center justify-center gap-2 p-3 bg-white/10 border border-white/20 rounded-xl cursor-pointer hover:bg-white/20 transition-colors text-gray-300"
+                      >
+                        <FileText size={18} />
+                        <span>Upload resume to autofill</span>
+                      </label>
+                    </div>
+                    
+                    {/* Auto-fill indicator */}
+                    {autoFilled && (
+                      <div className="p-2 bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 text-xs text-center">
+                        ✓ Form auto-filled from resume
+                      </div>
+                    )}
+
+                    {/* Show selected file */}
+                    {resume && (
+                      <div className="p-2 bg-white/5 border border-white/10 rounded-lg text-gray-300 text-xs">
+                        Selected: {resume.name}
+                      </div>
+                    )}
                   </div>
                 </div>
 

@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { ApplicantsModule } from './applicants/applicants.module';
 import { CareerGuidanceModule } from './career-guidance/career-guidance.module';
 import { ResumeAnalyzerModule } from './resume-analyzer/resume-analyzer.module';
+import { ResumeParserModule } from './features/resume-parser/resume-parser.module';
 import { PrismaModule } from './lib/prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { AdminModule } from './admin/admin.module';
@@ -24,6 +25,7 @@ import { RedisModule } from './redis/redis.module';
     JobsModule,
     CareerGuidanceModule,
     ResumeAnalyzerModule,
+    ResumeParserModule,
     AdminModule,
   ],
   controllers: [AppController],
