@@ -8,6 +8,7 @@ import { Mail, Lock, Building2, Loader2, CheckCircle2, ArrowLeft } from 'lucide-
 import { useAuth } from '@/contexts/AuthContext';
 import { signinSchema, getZodErrors } from '@/lib/validations';
 import GoogleLoginButton from '@/components/GoogleLoginButton';
+import { LinkedInButton } from '@/app/auth/linkedin/components/LinkedInButton';
 
 type UserType = 'employee' | 'employer';
 
@@ -288,6 +289,23 @@ export default function SigninPage() {
                 </div>
               </div>
               <GoogleLoginButton role={userType} />
+              
+              {/* LinkedIn Sign-In */}
+              <div className="mt-3">
+                <LinkedInButton 
+                  onClick={() => {
+                    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+                    if (userType === 'employer') {
+                      window.location.href = `${backendUrl}/auth/linkedin/employer`;
+                    } else {
+                      window.location.href = `${backendUrl}/auth/linkedin`;
+                    }
+                  }}
+                  text={`Continue with LinkedIn as ${userType === 'employer' ? 'Employer' : 'Employee'}`}
+                  variant={userType === 'employer' ? 'employer' : 'default'}
+                  fullWidth
+                />
+              </div>
             </>
           )}
           

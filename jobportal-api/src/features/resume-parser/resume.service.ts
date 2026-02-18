@@ -6,15 +6,15 @@
 import { promises as fs } from 'fs';
 import { join, extname } from 'path';
 import { PDFParse } from 'pdf-parse';
-import { 
-  ParsedResume, 
-  ResumeParseResult, 
-  ResumeUploadResponse, 
+import {
+  ParsedResume,
+  ResumeParseResult,
+  ResumeUploadResponse,
   PdfExtractionResult,
   ResumeFileInfo,
   ResumeValidationResult,
   ResumeParseError,
-  ResumeParserConfig
+  ResumeParserConfig,
 } from './resume.types';
 import { ResumeParser } from './resume.parser';
 
@@ -27,21 +27,23 @@ export class ResumeService {
       allowedMimeTypes: ['application/pdf'],
       uploadPath: process.env.UPLOAD_PATH || './uploads/resumes',
       enableFileCleanup: true,
-      ...config
+      ...config,
     };
   }
 
   /**
    * Process uploaded resume file
    */
-  async processResume(file: Express.Multer.File): Promise<ResumeUploadResponse> {
+  async processResume(
+    file: Express.Multer.File,
+  ): Promise<ResumeUploadResponse> {
     try {
       // Validate file
       const validation = this.validateFile(file);
       if (!validation.isValid) {
         return {
           success: false,
-          error: validation.error
+          error: validation.error,
         };
       }
 
@@ -55,7 +57,7 @@ export class ResumeService {
         await this.cleanupFile(fileInfo.path);
         return {
           success: false,
-          error: extractionResult.error
+          error: extractionResult.error,
         };
       }
 
@@ -65,7 +67,7 @@ export class ResumeService {
         await this.cleanupFile(fileInfo.path);
         return {
           success: false,
-          error: parseResult.error
+          error: parseResult.error,
         };
       }
 
@@ -73,14 +75,13 @@ export class ResumeService {
         success: true,
         data: {
           parsedResume: parseResult.data!,
-          resumeUrl: `/uploads/resumes/${fileInfo.filename}`
-        }
+          resumeUrl: `/uploads/resumes/${fileInfo.filename}`,
+        },
       };
-
     } catch (error) {
       return {
         success: false,
-        error: `Resume processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        error: `Resume processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   }
@@ -93,11 +94,11 @@ export class ResumeService {
       // Use PDFParse class for proper PDF text extraction
       const pdfParser = new PDFParse({ data: buffer });
       const textResult = await pdfParser.getText();
-      
+
       if (!textResult.text || textResult.text.trim().length === 0) {
         return {
           success: false,
-          error: ResumeParseError.NO_EXTRACTABLE_TEXT
+          error: ResumeParseError.NO_EXTRACTABLE_TEXT,
         };
       }
 
@@ -106,36 +107,42 @@ export class ResumeService {
       if (info.info && info.info.Encrypted) {
         return {
           success: false,
-          error: ResumeParseError.ENCRYPTED_PDF
+          error: ResumeParseError.ENCRYPTED_PDF,
         };
       }
 
       return {
         success: true,
-        text: textResult.text // Temporarily disable cleaning to debug
+        text: textResult.text, // Temporarily disable cleaning to debug
       };
-
     } catch (error) {
       // Handle specific PDF parsing errors
-      const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
-      
-      if (errorMessage.includes('encrypted') || errorMessage.includes('password')) {
+      const errorMessage =
+        error instanceof Error ? error.message.toLowerCase() : '';
+
+      if (
+        errorMessage.includes('encrypted') ||
+        errorMessage.includes('password')
+      ) {
         return {
           success: false,
-          error: ResumeParseError.ENCRYPTED_PDF
+          error: ResumeParseError.ENCRYPTED_PDF,
         };
       }
-      
-      if (errorMessage.includes('corrupt') || errorMessage.includes('invalid')) {
+
+      if (
+        errorMessage.includes('corrupt') ||
+        errorMessage.includes('invalid')
+      ) {
         return {
           success: false,
-          error: ResumeParseError.CORRUPTED_FILE
+          error: ResumeParseError.CORRUPTED_FILE,
         };
       }
 
       return {
         success: false,
-        error: ResumeParseError.PDF_EXTRACTION_FAILED
+        error: ResumeParseError.PDF_EXTRACTION_FAILED,
       };
     }
   }
@@ -157,7 +164,7 @@ export class ResumeService {
         isValid: false,
         error: `File size exceeds maximum allowed size of ${this.config.maxFileSize / 1024 / 1024}MB`,
         maxSize: this.config.maxFileSize,
-        allowedTypes: this.config.allowedMimeTypes
+        allowedTypes: this.config.allowedMimeTypes,
       };
     }
 
@@ -167,7 +174,7 @@ export class ResumeService {
         isValid: false,
         error: `Invalid file type. Allowed types: ${this.config.allowedMimeTypes.join(', ')}`,
         maxSize: this.config.maxFileSize,
-        allowedTypes: this.config.allowedMimeTypes
+        allowedTypes: this.config.allowedMimeTypes,
       };
     }
 
@@ -178,14 +185,14 @@ export class ResumeService {
         isValid: false,
         error: 'Invalid file extension. Only PDF files are allowed.',
         maxSize: this.config.maxFileSize,
-        allowedTypes: this.config.allowedMimeTypes
+        allowedTypes: this.config.allowedMimeTypes,
       };
     }
 
     return {
       isValid: true,
       maxSize: this.config.maxFileSize,
-      allowedTypes: this.config.allowedMimeTypes
+      allowedTypes: this.config.allowedMimeTypes,
     };
   }
 
@@ -210,7 +217,7 @@ export class ResumeService {
       filename,
       path: filePath,
       size: file.size,
-      mimetype: file.mimetype
+      mimetype: file.mimetype,
     };
   }
 
@@ -245,13 +252,13 @@ export class ResumeService {
     try {
       const filePath = join(this.config.uploadPath, filename);
       const stats = await fs.stat(filePath);
-      
+
       return {
         originalName: filename,
         filename,
         path: filePath,
         size: stats.size,
-        mimetype: 'application/pdf'
+        mimetype: 'application/pdf',
       };
     } catch {
       return null;

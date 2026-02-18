@@ -1,6 +1,9 @@
 import { Controller, Post, Body, UsePipes } from '@nestjs/common';
 import { CareerGuidanceService } from './career-guidance.service';
-import { analyzeSkillsSchema, type AnalyzeSkillsDto } from './dto/analyze-skills.dto';
+import {
+  analyzeSkillsSchema,
+  type AnalyzeSkillsDto,
+} from './dto/analyze-skills.dto';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 
 @Controller('career-guidance')

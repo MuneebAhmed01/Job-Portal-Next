@@ -4,4 +4,6 @@ export const updateApplicationStatusSchema = z.object({
   status: z.enum(['PENDING', 'REVIEWED', 'ACCEPTED', 'REJECTED']),
 });
 
-export type UpdateApplicationStatusDto = z.infer<typeof updateApplicationStatusSchema>;
+export type UpdateApplicationStatusDto = z.infer<
+  typeof updateApplicationStatusSchema
+>;

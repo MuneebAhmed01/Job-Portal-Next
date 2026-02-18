@@ -8,6 +8,7 @@ import { User, Mail, Lock, Phone, FileText, Building2, Loader2, CheckCircle2, Ar
 import { useAuth } from '@/contexts/AuthContext';
 import { employeeSignupSchema, employerSignupSchema, getZodErrors } from '@/lib/validations';
 import GoogleLoginButton from '@/components/GoogleLoginButton';
+import { LinkedInButton } from '@/app/auth/linkedin/components/LinkedInButton';
 import { ParsedResume } from '@/types/resume';
 
 type UserType = 'employee' | 'employer';
@@ -428,6 +429,23 @@ export default function SignupPage() {
             </div>
           </div>
           <GoogleLoginButton role={userType} />
+          
+          {/* LinkedIn Sign-Up */}
+          <div className="mt-3">
+            <LinkedInButton 
+              onClick={() => {
+                const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+                if (userType === 'employer') {
+                  window.location.href = `${backendUrl}/auth/linkedin/employer`;
+                } else {
+                  window.location.href = `${backendUrl}/auth/linkedin`;
+                }
+              }}
+              text={`Continue with LinkedIn as ${userType === 'employer' ? 'Employer' : 'Employee'}`}
+              variant={userType === 'employer' ? 'employer' : 'default'}
+              fullWidth
+            />
+          </div>
           
           {/* Sign In Link */}
           <p className="mt-8 text-center text-gray-400">

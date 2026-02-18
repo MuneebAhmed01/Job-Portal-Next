@@ -18,16 +18,18 @@ export class PdfExtractorService {
 
   async extractTextFromPdf(buffer: Buffer): Promise<string> {
     let tempFilePath: string | null = null;
-    
+
     try {
-      this.logger.log(`Starting PDF extraction for buffer of size: ${buffer.length} bytes`);
-      
+      this.logger.log(
+        `Starting PDF extraction for buffer of size: ${buffer.length} bytes`,
+      );
+
       // Create temporary file
       const tempDir = path.join(process.cwd(), 'temp');
       if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
       }
-      
+
       tempFilePath = path.join(tempDir, `resume_${Date.now()}.pdf`);
       fs.writeFileSync(tempFilePath, buffer);
       this.logger.log(`Temporary PDF created at: ${tempFilePath}`);
@@ -38,7 +40,9 @@ export class PdfExtractorService {
           this.logger.log('Attempting pdftotext extraction');
           const { stdout } = await execAsync(`pdftotext "${tempFilePath}" -`);
           const extractedText = stdout.trim();
-          this.logger.log(`pdftotext extraction successful, extracted ${extractedText.length} characters`);
+          this.logger.log(
+            `pdftotext extraction successful, extracted ${extractedText.length} characters`,
+          );
           return extractedText;
         } else {
           this.logger.log('Skipping pdftotext on Windows platform');
@@ -53,20 +57,28 @@ export class PdfExtractorService {
         const PDFParseClass = await getPdfParse();
         const parser = new PDFParseClass({ data: buffer });
         const result = await parser.getText();
-        const extractedText = result.text || result.pages?.map(p => p.text).join('\n') || '';
-        
-        this.logger.log(`pdf-parse extraction result: ${extractedText?.length || 0} characters`);
-        
+        const extractedText =
+          result.text || result.pages?.map((p) => p.text).join('\n') || '';
+
+        this.logger.log(
+          `pdf-parse extraction result: ${extractedText?.length || 0} characters`,
+        );
+
         if (!extractedText || extractedText.trim().length === 0) {
-          throw new Error('PDF appears to be empty or contains no extractable text');
+          throw new Error(
+            'PDF appears to be empty or contains no extractable text',
+          );
         }
-        
+
         // Clean up the parser
         await parser.destroy();
-        
+
         return extractedText;
       } catch (pdfParseError) {
-        this.logger.error(`pdf-parse failed: ${pdfParseError.message}`, pdfParseError.stack);
+        this.logger.error(
+          `pdf-parse failed: ${pdfParseError.message}`,
+          pdfParseError.stack,
+        );
         throw new Error(`PDF parsing failed: ${pdfParseError.message}`);
       }
     } catch (error) {
@@ -87,24 +99,28 @@ export class PdfExtractorService {
 
   async isValidPdf(buffer: Buffer): Promise<boolean> {
     try {
-      this.logger.log(`Validating PDF buffer of size: ${buffer?.length || 0} bytes`);
-      
+      this.logger.log(
+        `Validating PDF buffer of size: ${buffer?.length || 0} bytes`,
+      );
+
       // Check minimum file size (PDF headers are at least 5 bytes)
       if (!buffer || buffer.length < 5) {
         this.logger.warn('PDF validation failed: Buffer too small or empty');
         return false;
       }
-      
+
       // Check PDF signature
       const pdfHeader = buffer.slice(0, 5).toString();
       const isValid = pdfHeader === '%PDF-';
-      
+
       if (isValid) {
         this.logger.log('PDF validation passed');
       } else {
-        this.logger.warn(`PDF validation failed: Invalid header "${pdfHeader}"`);
+        this.logger.warn(
+          `PDF validation failed: Invalid header "${pdfHeader}"`,
+        );
       }
-      
+
       return isValid;
     } catch (error) {
       this.logger.error('PDF validation error:', error);

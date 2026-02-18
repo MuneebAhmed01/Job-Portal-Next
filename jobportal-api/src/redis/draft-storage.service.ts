@@ -20,14 +20,21 @@ export class DraftStorageService {
   constructor(private readonly redis: RedisService) {}
 
   /** Save (or update) a draft application. */
-  async saveDraft(employeeId: string, jobId: string, payload: Record<string, any>): Promise<void> {
+  async saveDraft(
+    employeeId: string,
+    jobId: string,
+    payload: Record<string, any>,
+  ): Promise<void> {
     const key = `${this.PREFIX}:${employeeId}:${jobId}`;
     await this.redis.set(key, JSON.stringify(payload), this.TTL);
     this.logger.debug(`Draft saved for employee ${employeeId}, job ${jobId}`);
   }
 
   /** Retrieve a draft application (null = no draft). */
-  async getDraft(employeeId: string, jobId: string): Promise<Record<string, any> | null> {
+  async getDraft(
+    employeeId: string,
+    jobId: string,
+  ): Promise<Record<string, any> | null> {
     const data = await this.redis.get(`${this.PREFIX}:${employeeId}:${jobId}`);
     if (!data) return null;
     return JSON.parse(data);

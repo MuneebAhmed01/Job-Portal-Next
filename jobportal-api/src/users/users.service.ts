@@ -6,7 +6,13 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   // Employee operations
-  async createEmployee(data: { email: string; password: string; name: string; phone: string; bio?: string }) {
+  async createEmployee(data: {
+    email: string;
+    password: string;
+    name: string;
+    phone: string;
+    bio?: string;
+  }) {
     const employee = await this.prisma.employee.create({
       data,
     });
@@ -34,7 +40,10 @@ export class UsersService {
     });
   }
 
-  async updateEmployee(id: string, data: { name?: string; phone?: string; bio?: string; resumePath?: string }) {
+  async updateEmployee(
+    id: string,
+    data: { name?: string; phone?: string; bio?: string; resumePath?: string },
+  ) {
     const employee = await this.prisma.employee.update({
       where: { id },
       data,
@@ -52,7 +61,14 @@ export class UsersService {
   }
 
   // Employer operations
-  async createEmployer(data: { email: string; password: string; name: string; phone: string; companyName: string; bio?: string }) {
+  async createEmployer(data: {
+    email: string;
+    password: string;
+    name: string;
+    phone: string;
+    companyName: string;
+    bio?: string;
+  }) {
     const employer = await this.prisma.employer.create({
       data,
     });
@@ -80,7 +96,10 @@ export class UsersService {
     });
   }
 
-  async updateEmployer(id: string, data: { name?: string; phone?: string; companyName?: string; bio?: string }) {
+  async updateEmployer(
+    id: string,
+    data: { name?: string; phone?: string; companyName?: string; bio?: string },
+  ) {
     const employer = await this.prisma.employer.update({
       where: { id },
       data,
@@ -108,7 +127,11 @@ export class UsersService {
     });
   }
 
-  async logEmployerAction(employerId: string, action: string, message?: string) {
+  async logEmployerAction(
+    employerId: string,
+    action: string,
+    message?: string,
+  ) {
     await this.prisma.employerLog.create({
       data: {
         employerId,

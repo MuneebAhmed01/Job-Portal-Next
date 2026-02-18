@@ -3,7 +3,11 @@
  * Core parsing logic for extracting information from resume text
  */
 
-import { ParsedResume, ResumeParseResult, BioSectionType } from './resume.types';
+import {
+  ParsedResume,
+  ResumeParseResult,
+  BioSectionType,
+} from './resume.types';
 import { PatternMatcher } from './resume.regex';
 
 export class ResumeParser {
@@ -15,7 +19,7 @@ export class ResumeParser {
       if (!text || text.trim().length === 0) {
         return {
           success: false,
-          error: 'No text provided for parsing'
+          error: 'No text provided for parsing',
         };
       }
 
@@ -30,20 +34,19 @@ export class ResumeParser {
         email: this.extractEmail(cleanedText),
         phone: this.extractPhone(cleanedText),
         bio: this.extractBio(cleanedText),
-        rawText: cleanedText
+        rawText: cleanedText,
       };
 
       console.log('Parsed resume:', parsedResume);
 
       return {
         success: true,
-        data: parsedResume
+        data: parsedResume,
       };
-
     } catch (error) {
       return {
         success: false,
-        error: `Parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        error: `Parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   }
@@ -113,7 +116,7 @@ export class ResumeParser {
 
     return {
       isValid: warnings.length === 0,
-      warnings
+      warnings,
     };
   }
 
@@ -131,7 +134,7 @@ export class ResumeParser {
   private static isValidPhone(phone: string): boolean {
     // Remove all non-digit characters except +
     const cleanPhone = phone.replace(/[^\d+]/g, '');
-    
+
     // Check if it's a valid Pakistani format
     if (cleanPhone.startsWith('+92')) {
       return cleanPhone.length === 13; // +92 + 10 digits
@@ -151,9 +154,12 @@ export class ResumeParser {
   /**
    * Extract specific bio section type
    */
-  static extractBioSection(text: string, sectionType: BioSectionType): string | null {
+  static extractBioSection(
+    text: string,
+    sectionType: BioSectionType,
+  ): string | null {
     const cleanedText = PatternMatcher.cleanRawText(text);
-    
+
     switch (sectionType) {
       case 'objective':
         return this.extractObjective(cleanedText);
@@ -170,27 +176,36 @@ export class ResumeParser {
    * Extract objective section specifically
    */
   private static extractObjective(text: string): string | null {
-    const objectivePattern = /(?:OBJECTIVE|OBJECTIVES?)[\s:]*\n+(.+?)(?=\n[A-Z][A-Z\s]*\n|\n\n|$)/is;
+    const objectivePattern =
+      /(?:OBJECTIVE|OBJECTIVES?)[\s:]*\n+(.+?)(?=\n[A-Z][A-Z\s]*\n|\n\n|$)/is;
     const match = text.match(objectivePattern);
-    return match && match[1] ? PatternMatcher.cleanBioText(match[1].trim()) : null;
+    return match && match[1]
+      ? PatternMatcher.cleanBioText(match[1].trim())
+      : null;
   }
 
   /**
    * Extract summary section specifically
    */
   private static extractSummary(text: string): string | null {
-    const summaryPattern = /(?:SUMMARY|PROFESSIONAL\s+SUMMARY|EXECUTIVE\s+SUMMARY)[\s:]*\n+(.+?)(?=\n[A-Z][A-Z\s]*\n|\n\n|$)/is;
+    const summaryPattern =
+      /(?:SUMMARY|PROFESSIONAL\s+SUMMARY|EXECUTIVE\s+SUMMARY)[\s:]*\n+(.+?)(?=\n[A-Z][A-Z\s]*\n|\n\n|$)/is;
     const match = text.match(summaryPattern);
-    return match && match[1] ? PatternMatcher.cleanBioText(match[1].trim()) : null;
+    return match && match[1]
+      ? PatternMatcher.cleanBioText(match[1].trim())
+      : null;
   }
 
   /**
    * Extract profile section specifically
    */
   private static extractProfile(text: string): string | null {
-    const profilePattern = /(?:PROFILE|PROFESSIONAL\s+PROFILE|PERSONAL\s+PROFILE)[\s:]*\n+(.+?)(?=\n[A-Z][A-Z\s]*\n|\n\n|$)/is;
+    const profilePattern =
+      /(?:PROFILE|PROFESSIONAL\s+PROFILE|PERSONAL\s+PROFILE)[\s:]*\n+(.+?)(?=\n[A-Z][A-Z\s]*\n|\n\n|$)/is;
     const match = text.match(profilePattern);
-    return match && match[1] ? PatternMatcher.cleanBioText(match[1].trim()) : null;
+    return match && match[1]
+      ? PatternMatcher.cleanBioText(match[1].trim())
+      : null;
   }
 
   /**
@@ -202,12 +217,14 @@ export class ResumeParser {
     completionRate: number;
   } {
     const fields = ['fullName', 'email', 'phone', 'bio'];
-    const extractedFields = fields.filter(field => resume[field as keyof ParsedResume] !== null).length;
-    
+    const extractedFields = fields.filter(
+      (field) => resume[field as keyof ParsedResume] !== null,
+    ).length;
+
     return {
       extractedFields,
       totalFields: fields.length,
-      completionRate: Math.round((extractedFields / fields.length) * 100)
+      completionRate: Math.round((extractedFields / fields.length) * 100),
     };
   }
 }

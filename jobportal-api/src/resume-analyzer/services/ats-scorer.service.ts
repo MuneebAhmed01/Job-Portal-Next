@@ -4,11 +4,11 @@ import { Injectable, Logger } from '@nestjs/common';
 
 export interface AtsScoringConfig {
   weights: {
-    skillsMatch: number;      // 35%
+    skillsMatch: number; // 35%
     experienceRelevance: number; // 25%
-    structure: number;         // 20%
-    formatting: number;        // 10%
-    keywordDensity: number;    // 10%
+    structure: number; // 20%
+    formatting: number; // 10%
+    keywordDensity: number; // 10%
   };
   penalties: {
     missingSkillsSection: number;
@@ -93,31 +93,120 @@ export class AtsScorerService {
   private readonly config: AtsScoringConfig = DEFAULT_CONFIG;
 
   private readonly techKeywords = [
-    'javascript', 'typescript', 'react', 'vue', 'angular', 'node.js', 'express', 'nest.js',
-    'python', 'django', 'flask', 'java', 'spring', 'c#', '.net', 'php', 'laravel',
-    'sql', 'mongodb', 'postgresql', 'mysql', 'redis', 'aws', 'azure', 'gcp', 'docker',
-    'kubernetes', 'git', 'agile', 'scrum', 'rest api', 'graphql', 'microservices',
-    'html', 'css', 'tailwind', 'bootstrap', 'sass', 'webpack', 'babel',
-    'tensorflow', 'pytorch', 'machine learning', 'deep learning', 'data science',
-    'devops', 'ci/cd', 'terraform', 'kafka', 'spark', 'hadoop',
-    'figma', 'photoshop', 'illustrator',
+    'javascript',
+    'typescript',
+    'react',
+    'vue',
+    'angular',
+    'node.js',
+    'express',
+    'nest.js',
+    'python',
+    'django',
+    'flask',
+    'java',
+    'spring',
+    'c#',
+    '.net',
+    'php',
+    'laravel',
+    'sql',
+    'mongodb',
+    'postgresql',
+    'mysql',
+    'redis',
+    'aws',
+    'azure',
+    'gcp',
+    'docker',
+    'kubernetes',
+    'git',
+    'agile',
+    'scrum',
+    'rest api',
+    'graphql',
+    'microservices',
+    'html',
+    'css',
+    'tailwind',
+    'bootstrap',
+    'sass',
+    'webpack',
+    'babel',
+    'tensorflow',
+    'pytorch',
+    'machine learning',
+    'deep learning',
+    'data science',
+    'devops',
+    'ci/cd',
+    'terraform',
+    'kafka',
+    'spark',
+    'hadoop',
+    'figma',
+    'photoshop',
+    'illustrator',
   ];
 
   private readonly actionVerbs = [
-    'developed', 'implemented', 'created', 'designed', 'built', 'led', 'managed',
-    'optimized', 'improved', 'launched', 'deployed', 'tested', 'debugged',
-    'maintained', 'updated', 'enhanced', 'reduced', 'increased', 'achieved',
-    'coordinated', 'collaborated', 'mentored', 'trained', 'documented',
-    'architected', 'spearheaded', 'streamlined', 'automated', 'migrated',
-    'delivered', 'refactored', 'scaled', 'integrated', 'established',
+    'developed',
+    'implemented',
+    'created',
+    'designed',
+    'built',
+    'led',
+    'managed',
+    'optimized',
+    'improved',
+    'launched',
+    'deployed',
+    'tested',
+    'debugged',
+    'maintained',
+    'updated',
+    'enhanced',
+    'reduced',
+    'increased',
+    'achieved',
+    'coordinated',
+    'collaborated',
+    'mentored',
+    'trained',
+    'documented',
+    'architected',
+    'spearheaded',
+    'streamlined',
+    'automated',
+    'migrated',
+    'delivered',
+    'refactored',
+    'scaled',
+    'integrated',
+    'established',
   ];
 
   private readonly sectionHeaders = [
-    'contact', 'summary', 'objective', 'profile', 'about',
-    'experience', 'work experience', 'professional experience', 'employment',
-    'education', 'academic', 'qualifications',
-    'skills', 'technical skills', 'core competencies', 'technologies',
-    'projects', 'certifications', 'awards', 'publications',
+    'contact',
+    'summary',
+    'objective',
+    'profile',
+    'about',
+    'experience',
+    'work experience',
+    'professional experience',
+    'employment',
+    'education',
+    'academic',
+    'qualifications',
+    'skills',
+    'technical skills',
+    'core competencies',
+    'technologies',
+    'projects',
+    'certifications',
+    'awards',
+    'publications',
   ];
 
   // ─── Main Entry Point ─────────────────────────────────────────────────
@@ -129,12 +218,32 @@ export class AtsScorerService {
     // ── Gather analysis data ──
     const analysis = {
       hasContactInfo: this.hasContactInfo(text),
-      hasSummary: this.hasSectionHeader(lowerText, ['summary', 'objective', 'profile', 'about me']),
-      hasExperience: this.hasSectionHeader(lowerText, ['experience', 'work experience', 'professional experience', 'employment history']),
-      hasEducation: this.hasSectionHeader(lowerText, ['education', 'academic', 'qualifications', 'university']),
-      hasSkills: this.hasSectionHeader(lowerText, ['skills', 'technical skills', 'core competencies', 'technologies']),
+      hasSummary: this.hasSectionHeader(lowerText, [
+        'summary',
+        'objective',
+        'profile',
+        'about me',
+      ]),
+      hasExperience: this.hasSectionHeader(lowerText, [
+        'experience',
+        'work experience',
+        'professional experience',
+        'employment history',
+      ]),
+      hasEducation: this.hasSectionHeader(lowerText, [
+        'education',
+        'academic',
+        'qualifications',
+        'university',
+      ]),
+      hasSkills: this.hasSectionHeader(lowerText, [
+        'skills',
+        'technical skills',
+        'core competencies',
+        'technologies',
+      ]),
       sectionCount: this.countSectionHeaders(lowerText),
-      wordCount: text.split(/\s+/).filter(w => w.length > 0).length,
+      wordCount: text.split(/\s+/).filter((w) => w.length > 0).length,
       keywordMatches: this.findKeywords(lowerText),
       formattingIssues: this.checkFormattingIssues(text),
       actionVerbCount: this.countActionVerbs(lowerText),
@@ -156,30 +265,48 @@ export class AtsScorerService {
     // ── Weighted combination ──
     const { weights } = this.config;
     const weightedScore =
-      (keywordScore * weights.skillsMatch / 100) +
-      (readabilityScore * weights.experienceRelevance / 100) +
-      (structureScore * weights.structure / 100) +
-      (formattingScore * weights.formatting / 100) +
-      (jobMatchScore * weights.keywordDensity / 100);
+      (keywordScore * weights.skillsMatch) / 100 +
+      (readabilityScore * weights.experienceRelevance) / 100 +
+      (structureScore * weights.structure) / 100 +
+      (formattingScore * weights.formatting) / 100 +
+      (jobMatchScore * weights.keywordDensity) / 100;
 
     // ── Apply hard penalties ──
     if (!analysis.hasSkills) {
-      penalties.push({ reason: 'Missing Skills section', points: this.config.penalties.missingSkillsSection });
+      penalties.push({
+        reason: 'Missing Skills section',
+        points: this.config.penalties.missingSkillsSection,
+      });
     }
     if (!analysis.hasExperience) {
-      penalties.push({ reason: 'Missing Experience section', points: this.config.penalties.missingExperienceSection });
+      penalties.push({
+        reason: 'Missing Experience section',
+        points: this.config.penalties.missingExperienceSection,
+      });
     }
     if (!analysis.hasContactInfo) {
-      penalties.push({ reason: 'Missing contact information', points: this.config.penalties.missingContactInfo });
+      penalties.push({
+        reason: 'Missing contact information',
+        points: this.config.penalties.missingContactInfo,
+      });
     }
     if (!analysis.hasMeasurableAchievements) {
-      penalties.push({ reason: 'No measurable achievements (numbers, percentages, metrics)', points: this.config.penalties.noMeasurableAchievements });
+      penalties.push({
+        reason: 'No measurable achievements (numbers, percentages, metrics)',
+        points: this.config.penalties.noMeasurableAchievements,
+      });
     }
     if (analysis.wordCount < 50) {
-      penalties.push({ reason: 'Resume content too short (< 50 words)', points: this.config.penalties.tooShortContent });
+      penalties.push({
+        reason: 'Resume content too short (< 50 words)',
+        points: this.config.penalties.tooShortContent,
+      });
     }
     if (analysis.actionVerbCount < 3) {
-      penalties.push({ reason: 'Too few action verbs', points: this.config.penalties.noActionVerbs });
+      penalties.push({
+        reason: 'Too few action verbs',
+        points: this.config.penalties.noActionVerbs,
+      });
     }
 
     const totalPenalty = penalties.reduce((sum, p) => sum + p.points, 0);
@@ -192,8 +319,8 @@ export class AtsScorerService {
 
     this.logger.log(
       `ATS Score: ${finalScore} (base=${Math.round(weightedScore)}, penalties=${totalPenalty}) ` +
-      `[fmt=${Math.round(formattingScore)} kw=${Math.round(keywordScore)} str=${Math.round(structureScore)} ` +
-      `rd=${Math.round(readabilityScore)} jm=${Math.round(jobMatchScore)}]`,
+        `[fmt=${Math.round(formattingScore)} kw=${Math.round(keywordScore)} str=${Math.round(structureScore)} ` +
+        `rd=${Math.round(readabilityScore)} jm=${Math.round(jobMatchScore)}]`,
     );
 
     return {
@@ -212,7 +339,9 @@ export class AtsScorerService {
 
   // ─── Dimension Scorers (each returns 0–100) ──────────────────────────
 
-  private computeFormattingScore(analysis: AtsAnalysisResult['analysis']): number {
+  private computeFormattingScore(
+    analysis: AtsAnalysisResult['analysis'],
+  ): number {
     let score = 100;
 
     // Each formatting issue costs 15 points (steeper than before)
@@ -229,7 +358,9 @@ export class AtsScorerService {
     return Math.min(100, Math.round(ratio * 100));
   }
 
-  private computeStructureScore(analysis: AtsAnalysisResult['analysis']): number {
+  private computeStructureScore(
+    analysis: AtsAnalysisResult['analysis'],
+  ): number {
     let score = 0;
 
     // Critical sections worth more
@@ -242,7 +373,9 @@ export class AtsScorerService {
     return Math.min(100, score);
   }
 
-  private computeReadabilityScore(analysis: AtsAnalysisResult['analysis']): number {
+  private computeReadabilityScore(
+    analysis: AtsAnalysisResult['analysis'],
+  ): number {
     let score = 0;
 
     // Word count: 300+ words = full credit, proportional below
@@ -268,17 +401,19 @@ export class AtsScorerService {
    * or on their own lines, not just anywhere in the text.
    */
   private hasSectionHeader(text: string, keywords: string[]): boolean {
-    const lines = text.split('\n').map(l => l.trim().toLowerCase());
+    const lines = text.split('\n').map((l) => l.trim().toLowerCase());
 
     for (const line of lines) {
       // A section header is typically a short line (< 60 chars) that
       // starts with or equals a keyword
       if (line.length > 0 && line.length < 60) {
         for (const keyword of keywords) {
-          if (line === keyword ||
+          if (
+            line === keyword ||
             line.startsWith(keyword + ':') ||
             line.startsWith(keyword + ' ') ||
-            line.endsWith(keyword)) {
+            line.endsWith(keyword)
+          ) {
             return true;
           }
         }
@@ -290,14 +425,16 @@ export class AtsScorerService {
 
   private countSectionHeaders(text: string): number {
     let count = 0;
-    const lines = text.split('\n').map(l => l.trim().toLowerCase());
+    const lines = text.split('\n').map((l) => l.trim().toLowerCase());
 
     for (const header of this.sectionHeaders) {
       for (const line of lines) {
         if (line.length > 0 && line.length < 60) {
-          if (line === header ||
+          if (
+            line === header ||
             line.startsWith(header + ':') ||
-            line.startsWith(header + ' ')) {
+            line.startsWith(header + ' ')
+          ) {
             count++;
             break; // count each header type once
           }
@@ -314,13 +451,15 @@ export class AtsScorerService {
     const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
     const phoneRegex = /\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/;
     const linkedinRegex = /linkedin\.com\/in\//i;
-    return emailRegex.test(text) || phoneRegex.test(text) || linkedinRegex.test(text);
+    return (
+      emailRegex.test(text) || phoneRegex.test(text) || linkedinRegex.test(text)
+    );
   }
 
   // ─── Keyword Matching ────────────────────────────────────────────────
 
   private findKeywords(text: string): string[] {
-    return this.techKeywords.filter(keyword => {
+    return this.techKeywords.filter((keyword) => {
       // Use word boundary matching to prevent false positives
       // e.g., "css" shouldn't match "accessing"
       const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -339,15 +478,15 @@ export class AtsScorerService {
     }
 
     const lines = text.split('\n');
-    const consecutiveEmptyLines = lines.filter((line, index) =>
-      line.trim() === '' && lines[index - 1]?.trim() === '',
+    const consecutiveEmptyLines = lines.filter(
+      (line, index) => line.trim() === '' && lines[index - 1]?.trim() === '',
     ).length;
     if (consecutiveEmptyLines > 3) {
       issues.push('Excessive empty lines reduce readability');
     }
 
     // Check for table formatting
-    const tableLines = lines.filter(l => (l.match(/\|/g) || []).length >= 2);
+    const tableLines = lines.filter((l) => (l.match(/\|/g) || []).length >= 2);
     if (tableLines.length > 2) {
       issues.push('Contains table formatting (may not parse in ATS)');
     }
@@ -363,7 +502,7 @@ export class AtsScorerService {
   // ─── Action Verbs ─────────────────────────────────────────────────────
 
   private countActionVerbs(text: string): number {
-    return this.actionVerbs.filter(verb => {
+    return this.actionVerbs.filter((verb) => {
       const regex = new RegExp(`\\b${verb}\\b`, 'i');
       return regex.test(text);
     }).length;
@@ -375,14 +514,14 @@ export class AtsScorerService {
     // Look for patterns like "increased X by 30%", "managed $2M budget",
     // "reduced latency by 50ms", "led team of 12", etc.
     const patterns = [
-      /\d+%/,                          // percentages
-      /\$[\d,]+/,                      // dollar amounts
+      /\d+%/, // percentages
+      /\$[\d,]+/, // dollar amounts
       /\d+\s*(users|customers|clients|team|members|engineers|developers)/i,
       /(increased|decreased|reduced|improved|grew|saved|generated)\s.*?\d+/i,
-      /\d+x\s/i,                       // multipliers like "3x improvement"
+      /\d+x\s/i, // multipliers like "3x improvement"
     ];
 
-    return patterns.some(p => p.test(text));
+    return patterns.some((p) => p.test(text));
   }
 
   // ─── Job Match Analysis ───────────────────────────────────────────────
@@ -406,13 +545,13 @@ export class AtsScorerService {
     }
 
     // Find matches using word-boundary regex
-    const skillMatches = jobSkills.filter(skill => {
+    const skillMatches = jobSkills.filter((skill) => {
       const escaped = skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(`\\b${escaped}\\b`, 'i');
       return regex.test(resumeText);
     });
 
-    const experienceMatches = jobRequirements.filter(req => {
+    const experienceMatches = jobRequirements.filter((req) => {
       const escaped = req.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(`\\b${escaped}\\b`, 'i');
       return regex.test(resumeText);
@@ -420,10 +559,12 @@ export class AtsScorerService {
 
     // Missing keywords (from deduplicated set)
     const foundKeywords = new Set([...skillMatches, ...experienceMatches]);
-    const missingKeywords = allJobKeywords.filter(k => !foundKeywords.has(k));
+    const missingKeywords = allJobKeywords.filter((k) => !foundKeywords.has(k));
 
     // Match percentage from deduplicated set
-    const matchPercentage = Math.round((foundKeywords.size / allJobKeywords.length) * 100);
+    const matchPercentage = Math.round(
+      (foundKeywords.size / allJobKeywords.length) * 100,
+    );
 
     return {
       skillMatches,
@@ -436,7 +577,7 @@ export class AtsScorerService {
 
   private extractJobSkills(jobDescription: string): string[] {
     // Find tech keywords that appear in the job description
-    return this.techKeywords.filter(skill => {
+    return this.techKeywords.filter((skill) => {
       const escaped = skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(`\\b${escaped}\\b`, 'i');
       return regex.test(jobDescription);
@@ -448,14 +589,30 @@ export class AtsScorerService {
 
     // Common soft skills and requirements
     const commonRequirements = [
-      'team player', 'communication skills', 'problem solving', 'analytical skills',
-      'leadership', 'project management', 'time management', 'attention to detail',
+      'team player',
+      'communication skills',
+      'problem solving',
+      'analytical skills',
+      'leadership',
+      'project management',
+      'time management',
+      'attention to detail',
     ];
-    requirements.push(...commonRequirements.filter(req => jobDescription.includes(req)));
+    requirements.push(
+      ...commonRequirements.filter((req) => jobDescription.includes(req)),
+    );
 
     // Education keywords
-    const educationKeywords = ['bachelor', 'master', 'phd', 'degree', 'certification'];
-    requirements.push(...educationKeywords.filter(k => jobDescription.includes(k)));
+    const educationKeywords = [
+      'bachelor',
+      'master',
+      'phd',
+      'degree',
+      'certification',
+    ];
+    requirements.push(
+      ...educationKeywords.filter((k) => jobDescription.includes(k)),
+    );
 
     return [...new Set(requirements)]; // deduplicate
   }

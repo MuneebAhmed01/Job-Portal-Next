@@ -6,7 +6,7 @@ import {
   Body,
   BadRequestException,
   ParseFilePipeBuilder,
-  HttpStatus
+  HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ResumeAnalyzerService } from './resume-analyzer.service';
@@ -14,7 +14,7 @@ import { AnalyzeResumeDto } from './dto/analyze-resume.dto';
 
 @Controller('resume-analyzer')
 export class ResumeAnalyzerController {
-  constructor(private readonly resumeAnalyzerService: ResumeAnalyzerService) { }
+  constructor(private readonly resumeAnalyzerService: ResumeAnalyzerService) {}
 
   @Post('analyze')
   @UseInterceptors(FileInterceptor('file'))

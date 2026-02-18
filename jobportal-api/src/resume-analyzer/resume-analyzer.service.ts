@@ -10,24 +10,31 @@ export class ResumeAnalyzerService {
     private readonly pdfExtractorService: PdfExtractorService,
     private readonly atsScorerService: AtsScorerService,
     private readonly aiAnalysisService: AiAnalysisService,
-  ) { }
+  ) {}
 
   async analyzeResume(dto: AnalyzeResumeDto) {
     // Validate PDF
-    const isValidPdf = await this.pdfExtractorService.isValidPdf(dto.file.buffer);
+    const isValidPdf = await this.pdfExtractorService.isValidPdf(
+      dto.file.buffer,
+    );
     if (!isValidPdf) {
       throw new Error('Invalid PDF file');
     }
 
     // Extract text from PDF
-    const resumeText = await this.pdfExtractorService.extractTextFromPdf(dto.file.buffer);
+    const resumeText = await this.pdfExtractorService.extractTextFromPdf(
+      dto.file.buffer,
+    );
 
     if (!resumeText || resumeText.trim().length < 50) {
       throw new Error('Resume text is too short or could not be extracted');
     }
 
     // Perform ATS analysis with job description if provided
-    const atsResult = this.atsScorerService.analyzeResume(resumeText, dto.jobDescription);
+    const atsResult = this.atsScorerService.analyzeResume(
+      resumeText,
+      dto.jobDescription,
+    );
 
     // Generate AI-powered analysis
     const aiResponse = this.aiAnalysisService.generateAnalysis(atsResult);

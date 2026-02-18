@@ -1,15 +1,15 @@
 import { AtsScorerService } from './ats-scorer.service';
 
 describe('ATS Scorer Service', () => {
-    let service: AtsScorerService;
+  let service: AtsScorerService;
 
-    beforeEach(() => {
-        service = new AtsScorerService();
-    });
+  beforeEach(() => {
+    service = new AtsScorerService();
+  });
 
-    describe('Great resume with matching job description', () => {
-        it('should score 80–95 for a well-structured resume with matching JD', () => {
-            const resumeText = `
+  describe('Great resume with matching job description', () => {
+    it('should score 80–95 for a well-structured resume with matching JD', () => {
+      const resumeText = `
 John Doe
 john.doe@email.com | 555-123-4567 | linkedin.com/in/johndoe
 
@@ -35,42 +35,42 @@ Skills
 JavaScript, TypeScript, React, Node.js, Express, PostgreSQL, MongoDB, Redis, Docker, Kubernetes, AWS, Git, REST API, GraphQL, Agile, CI/CD
 `;
 
-            const jobDescription = `
+      const jobDescription = `
 We are looking for a Senior Full-Stack Developer with experience in React, Node.js, TypeScript, 
 PostgreSQL, and Docker. Must have experience with CI/CD, agile methodologies, and leading engineering teams.
 Strong communication skills and attention to detail required. Bachelor's degree required.
 `;
 
-            const result = service.analyzeResume(resumeText, jobDescription);
+      const result = service.analyzeResume(resumeText, jobDescription);
 
-            expect(result.score).toBeGreaterThanOrEqual(75);
-            expect(result.score).toBeLessThanOrEqual(95);
-            expect(result.penalties.length).toBe(0); // no penalties for a great resume
-            expect(result.analysis.hasMeasurableAchievements).toBe(true);
-            expect(result.analysis.hasContactInfo).toBe(true);
-            expect(result.analysis.hasExperience).toBe(true);
-            expect(result.analysis.hasSkills).toBe(true);
-        });
+      expect(result.score).toBeGreaterThanOrEqual(75);
+      expect(result.score).toBeLessThanOrEqual(95);
+      expect(result.penalties.length).toBe(0); // no penalties for a great resume
+      expect(result.analysis.hasMeasurableAchievements).toBe(true);
+      expect(result.analysis.hasContactInfo).toBe(true);
+      expect(result.analysis.hasExperience).toBe(true);
+      expect(result.analysis.hasSkills).toBe(true);
     });
+  });
 
-    describe('Bad resume (too short, no sections)', () => {
-        it('should score 10–30 for a barely-there resume', () => {
-            const resumeText = `
+  describe('Bad resume (too short, no sections)', () => {
+    it('should score 10–30 for a barely-there resume', () => {
+      const resumeText = `
 I know some programming stuff and I like computers.
 Looking for a job in tech. I can do things.
 `;
 
-            const result = service.analyzeResume(resumeText);
+      const result = service.analyzeResume(resumeText);
 
-            expect(result.score).toBeGreaterThanOrEqual(10);
-            expect(result.score).toBeLessThanOrEqual(30);
-            expect(result.penalties.length).toBeGreaterThan(0);
-        });
+      expect(result.score).toBeGreaterThanOrEqual(10);
+      expect(result.score).toBeLessThanOrEqual(30);
+      expect(result.penalties.length).toBeGreaterThan(0);
     });
+  });
 
-    describe('Decent resume, no job description', () => {
-        it('should score 40–65 for a moderate resume without JD', () => {
-            const resumeText = `
+  describe('Decent resume, no job description', () => {
+    it('should score 40–65 for a moderate resume without JD', () => {
+      const resumeText = `
 Jane Smith
 jane@example.com
 
@@ -90,24 +90,24 @@ Skills
 JavaScript, React, Node.js, CSS, HTML, Git
 `;
 
-            const result = service.analyzeResume(resumeText);
+      const result = service.analyzeResume(resumeText);
 
-            expect(result.score).toBeGreaterThanOrEqual(30);
-            expect(result.score).toBeLessThanOrEqual(65);
-            // No job description = default 30 for job match
-            expect(result.breakdown.jobMatch).toBe(30);
-        });
+      expect(result.score).toBeGreaterThanOrEqual(30);
+      expect(result.score).toBeLessThanOrEqual(65);
+      // No job description = default 30 for job match
+      expect(result.breakdown.jobMatch).toBe(30);
+    });
+  });
+
+  describe('Score floor and ceiling', () => {
+    it('should never go below 10', () => {
+      const result = service.analyzeResume('x');
+      expect(result.score).toBeGreaterThanOrEqual(10);
     });
 
-    describe('Score floor and ceiling', () => {
-        it('should never go below 10', () => {
-            const result = service.analyzeResume('x');
-            expect(result.score).toBeGreaterThanOrEqual(10);
-        });
-
-        it('should never exceed 95', () => {
-            // Even a perfect resume shouldn't be 100
-            const perfectResume = `
+    it('should never exceed 95', () => {
+      // Even a perfect resume shouldn't be 100
+      const perfectResume = `
 john@email.com | 555-123-4567 | linkedin.com/in/john
 
 Summary
@@ -131,57 +131,64 @@ SQL, MongoDB, PostgreSQL, Redis, AWS, Azure, GCP, Docker, Kubernetes, Git, Agile
 REST API, GraphQL, Microservices, CI/CD, Terraform, Kafka, Machine Learning, TensorFlow
 `;
 
-            const result = service.analyzeResume(perfectResume, 'Looking for a CTO with React Node.js TypeScript Docker Kubernetes AWS experience');
-            expect(result.score).toBeLessThanOrEqual(95);
-        });
+      const result = service.analyzeResume(
+        perfectResume,
+        'Looking for a CTO with React Node.js TypeScript Docker Kubernetes AWS experience',
+      );
+      expect(result.score).toBeLessThanOrEqual(95);
     });
+  });
 
-    describe('Penalty system', () => {
-        it('should penalize missing Skills section', () => {
-            const resumeText = `
+  describe('Penalty system', () => {
+    it('should penalize missing Skills section', () => {
+      const resumeText = `
 john@email.com
 
 Experience
 Developer at Company | 2020 - Present
 - Developed web applications
 `;
-            const result = service.analyzeResume(resumeText);
-            const skillsPenalty = result.penalties.find(p => p.reason.includes('Skills'));
-            expect(skillsPenalty).toBeDefined();
-            expect(skillsPenalty!.points).toBe(15);
-        });
+      const result = service.analyzeResume(resumeText);
+      const skillsPenalty = result.penalties.find((p) =>
+        p.reason.includes('Skills'),
+      );
+      expect(skillsPenalty).toBeDefined();
+      expect(skillsPenalty!.points).toBe(15);
+    });
 
-        it('should penalize missing Experience section', () => {
-            const resumeText = `
+    it('should penalize missing Experience section', () => {
+      const resumeText = `
 john@email.com
 
 Skills
 React, Node.js, JavaScript
 `;
-            const result = service.analyzeResume(resumeText);
-            const expPenalty = result.penalties.find(p => p.reason.includes('Experience'));
-            expect(expPenalty).toBeDefined();
-        });
+      const result = service.analyzeResume(resumeText);
+      const expPenalty = result.penalties.find((p) =>
+        p.reason.includes('Experience'),
+      );
+      expect(expPenalty).toBeDefined();
     });
+  });
 
-    describe('Section detection (Bug #6 fix)', () => {
-        it('should require section header, not just the word "experience"', () => {
-            // This resume mentions "experience" in a sentence but has no section header
-            const resumeText = `
+  describe('Section detection (Bug #6 fix)', () => {
+    it('should require section header, not just the word "experience"', () => {
+      // This resume mentions "experience" in a sentence but has no section header
+      const resumeText = `
 john@email.com
 I have 3 years of experience with React and JavaScript.
 I am looking for a new role where I can use my experience to build great products.
 `;
 
-            const result = service.analyzeResume(resumeText);
-            // "experience" appears in text but NOT as a section header
-            expect(result.analysis.hasExperience).toBe(false);
-        });
+      const result = service.analyzeResume(resumeText);
+      // "experience" appears in text but NOT as a section header
+      expect(result.analysis.hasExperience).toBe(false);
     });
+  });
 
-    describe('Keyword matching (Bug #3 fix)', () => {
-        it('should use word boundaries to prevent false positives', () => {
-            const resumeText = `
+  describe('Keyword matching (Bug #3 fix)', () => {
+    it('should use word boundaries to prevent false positives', () => {
+      const resumeText = `
 john@email.com
 
 Summary
@@ -190,16 +197,16 @@ Experienced in accessing databases and processing data.
 Skills
 Data analysis
 `;
-            const result = service.analyzeResume(resumeText);
-            // "accessing" should NOT match "css"
-            // "processing" should NOT match anything spuriously
-            expect(result.analysis.keywordMatches).not.toContain('css');
-        });
+      const result = service.analyzeResume(resumeText);
+      // "accessing" should NOT match "css"
+      // "processing" should NOT match anything spuriously
+      expect(result.analysis.keywordMatches).not.toContain('css');
     });
+  });
 
-    describe('Job match deduplication (Bug #7 fix)', () => {
-        it('should not double-count keywords in job match', () => {
-            const resumeText = `
+  describe('Job match deduplication (Bug #7 fix)', () => {
+    it('should not double-count keywords in job match', () => {
+      const resumeText = `
 john@email.com
 
 Skills
@@ -209,18 +216,21 @@ Experience
 Developer | 2020 - Present
 - Built applications with React and Node.js
 `;
-            const jobDescription = 'Looking for React developer with Node.js experience. Must know React well.';
+      const jobDescription =
+        'Looking for React developer with Node.js experience. Must know React well.';
 
-            const result = service.analyzeResume(resumeText, jobDescription);
-            // React appears twice in JD but should only count once
-            expect(result.analysis.jobMatchAnalysis).toBeDefined();
-            expect(result.analysis.jobMatchAnalysis!.matchPercentage).toBeGreaterThan(0);
-        });
+      const result = service.analyzeResume(resumeText, jobDescription);
+      // React appears twice in JD but should only count once
+      expect(result.analysis.jobMatchAnalysis).toBeDefined();
+      expect(result.analysis.jobMatchAnalysis!.matchPercentage).toBeGreaterThan(
+        0,
+      );
     });
+  });
 
-    describe('Measurable achievements detection', () => {
-        it('should detect percentages and numbers', () => {
-            const result = service.analyzeResume(`
+  describe('Measurable achievements detection', () => {
+    it('should detect percentages and numbers', () => {
+      const result = service.analyzeResume(`
 john@email.com
 Experience
 Developer | 2020
@@ -230,11 +240,11 @@ Developer | 2020
 Skills
 JavaScript
 `);
-            expect(result.analysis.hasMeasurableAchievements).toBe(true);
-        });
+      expect(result.analysis.hasMeasurableAchievements).toBe(true);
+    });
 
-        it('should not detect achievements in plain text', () => {
-            const result = service.analyzeResume(`
+    it('should not detect achievements in plain text', () => {
+      const result = service.analyzeResume(`
 john@email.com
 Experience
 Developer | Company
@@ -244,7 +254,7 @@ Developer | Company
 Skills
 JavaScript
 `);
-            expect(result.analysis.hasMeasurableAchievements).toBe(false);
-        });
+      expect(result.analysis.hasMeasurableAchievements).toBe(false);
     });
+  });
 });

@@ -13,6 +13,7 @@ import { PrismaModule } from './lib/prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { AdminModule } from './admin/admin.module';
 import { RedisModule } from './redis/redis.module';
+import { LinkedInModule } from './auth/linkedin/linkedin.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { RedisModule } from './redis/redis.module';
     RedisModule,
     UsersModule,
     AuthModule,
+    LinkedInModule,
     ApplicantsModule,
     JobsModule,
     CareerGuidanceModule,

@@ -113,7 +113,8 @@ export class AdminService {
     });
 
     return jobs.map((job) => ({
-      jobTitle: job.title.length > 25 ? job.title.substring(0, 25) + '...' : job.title,
+      jobTitle:
+        job.title.length > 25 ? job.title.substring(0, 25) + '...' : job.title,
       applicants: job._count.applications,
     }));
   }

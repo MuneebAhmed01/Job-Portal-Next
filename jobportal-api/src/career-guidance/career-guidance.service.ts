@@ -92,15 +92,19 @@ export function computeNormalizedScore(
   adjacentTotal: number,
   config: ScoringConfig,
 ): number {
-  const coreScore = coreTotal > 0
-    ? (coreMatched / Math.min(coreTotal, 4)) * config.coreWeight
-    : 0;
-  const supportingScore = supportingTotal > 0
-    ? (supportingMatched / Math.min(supportingTotal, 3)) * config.supportingWeight
-    : 0;
-  const adjacentScore = adjacentTotal > 0
-    ? (adjacentMatched / adjacentTotal) * config.adjacentWeight
-    : 0;
+  const coreScore =
+    coreTotal > 0
+      ? (coreMatched / Math.min(coreTotal, 4)) * config.coreWeight
+      : 0;
+  const supportingScore =
+    supportingTotal > 0
+      ? (supportingMatched / Math.min(supportingTotal, 3)) *
+        config.supportingWeight
+      : 0;
+  const adjacentScore =
+    adjacentTotal > 0
+      ? (adjacentMatched / adjacentTotal) * config.adjacentWeight
+      : 0;
 
   // Cap at max weight (in case matched > cap)
   const finalCore = Math.min(coreScore, config.coreWeight);
@@ -123,7 +127,9 @@ export class CareerGuidanceService {
     // Expand implied skills (e.g. React implies JavaScript)
     const expandedSkills = this.expandImpliedSkills(normalizedSkills);
     if (expandedSkills.length > normalizedSkills.length) {
-      this.logger.log(`Expanded implied skills: [${expandedSkills.join(', ')}]`);
+      this.logger.log(
+        `Expanded implied skills: [${expandedSkills.join(', ')}]`,
+      );
     }
 
     // Step 1: Score each category
@@ -131,7 +137,7 @@ export class CareerGuidanceService {
 
     // Step 2: Sort by normalized score descending
     const sorted = [...categoryScores]
-      .filter(s => s.normalizedScore > 0)
+      .filter((s) => s.normalizedScore > 0)
       .sort((a, b) => b.normalizedScore - a.normalizedScore);
 
     // Step 3: Detect combination role or primary category
@@ -173,48 +179,84 @@ export class CareerGuidanceService {
 
     const rules = [
       {
-        triggers: ['react', 'reactjs', 'react.js', 'vue', 'vuejs', 'vue.js', 'angular', 'angularjs', 'svelte', 'next.js', 'nextjs'],
-        targets: ['javascript', 'html', 'css']
+        triggers: [
+          'react',
+          'reactjs',
+          'react.js',
+          'vue',
+          'vuejs',
+          'vue.js',
+          'angular',
+          'angularjs',
+          'svelte',
+          'next.js',
+          'nextjs',
+        ],
+        targets: ['javascript', 'html', 'css'],
       },
       {
         triggers: ['typescript', 'ts'],
-        targets: ['javascript']
+        targets: ['javascript'],
       },
       {
-        triggers: ['node', 'nodejs', 'node.js', 'express', 'expressjs', 'express.js', 'nest', 'nestjs', 'nest.js'],
-        targets: ['javascript']
+        triggers: [
+          'node',
+          'nodejs',
+          'node.js',
+          'express',
+          'expressjs',
+          'express.js',
+          'nest',
+          'nestjs',
+          'nest.js',
+        ],
+        targets: ['javascript'],
       },
       {
-        triggers: ['django', 'flask', 'fastapi', 'pandas', 'numpy', 'pytorch', 'tensorflow'],
-        targets: ['python']
+        triggers: [
+          'django',
+          'flask',
+          'fastapi',
+          'pandas',
+          'numpy',
+          'pytorch',
+          'tensorflow',
+        ],
+        targets: ['python'],
       },
       {
-        triggers: ['spring', 'spring boot', 'springboot', 'hibernate', 'android'],
-        targets: ['java']
+        triggers: [
+          'spring',
+          'spring boot',
+          'springboot',
+          'hibernate',
+          'android',
+        ],
+        targets: ['java'],
       },
       {
         triggers: ['dotnet', '.net', 'unity'],
-        targets: ['c#', 'csharp']
+        targets: ['c#', 'csharp'],
       },
       {
         triggers: ['laravel', 'symfony'],
-        targets: ['php']
+        targets: ['php'],
       },
       {
         triggers: ['flutter'],
-        targets: ['dart']
+        targets: ['dart'],
       },
       {
         triggers: ['go', 'golang'],
-        targets: ['go'] // redundant but consistency
-      }
+        targets: ['go'], // redundant but consistency
+      },
     ];
 
     for (const rule of rules) {
       // Check if any trigger exists in the input skills
-      const match = rule.triggers.some(t => skillSet.has(t));
+      const match = rule.triggers.some((t) => skillSet.has(t));
       if (match) {
-        rule.targets.forEach(t => implied.add(t));
+        rule.targets.forEach((t) => implied.add(t));
       }
     }
 
@@ -224,7 +266,7 @@ export class CareerGuidanceService {
   // ─── Scoring ──────────────────────────────────────────────────────────
 
   private scoreAllCategories(normalizedSkills: string[]): CategoryScore[] {
-    return careerCategories.map(category => {
+    return careerCategories.map((category) => {
       const matched: string[] = [];
       let coreMatched = 0;
       let coreTotal = 0;
@@ -236,27 +278,44 @@ export class CareerGuidanceService {
       for (const skill of category.skills) {
         // Count totals by importance
         switch (skill.importance) {
-          case 'core': coreTotal++; break;
-          case 'supporting': supportingTotal++; break;
-          case 'adjacent': adjacentTotal++; break;
+          case 'core':
+            coreTotal++;
+            break;
+          case 'supporting':
+            supportingTotal++;
+            break;
+          case 'adjacent':
+            adjacentTotal++;
+            break;
         }
 
         // Check if user has this skill
-        const hasMatch = normalizedSkills.some(input => matchesAlias(input, skill.aliases));
+        const hasMatch = normalizedSkills.some((input) =>
+          matchesAlias(input, skill.aliases),
+        );
         if (hasMatch) {
           matched.push(skill.canonical);
           switch (skill.importance) {
-            case 'core': coreMatched++; break;
-            case 'supporting': supportingMatched++; break;
-            case 'adjacent': adjacentMatched++; break;
+            case 'core':
+              coreMatched++;
+              break;
+            case 'supporting':
+              supportingMatched++;
+              break;
+            case 'adjacent':
+              adjacentMatched++;
+              break;
           }
         }
       }
 
       const normalizedScore = computeNormalizedScore(
-        coreMatched, coreTotal,
-        supportingMatched, supportingTotal,
-        adjacentMatched, adjacentTotal,
+        coreMatched,
+        coreTotal,
+        supportingMatched,
+        supportingTotal,
+        adjacentMatched,
+        adjacentTotal,
         scoringConfig,
       );
 
@@ -299,8 +358,6 @@ export class CareerGuidanceService {
       };
     }
 
-
-
     // Check combination roles if we have at least 2 categories
     if (sorted.length >= 2) {
       const second = sorted[1];
@@ -313,7 +370,7 @@ export class CareerGuidanceService {
         // Look for a matching combination role
         const topTwo = [top.category, second.category];
         for (const combo of combinationRoles) {
-          const hasAll = combo.categories.every(cat => topTwo.includes(cat));
+          const hasAll = combo.categories.every((cat) => topTwo.includes(cat));
           if (hasAll) {
             return {
               primaryCategory: combo.result,
@@ -347,7 +404,10 @@ export class CareerGuidanceService {
 
   // ─── Career Paths ─────────────────────────────────────────────────────
 
-  private getCareerPaths(primaryCategory: string, sorted: CategoryScore[]): CareerPath[] {
+  private getCareerPaths(
+    primaryCategory: string,
+    sorted: CategoryScore[],
+  ): CareerPath[] {
     const paths: CareerPath[] = [];
     const addedTitles = new Set<string>();
 
@@ -357,7 +417,10 @@ export class CareerGuidanceService {
       for (const path of primaryPaths.slice(0, 3)) {
         if (!addedTitles.has(path.title)) {
           const topScore = sorted[0]?.normalizedScore ?? 0;
-          const adjustedMatch = Math.min(98, Math.round(path.baseMatchScore * (topScore / 60)));
+          const adjustedMatch = Math.min(
+            98,
+            Math.round(path.baseMatchScore * (topScore / 60)),
+          );
           paths.push({
             title: path.title,
             description: path.description,
@@ -379,7 +442,10 @@ export class CareerGuidanceService {
 
       for (const path of categoryPaths.slice(0, 2)) {
         if (!addedTitles.has(path.title)) {
-          const adjustedMatch = Math.min(98, Math.round(path.baseMatchScore * (score.normalizedScore / 60)));
+          const adjustedMatch = Math.min(
+            98,
+            Math.round(path.baseMatchScore * (score.normalizedScore / 60)),
+          );
           paths.push({
             title: path.title,
             description: path.description,
@@ -407,20 +473,23 @@ export class CareerGuidanceService {
     const userSkillSet = new Set(userSkills);
 
     for (const score of sorted.slice(0, 2)) {
-      const category = careerCategories.find(c => c.name === score.category);
+      const category = careerCategories.find((c) => c.name === score.category);
       if (!category) continue;
 
       const missingSkills: CareerAnalysis['skillsToEnhance'][0]['skills'] = [];
 
       for (const skill of category.skills) {
-        const hasSkill = Array.from(userSkillSet).some(us =>
+        const hasSkill = Array.from(userSkillSet).some((us) =>
           matchesAlias(us, skill.aliases),
         );
 
         if (!hasSkill) {
           const priority: 'high' | 'medium' | 'low' =
-            skill.importance === 'core' ? 'high' :
-              skill.importance === 'supporting' ? 'medium' : 'low';
+            skill.importance === 'core'
+              ? 'high'
+              : skill.importance === 'supporting'
+                ? 'medium'
+                : 'low';
 
           missingSkills.push({
             name: skill.canonical,
@@ -448,38 +517,55 @@ export class CareerGuidanceService {
     return reasons?.[skillName] || `Important for ${category} roles`;
   }
 
-  private getLearningApproach(primaryCategory: string): CareerAnalysis['learningApproach'] {
+  private getLearningApproach(
+    primaryCategory: string,
+  ): CareerAnalysis['learningApproach'] {
     return learningApproaches[primaryCategory] || defaultLearningApproach;
   }
 
-  private buildSkillBreakdown(sorted: CategoryScore[]): CareerAnalysis['skillBreakdown'] {
+  private buildSkillBreakdown(
+    sorted: CategoryScore[],
+  ): CareerAnalysis['skillBreakdown'] {
     const totalScore = sorted.reduce((sum, s) => sum + s.normalizedScore, 0);
 
-    return sorted.map(s => ({
+    return sorted.map((s) => ({
       category: s.category,
       matchedSkills: s.matchedSkills,
       normalizedScore: s.normalizedScore,
-      percentage: totalScore > 0
-        ? Math.round((s.normalizedScore / totalScore) * 100)
-        : 0,
+      percentage:
+        totalScore > 0 ? Math.round((s.normalizedScore / totalScore) * 100) : 0,
     }));
   }
 
-  private generateCareerSummary(primaryCategory: string, sorted: CategoryScore[]): string {
+  private generateCareerSummary(
+    primaryCategory: string,
+    sorted: CategoryScore[],
+  ): string {
     if (sorted.length === 0) {
       return "You're at the beginning of your tech journey. Consider exploring foundational skills in areas like web development, design, or data science to find your passion.";
     }
 
     const top = sorted[0];
-    const totalMatched = sorted.reduce((sum, s) => sum + s.matchedSkills.length, 0);
-    const isCombination = combinationRoles.some(c => c.result === primaryCategory);
+    const totalMatched = sorted.reduce(
+      (sum, s) => sum + s.matchedSkills.length,
+      0,
+    );
+    const isCombination = combinationRoles.some(
+      (c) => c.result === primaryCategory,
+    );
 
     if (isCombination) {
-      const categories = sorted.slice(0, 2).map(s => s.category).join(' and ');
+      const categories = sorted
+        .slice(0, 2)
+        .map((s) => s.category)
+        .join(' and ');
       return `You have a unique hybrid skill set combining ${categories}. With ${totalMatched} relevant skills, you're well-positioned for interdisciplinary roles like ${primaryCategory} that bridge multiple domains.`;
     }
 
-    if (sorted.length > 1 && sorted[1].normalizedScore > top.normalizedScore * 0.5) {
+    if (
+      sorted.length > 1 &&
+      sorted[1].normalizedScore > top.normalizedScore * 0.5
+    ) {
       return `Your primary strength is in ${primaryCategory} with ${top.matchedSkills.length} key skills, but you also show strong capabilities in ${sorted[1].category}. This versatility gives you an edge for collaborative, cross-functional roles.`;
     }
 

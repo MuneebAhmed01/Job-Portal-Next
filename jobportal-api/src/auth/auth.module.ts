@@ -4,6 +4,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GoogleAuthService } from './google-auth.service';
 import { PrismaModule } from '../lib/prisma/prisma.module';
+import { LinkedInModule } from './linkedin/linkedin.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { PrismaModule } from '../lib/prisma/prisma.module';
       signOptions: { expiresIn: '1d' },
     }),
     PrismaModule,
+    LinkedInModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, GoogleAuthService],

@@ -1,4 +1,16 @@
-import { Controller, Post, Body, UseInterceptors, UploadedFile, Get, Headers, Query, UnauthorizedException, UsePipes, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseInterceptors,
+  UploadedFile,
+  Get,
+  Headers,
+  Query,
+  UnauthorizedException,
+  UsePipes,
+  BadRequestException,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { AuthService } from './auth.service';
@@ -18,33 +30,36 @@ export class AuthController {
   ) {}
 
   @Post('signup')
-  @UseInterceptors(FileInterceptor('resume', {
-    storage: diskStorage({
-      destination: (req, file, cb) => {
-        const uploadPath = path.join(process.cwd(), 'uploads', 'resumes');
-        // Create directory if it doesn't exist
-        if (!fs.existsSync(uploadPath)) {
-          fs.mkdirSync(uploadPath, { recursive: true });
+  @UseInterceptors(
+    FileInterceptor('resume', {
+      storage: diskStorage({
+        destination: (req, file, cb) => {
+          const uploadPath = path.join(process.cwd(), 'uploads', 'resumes');
+          // Create directory if it doesn't exist
+          if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+          }
+          cb(null, uploadPath);
+        },
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = path.extname(file.originalname);
+          cb(null, `resume-${uniqueSuffix}${ext}`);
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'application/pdf') {
+          cb(null, true);
+        } else {
+          cb(new Error('Only PDF files are allowed'), false);
         }
-        cb(null, uploadPath);
       },
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.originalname);
-        cb(null, `resume-${uniqueSuffix}${ext}`);
-      }
     }),
-    fileFilter: (req, file, cb) => {
-      if (file.mimetype === 'application/pdf') {
-        cb(null, true);
-      } else {
-        cb(new Error('Only PDF files are allowed'), false);
-      }
-    }
-  }))
+  )
   async signup(
     @Body() signupDto: SignupDto,
-    @UploadedFile() resume?: Express.Multer.File
+    @UploadedFile() resume?: Express.Multer.File,
   ) {
     // Manually validate since @UsePipes doesn't work with FileInterceptor (multipart)
     const result = signupSchema.safeParse(signupDto);
@@ -65,17 +80,17 @@ export class AuthController {
   }
 
   @Post('google')
-  async googleAuth(
-    @Body() body: any,
-    @Query('role') role?: string,
-  ) {
+  async googleAuth(@Body() body: any, @Query('role') role?: string) {
     const bodyResult = googleAuthSchema.safeParse(body);
     if (!bodyResult.success) {
       throw new BadRequestException('Invalid request: accessToken is required');
     }
     const roleResult = googleRoleSchema.safeParse({ role });
     const validRole = roleResult.success ? roleResult.data.role : undefined;
-    return this.googleAuthService.authenticate(bodyResult.data.accessToken, validRole);
+    return this.googleAuthService.authenticate(
+      bodyResult.data.accessToken,
+      validRole,
+    );
   }
 
   @Get('me')
@@ -83,10 +98,10 @@ export class AuthController {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw new UnauthorizedException('No token provided');
     }
-    
+
     const token = authHeader.split(' ')[1];
     const payload = this.authService.verifyToken(token);
-    
+
     if (payload.userType === 'employee') {
       return this.authService.findEmployeeById(payload.sub);
     } else {

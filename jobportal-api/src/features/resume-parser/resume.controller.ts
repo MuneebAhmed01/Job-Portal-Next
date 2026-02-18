@@ -1,12 +1,12 @@
-import { 
-  Controller, 
-  Post, 
-  UseInterceptors, 
-  UploadedFile, 
-  Body, 
-  HttpException, 
+import {
+  Controller,
+  Post,
+  UseInterceptors,
+  UploadedFile,
+  Body,
+  HttpException,
   HttpStatus,
-  Logger
+  Logger,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ResumeService } from './resume.service';
@@ -23,39 +23,35 @@ export class ResumeController {
   async uploadResume(@UploadedFile() file: Express.Multer.File) {
     try {
       if (!file) {
-        throw new HttpException(
-          'No file uploaded',
-          HttpStatus.BAD_REQUEST
-        );
+        throw new HttpException('No file uploaded', HttpStatus.BAD_REQUEST);
       }
 
       this.logger.log(`Processing resume upload: ${file.originalname}`);
-      
+
       const result = await this.resumeService.processResume(file);
-      
+
       if (!result.success) {
         throw new HttpException(
           result.error || 'Resume processing failed',
-          HttpStatus.BAD_REQUEST
+          HttpStatus.BAD_REQUEST,
         );
       }
 
       return {
         success: true,
         message: 'Resume processed successfully',
-        data: result.data
+        data: result.data,
       };
-
     } catch (error) {
       this.logger.error(`Resume upload failed: ${error.message}`);
-      
+
       if (error instanceof HttpException) {
         throw error;
       }
 
       throw new HttpException(
         'Internal server error during resume processing',
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -66,37 +62,37 @@ export class ResumeController {
       if (!text || text.trim().length === 0) {
         throw new HttpException(
           'No text provided for parsing',
-          HttpStatus.BAD_REQUEST
+          HttpStatus.BAD_REQUEST,
         );
       }
 
       this.logger.log('Processing resume text parsing');
-      
-      const result: ResumeParseResult = this.resumeService.parseResumeText(text);
-      
+
+      const result: ResumeParseResult =
+        this.resumeService.parseResumeText(text);
+
       if (!result.success) {
         throw new HttpException(
           result.error || 'Text parsing failed',
-          HttpStatus.BAD_REQUEST
+          HttpStatus.BAD_REQUEST,
         );
       }
 
       return {
         success: true,
         message: 'Resume text parsed successfully',
-        data: result.data
+        data: result.data,
       };
-
     } catch (error) {
       this.logger.error(`Resume text parsing failed: ${error.message}`);
-      
+
       if (error instanceof HttpException) {
         throw error;
       }
 
       throw new HttpException(
         'Internal server error during text parsing',
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -107,12 +103,12 @@ export class ResumeController {
       if (!resumeData) {
         throw new HttpException(
           'No resume data provided for validation',
-          HttpStatus.BAD_REQUEST
+          HttpStatus.BAD_REQUEST,
         );
       }
 
       this.logger.log('Validating parsed resume data');
-      
+
       // Import here to avoid circular dependency
       const { ResumeParser } = await import('./resume.parser');
       const validation = ResumeParser.validateParsedResume(resumeData);
@@ -120,19 +116,18 @@ export class ResumeController {
       return {
         success: true,
         message: 'Resume validation completed',
-        data: validation
+        data: validation,
       };
-
     } catch (error) {
       this.logger.error(`Resume validation failed: ${error.message}`);
-      
+
       if (error instanceof HttpException) {
         throw error;
       }
 
       throw new HttpException(
         'Internal server error during validation',
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

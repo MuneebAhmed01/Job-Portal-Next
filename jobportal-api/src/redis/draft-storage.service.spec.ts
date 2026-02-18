@@ -8,7 +8,10 @@ describe('DraftStorageService', () => {
 
   const employeeId = 'emp-1';
   const jobId = 'job-1';
-  const payload = { coverLetter: 'I am very interested…', experience: '3 years' };
+  const payload = {
+    coverLetter: 'I am very interested…',
+    experience: '3 years',
+  };
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({

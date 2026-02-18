@@ -10,7 +10,12 @@ import { DraftStorageService } from './draft-storage.service';
  */
 @Global()
 @Module({
-  providers: [RedisService, SessionService, JobCacheService, DraftStorageService],
+  providers: [
+    RedisService,
+    SessionService,
+    JobCacheService,
+    DraftStorageService,
+  ],
   exports: [RedisService, SessionService, JobCacheService, DraftStorageService],
 })
 export class RedisModule {}

@@ -12,15 +12,19 @@ datasource db {
 
 // Employee model - for job seekers
 model Employee {
-  id         String   @id @default(cuid())
-  name       String
-  phone      String
-  email      String   @unique
-  password   String?
-  provider   String   @default("local")
-  resumePath String?
-  bio        String?
-  createdAt  DateTime @default(now())
+  id                String   @id @default(cuid())
+  name              String
+  phone             String?
+  email             String?  @unique
+  password          String?
+  provider          String   @default("LOCAL")
+  linkedinId        String?  @unique
+  profilePicture    String?
+  bio               String?
+  isProfileComplete Boolean  @default(false)
+  resumePath        String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   applications JobApplication[] @relation("EmployeeApplications")
   savedJobs    SavedJob[]       @relation("EmployeeSavedJobs")
@@ -30,15 +34,19 @@ model Employee {
 
 // Employer model - for companies/recruiters
 model Employer {
-  id          String   @id @default(cuid())
-  name        String
-  phone       String
-  companyName String
-  email       String   @unique
-  password    String?
-  provider    String   @default("local")
-  bio         String?
-  createdAt   DateTime @default(now())
+  id                String   @id @default(cuid())
+  name              String
+  phone             String?
+  companyName       String
+  email             String?  @unique
+  password          String?
+  provider          String   @default("LOCAL")
+  linkedinId        String?  @unique
+  profilePicture    String?
+  bio               String?
+  isProfileComplete Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   jobs Job[] @relation("EmployerJobs")
 
@@ -109,8 +117,8 @@ model SavedJob {
 }
 
 model UserLog {
-  id        String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   userId    String
   action    String
   message   String?

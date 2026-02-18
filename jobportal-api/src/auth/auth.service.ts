@@ -1,8 +1,16 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../lib/prisma/prisma.service';
 import { SessionService } from '../redis/session.service';
-import type { SignupDto, EmployeeSignupDto, EmployerSignupDto } from './dto/signup.dto';
+import type {
+  SignupDto,
+  EmployeeSignupDto,
+  EmployerSignupDto,
+} from './dto/signup.dto';
 import type { SigninDto } from './dto/signin.dto';
 import * as bcrypt from 'bcrypt';
 
@@ -18,13 +26,17 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(signupDto.password, 10);
 
     if (signupDto.userType === 'employee') {
-      return this.signupEmployee(signupDto as EmployeeSignupDto, hashedPassword, resume);
+      return this.signupEmployee(signupDto, hashedPassword, resume);
     } else {
-      return this.signupEmployer(signupDto as EmployerSignupDto, hashedPassword);
+      return this.signupEmployer(signupDto, hashedPassword);
     }
   }
 
-  private async signupEmployee(dto: EmployeeSignupDto, hashedPassword: string, resume?: Express.Multer.File) {
+  private async signupEmployee(
+    dto: EmployeeSignupDto,
+    hashedPassword: string,
+    resume?: Express.Multer.File,
+  ) {
     // Check existing employee
     const existingEmployee = await this.prismaService.employee.findUnique({
       where: { email: dto.email },
@@ -147,7 +159,9 @@ export class AuthService {
     }
 
     if (employee.provider === 'google') {
-      throw new UnauthorizedException('This account uses Google sign-in. Continue with Google.');
+      throw new UnauthorizedException(
+        'This account uses Google sign-in. Continue with Google.',
+      );
     }
 
     const isPasswordValid = await bcrypt.compare(password, employee.password!);
@@ -195,7 +209,9 @@ export class AuthService {
     }
 
     if (employer.provider === 'google') {
-      throw new UnauthorizedException('This account uses Google sign-in. Continue with Google.');
+      throw new UnauthorizedException(
+        'This account uses Google sign-in. Continue with Google.',
+      );
     }
 
     const isPasswordValid = await bcrypt.compare(password, employer.password!);
