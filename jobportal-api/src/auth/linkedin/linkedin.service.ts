@@ -159,6 +159,7 @@ export class LinkedInService {
 
   getRedirectUri(): string {
     const redirectUri = this.configService.get<string>('LINKEDIN_REDIRECT_URI');
+    console.log("redirect URI : ",redirectUri)
     if (!redirectUri) {
       throw new BadRequestException('LinkedIn redirect URI not configured');
     }

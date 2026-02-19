@@ -6,23 +6,21 @@ export class LinkedInAuthGuard extends AuthGuard('linkedin') {
   canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
     
+    console.log('🔍 LinkedIn Guard - Request received:');
+    console.log('   Path:', request.path);
+    console.log('   Query params:', request.query);
+    console.log('   Method:', request.method);
+    console.log('   Headers:', request.headers);
+    
     // If there's an error parameter, allow the request to pass through to controller
     if (request.query?.error) {
+      console.log('   ✅ Error parameter detected, passing to controller');
       return true;
     }
     
-    // If there's a code parameter, validate state before proceeding
-    if (request.query?.code) {
-      const state = request.query?.state;
-      const storedState = request.cookies?.linkedin_oauth_state;
-      
-      // If state validation fails, we need to let it through to controller for proper error handling
-      if (!state || !storedState || state !== storedState) {
-        return true; // Let controller handle the invalid state error
-      }
-    }
+    console.log('   🔄 Calling Passport authenticate...');
     
-    // Otherwise, proceed with normal LinkedIn authentication
+    // Let Passport handle state validation automatically
     return super.canActivate(context);
   }
 }

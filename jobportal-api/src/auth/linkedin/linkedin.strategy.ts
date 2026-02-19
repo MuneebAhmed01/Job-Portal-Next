@@ -3,7 +3,6 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-linkedin-oauth2';
 import { ConfigService } from '@nestjs/config';
 import { LinkedInService } from './linkedin.service';
-import { LinkedInProfileDto } from './dto/linkedin-profile.dto';
 
 @Injectable()
 export class LinkedInStrategy extends PassportStrategy(Strategy, 'linkedin') {
@@ -14,64 +13,69 @@ export class LinkedInStrategy extends PassportStrategy(Strategy, 'linkedin') {
     super({
       clientID: configService.get<string>('LINKEDIN_CLIENT_ID'),
       clientSecret: configService.get<string>('LINKEDIN_CLIENT_SECRET'),
-      callbackURL: linkedInService.getRedirectUri(),
-      scope: ['openid', 'profile', 'w_member_social', 'email'],
+      callbackURL: configService.get<string>('LINKEDIN_REDIRECT_URI'),
+      scope: ['openid', 'profile', 'email'],
       state: true,
-      passReqToCallback: true,
-      store: {
-        get: (key: string, done: Function) => {
-          // For state parameter, we'll handle it manually in the controller
-          done(null, null);
-        },
-        set: (key: string, value: string, done: Function) => {
-          done(null);
-        },
-        destroy: (key: string, done: Function) => {
-          done(null);
-        },
-      },
     });
   }
 
-  async validate(
-    req: any,
-    accessToken: string,
-    refreshToken: string,
-    profile: any,
-    done: Function,
-  ): Promise<any> {
-    try {
-      // Handle different profile structures from LinkedIn API
-      const profileData = profile._json || profile;
+  // We override the internal userProfile to use the correct OIDC endpoint
+  // AND we ensure the Authorization header is set correctly
+  userProfile(accessToken: string, done: (err?: any, profile?: any) => void) {
+    console.log('🔑 Received Access Token:', accessToken ? 'YES (Hidden for security)' : 'MISSING');
 
-      const linkedInProfile: LinkedInProfileDto = {
-        id: profileData?.sub || profileData?.id || '',
-        firstName:
-          profileData?.given_name || profileData?.name?.split(' ')[0] || '',
-        lastName:
-          profileData?.family_name ||
-          profileData?.name?.split(' ').slice(1).join(' ') ||
-          '',
-        email:
-          profileData?.email ||
-          profileData?.emailAddress ||
-          profileData?.emails?.[0]?.value ||
-          '',
-        profilePicture:
-          profileData?.picture ||
-          profileData?.profilePicture?.['displayImage~']?.elements?.[0]
-            ?.identifiers?.[0]?.identifier ||
-          '',
-        headline: profileData?.headline || '',
-        summary: profileData?.summary || profileData?.about || '',
-        location: profileData?.location?.name || profileData?.location || '',
+    (this as any)._oauth2.useAuthorizationHeaderforGET(true); // <--- THIS IS THE KEY FIX
+    (this as any)._oauth2.get(
+      'https://api.linkedin.com/v2/userinfo',
+      accessToken,
+      (err, body) => {
+        if (err) {
+          console.error('DEBUG: LinkedIn API Error Body:', err.data);
+          return done(new Error('Failed to fetch user profile'));
+        }
+        try {
+          const json = JSON.parse(body);
+          const profile = {
+            _json: json,
+            id: json.sub,
+            displayName: `${json.given_name} ${json.family_name}`,
+            emails: [{ value: json.email }],
+            photos: [{ value: json.picture }],
+            name: {
+              givenName: json.given_name,
+              familyName: json.family_name,
+            },
+          };
+          done(null, profile);
+        } catch (e) {
+          done(e);
+        }
+      },
+    );
+  }
+
+  async validate(accessToken: string, refreshToken: string, profile: any): Promise<any> {
+    try {
+      const profileData = profile._json;
+      console.log('✅ Success! LinkedIn Profile identified:', profileData.sub);
+
+      const linkedInProfile = {
+        id: profileData.sub || '',
+        firstName: profileData.given_name || '',
+        lastName: profileData.family_name || '',
+        email: profileData.email || '',
+        profilePicture: profileData.picture || '',
       };
 
-      const validatedUser =
-        await this.linkedInService.validateLinkedInUser(linkedInProfile);
-      return done(null, validatedUser);
+      const validatedUser = await this.linkedInService.validateLinkedInUser(linkedInProfile);
+      
+      return {
+        user: validatedUser,
+        accessToken,
+      };
     } catch (error) {
-      return done(error, null);
+      console.error('❌ Strategy validation error:', error);
+      throw error;
     }
   }
 }

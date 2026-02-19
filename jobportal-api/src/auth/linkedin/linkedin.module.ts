@@ -11,7 +11,7 @@ import { PrismaModule } from '../../lib/prisma/prisma.module';
 @Module({
   imports: [
     ConfigModule,
-    PassportModule.register({ session: false }),
+    PassportModule.register({ session: true }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'default-secret',
       signOptions: { expiresIn: '1d' },
