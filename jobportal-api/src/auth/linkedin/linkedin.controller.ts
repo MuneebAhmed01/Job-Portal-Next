@@ -1,13 +1,18 @@
-import { Controller, Get, Res, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Res,
+  Req,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth/linkedin')
 export class LinkedInController {
-  constructor(
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly configService: ConfigService) {}
 
   // 1. Initiate Login
   // Passport automatically generates the 'state' and redirects to LinkedIn
@@ -24,32 +29,39 @@ export class LinkedInController {
   async linkedinCallback(@Req() req: any, @Res() res: Response) {
     try {
       console.log('🔍 LinkedIn Callback hit');
-      
+
       const authenticatedUser = req.user;
-      
+
       if (!authenticatedUser) {
         console.error('❌ No user found on request object');
         throw new UnauthorizedException('Authentication failed');
       }
 
-      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
-      
+      const frontendUrl =
+        this.configService.get<string>('FRONTEND_URL') ||
+        'http://localhost:3000';
+
       // Check if profile is complete
       if (!authenticatedUser.user?.isProfileComplete) {
-        return res.redirect(`${frontendUrl}/complete-profile?` +
-          `token=${encodeURIComponent(authenticatedUser.accessToken)}&` +
-          `user=${encodeURIComponent(JSON.stringify(authenticatedUser.user))}`);
+        return res.redirect(
+          `${frontendUrl}/complete-profile?` +
+            `token=${encodeURIComponent(authenticatedUser.token)}&` +
+            `user=${encodeURIComponent(JSON.stringify(authenticatedUser.user))}`,
+        );
       }
 
       // Successful login redirect
-      const redirectUrl = `${frontendUrl}/auth/success?` +
-        `token=${encodeURIComponent(authenticatedUser.accessToken)}&` +
+      const redirectUrl =
+        `${frontendUrl}/auth/success?` +
+        `token=${encodeURIComponent(authenticatedUser.token)}&` +
         `user=${encodeURIComponent(JSON.stringify(authenticatedUser.user))}`;
 
       return res.redirect(redirectUrl);
     } catch (error) {
       console.error('❌ Callback error:', error);
-      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+      const frontendUrl =
+        this.configService.get<string>('FRONTEND_URL') ||
+        'http://localhost:3000';
       return res.redirect(`${frontendUrl}/auth/error?error=unauthorized`);
     }
   }
@@ -58,7 +70,7 @@ export class LinkedInController {
   @Get('employer')
   @UseGuards(AuthGuard('linkedin'))
   async linkedinEmployerAuth() {
-    // Note: To distinguish employer vs employee, you might need a separate strategy 
+    // Note: To distinguish employer vs employee, you might need a separate strategy
     // or to append a 'role' in the validate method.
   }
 }

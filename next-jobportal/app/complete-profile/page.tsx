@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface LinkedInUser {
   id: string;
@@ -11,11 +12,14 @@ interface LinkedInUser {
   profilePicture?: string;
   bio?: string;
   isProfileComplete: boolean;
+  role?: string;
+  userType?: 'employee' | 'employer' | 'admin';
 }
 
 export default function CompleteProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { login, updateUser, token: authToken } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<LinkedInUser | null>(null);
   const [formData, setFormData] = useState({
@@ -36,10 +40,13 @@ export default function CompleteProfilePage() {
 
     try {
       const userData: LinkedInUser = JSON.parse(decodeURIComponent(userParam));
-      setUser(userData);
-      
-      // Store token
-      localStorage.setItem('auth_token', token);
+      const normalizedUser = {
+        ...userData,
+        userType: userData.userType || (userData.role as 'employee' | 'employer' | 'admin' | undefined),
+      };
+      setUser(normalizedUser);
+
+      login(normalizedUser as any, token);
       
       // Pre-fill form data
       setFormData(prev => ({
@@ -58,7 +65,7 @@ export default function CompleteProfilePage() {
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem('auth_token');
+      const token = authToken || localStorage.getItem('token');
       
       // Create form data for file upload
       const submitData = new FormData();
@@ -77,9 +84,8 @@ export default function CompleteProfilePage() {
       });
 
       if (response.ok) {
-        // Update user data
         const updatedUser = { ...user!, isProfileComplete: true, phone: formData.phone, bio: formData.bio };
-        localStorage.setItem('user_data', JSON.stringify(updatedUser));
+        updateUser(updatedUser);
         router.push('/dashboard');
       } else {
         throw new Error('Failed to update profile');

@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../lib/prisma/prisma.service';
@@ -49,7 +54,7 @@ export class LinkedInService {
           updatedAt: new Date(),
         },
       });
-      
+
       return this.generateToken(employee, 'employee');
     } else if (employer) {
       // Update existing LinkedIn employer
@@ -62,7 +67,7 @@ export class LinkedInService {
           updatedAt: new Date(),
         },
       });
-      
+
       return this.generateToken(employer, 'employer');
     } else if (email) {
       // Check if user exists with email (merge accounts)
@@ -85,7 +90,7 @@ export class LinkedInService {
             updatedAt: new Date(),
           },
         });
-        
+
         return this.generateToken(employee, 'employee');
       } else if (employer) {
         // Link LinkedIn to existing employer
@@ -98,7 +103,7 @@ export class LinkedInService {
             updatedAt: new Date(),
           },
         });
-        
+
         return this.generateToken(employer, 'employer');
       } else {
         // Create new user - default to employee
@@ -115,11 +120,13 @@ export class LinkedInService {
             updatedAt: new Date(),
           },
         });
-        
+
         return this.generateToken(employee, 'employee');
       }
     } else {
-      throw new BadRequestException('Email is required for LinkedIn authentication');
+      throw new BadRequestException(
+        'Email is required for LinkedIn authentication',
+      );
     }
   }
 
@@ -127,20 +134,28 @@ export class LinkedInService {
     const payload = {
       sub: user.id,
       email: user.email,
-      role: role,
+      userType: role,
     };
 
-    const accessToken = this.jwtService.sign(payload);
+    const token = this.jwtService.sign(payload);
+
+    const baseUser: any = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      userType: role,
+      isProfileComplete: user.isProfileComplete || false,
+    };
+
+    if (user.phone) baseUser.phone = user.phone;
+    if (role === 'employee' && user.resumePath)
+      baseUser.resumePath = user.resumePath;
+    if (role === 'employer' && user.companyName)
+      baseUser.companyName = user.companyName;
 
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: role,
-        isProfileComplete: user.isProfileComplete || false,
-      },
-      accessToken,
+      user: baseUser,
+      token,
     };
   }
 
@@ -159,7 +174,7 @@ export class LinkedInService {
 
   getRedirectUri(): string {
     const redirectUri = this.configService.get<string>('LINKEDIN_REDIRECT_URI');
-    console.log("redirect URI : ",redirectUri)
+    console.log('redirect URI : ', redirectUri);
     if (!redirectUri) {
       throw new BadRequestException('LinkedIn redirect URI not configured');
     }

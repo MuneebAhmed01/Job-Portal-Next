@@ -18,7 +18,7 @@ async function bootstrap() {
   });
 
   app.use(cookieParser());
-  
+
   app.use(
     session({
       secret: process.env.SESSION_SECRET || 'fallback-dev-key',

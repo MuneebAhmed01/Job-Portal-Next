@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface LinkedInUser {
   id: string;
@@ -13,11 +14,13 @@ interface LinkedInUser {
   isProfileComplete: boolean;
   companyName?: string;
   role?: string;
+  userType?: 'employee' | 'employer' | 'admin';
 }
 
 export default function LinkedInCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,15 +44,17 @@ export default function LinkedInCallbackPage() {
 
     try {
       const user: LinkedInUser = JSON.parse(decodeURIComponent(userParam));
-      
-      // Store authentication data
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('user_data', JSON.stringify(user));
+      const normalizedUser = {
+        ...user,
+        userType: user.userType || (user.role as 'employee' | 'employer' | 'admin' | undefined),
+      };
+
+      login(normalizedUser as any, token);
 
       // Redirect based on user role and profile completion
-      if (user.role === 'employer') {
+      if (normalizedUser.userType === 'employer') {
         router.push('/employer/dashboard');
-      } else if (!user.isProfileComplete) {
+      } else if (!normalizedUser.isProfileComplete) {
         router.push('/complete-profile');
       } else {
         router.push('/dashboard');

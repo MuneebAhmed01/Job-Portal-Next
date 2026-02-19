@@ -207,7 +207,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
     try {
       const formData = new FormData();
       formData.append('resume', file);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/employee/resume`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/employee/profile`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData,

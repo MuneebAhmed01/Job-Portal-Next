@@ -22,7 +22,10 @@ export class LinkedInStrategy extends PassportStrategy(Strategy, 'linkedin') {
   // We override the internal userProfile to use the correct OIDC endpoint
   // AND we ensure the Authorization header is set correctly
   userProfile(accessToken: string, done: (err?: any, profile?: any) => void) {
-    console.log('🔑 Received Access Token:', accessToken ? 'YES (Hidden for security)' : 'MISSING');
+    console.log(
+      '🔑 Received Access Token:',
+      accessToken ? 'YES (Hidden for security)' : 'MISSING',
+    );
 
     (this as any)._oauth2.useAuthorizationHeaderforGET(true); // <--- THIS IS THE KEY FIX
     (this as any)._oauth2.get(
@@ -54,7 +57,11 @@ export class LinkedInStrategy extends PassportStrategy(Strategy, 'linkedin') {
     );
   }
 
-  async validate(accessToken: string, refreshToken: string, profile: any): Promise<any> {
+  async validate(
+    accessToken: string,
+    refreshToken: string,
+    profile: any,
+  ): Promise<any> {
     try {
       const profileData = profile._json;
       console.log('✅ Success! LinkedIn Profile identified:', profileData.sub);
@@ -67,11 +74,12 @@ export class LinkedInStrategy extends PassportStrategy(Strategy, 'linkedin') {
         profilePicture: profileData.picture || '',
       };
 
-      const validatedUser = await this.linkedInService.validateLinkedInUser(linkedInProfile);
-      
+      const validatedUser =
+        await this.linkedInService.validateLinkedInUser(linkedInProfile);
+
       return {
-        user: validatedUser,
-        accessToken,
+        user: validatedUser.user,
+        token: validatedUser.token,
       };
     } catch (error) {
       console.error('❌ Strategy validation error:', error);
