@@ -41,8 +41,25 @@ export class LinkedInController {
         this.configService.get<string>('FRONTEND_URL') ||
         'http://localhost:3000';
 
-      // Check if profile is complete
-      if (!authenticatedUser.user?.isProfileComplete) {
+      // Check if profile is complete - smarter check
+      const user = authenticatedUser.user;
+      const hasBasicProfile = user.phone && user.phone.trim().length > 0;
+      const hasResume = user.resumePath && user.resumePath.trim().length > 0;
+      const hasBio = user.bio && user.bio.trim().length > 0;
+      
+      // Consider profile complete if user has phone and either resume or bio
+      const isEffectivelyComplete = hasBasicProfile && (hasResume || hasBio);
+      
+      console.log('🔍 LinkedIn Profile Check:');
+      console.log('- User:', user.name, '(', user.email, ')');
+      console.log('- isProfileComplete flag:', user.isProfileComplete);
+      console.log('- Has phone:', hasBasicProfile, '(', user.phone, ')');
+      console.log('- Has resume:', hasResume, '(', user.resumePath, ')');
+      console.log('- Has bio:', hasBio, '(', user.bio, ')');
+      console.log('- Is effectively complete:', isEffectivelyComplete);
+      console.log('- Will redirect to complete-profile:', !user.isProfileComplete && !isEffectivelyComplete);
+      
+      if (!user.isProfileComplete && !isEffectivelyComplete) {
         return res.redirect(
           `${frontendUrl}/complete-profile?` +
             `token=${encodeURIComponent(authenticatedUser.token)}&` +

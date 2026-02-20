@@ -2,13 +2,13 @@ import { z } from 'zod';
 
 export const updateEmployeeProfileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').optional(),
-  phone: z.string().min(10, 'Phone must be at least 10 digits').optional(),
+  phone: z.string().min(10, 'Phone must be at least 10 digits').regex(/^[+]?[\d\s\-\(\)]+$/, 'Invalid phone format').optional(),
   bio: z.string().optional(),
 });
 
 export const updateEmployerProfileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').optional(),
-  phone: z.string().min(10, 'Phone must be at least 10 digits').optional(),
+  phone: z.string().min(10, 'Phone must be at least 10 digits').regex(/^[+]?[\d\s\-\(\)]+$/, 'Invalid phone format').optional(),
   companyName: z
     .string()
     .min(2, 'Company name must be at least 2 characters')

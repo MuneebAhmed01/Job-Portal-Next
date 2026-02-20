@@ -44,9 +44,15 @@ export class UsersService {
     id: string,
     data: { name?: string; phone?: string; bio?: string; resumePath?: string },
   ) {
+    // Set isProfileComplete to true if phone is provided (key profile completion indicator)
+    const updateData = {
+      ...data,
+      ...(data.phone && { isProfileComplete: true }),
+    };
+
     const employee = await this.prisma.employee.update({
       where: { id },
-      data,
+      data: updateData,
     });
 
     await this.prisma.userLog.create({
@@ -100,9 +106,15 @@ export class UsersService {
     id: string,
     data: { name?: string; phone?: string; companyName?: string; bio?: string },
   ) {
+    // Set isProfileComplete to true if phone and companyName are provided (key profile completion indicators for employers)
+    const updateData = {
+      ...data,
+      ...(data.phone && data.companyName && { isProfileComplete: true }),
+    };
+
     const employer = await this.prisma.employer.update({
       where: { id },
-      data,
+      data: updateData,
     });
 
     await this.prisma.employerLog.create({

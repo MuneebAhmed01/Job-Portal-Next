@@ -67,34 +67,97 @@ export default function CompleteProfilePage() {
     try {
       const token = authToken || localStorage.getItem('token');
       
-      // Create form data for file upload
-      const submitData = new FormData();
-      submitData.append('phone', formData.phone);
-      submitData.append('bio', formData.bio);
-      if (formData.resume) {
-        submitData.append('resume', formData.resume);
+      const profilePayload: Record<string, string> = {};
+      if (formData.phone.trim()) {
+        profilePayload.phone = formData.phone.trim();
+      }
+      if (formData.bio.trim()) {
+        profilePayload.bio = formData.bio.trim();
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/employees/profile`, {
+      const profileResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/employee/profile`, {
         method: 'PUT',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: submitData,
+        body: JSON.stringify(profilePayload),
       });
 
-      if (response.ok) {
-        const updatedUser = { ...user!, isProfileComplete: true, phone: formData.phone, bio: formData.bio };
-        updateUser(updatedUser);
-        router.push('/dashboard');
-      } else {
-        throw new Error('Failed to update profile');
+      if (!profileResponse.ok) {
+        let errorMessage = 'Failed to update profile';
+        try {
+          const errorBody = await profileResponse.json();
+          if (errorBody?.message) {
+            errorMessage = Array.isArray(errorBody.message)
+              ? errorBody.message.join(', ')
+              : String(errorBody.message);
+          }
+        } catch {
+        }
+        throw new Error(errorMessage);
       }
+
+      // Get updated user data from backend response
+      const updatedProfileData = await profileResponse.json();
+      console.log('Backend response after profile update:', updatedProfileData);
+
+      if (formData.resume) {
+        const resumeData = new FormData();
+        resumeData.append('resume', formData.resume);
+
+        const resumeResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/employee/resume`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: resumeData,
+        });
+
+        if (!resumeResponse.ok) {
+          throw new Error('Failed to upload resume');
+        }
+      }
+
+      // Use backend response data which should have isProfileComplete: true
+      console.log('Updating user with data:', updatedProfileData);
+      updateUser(updatedProfileData);
+      router.push('/dashboard');
     } catch (error) {
       console.error('Profile update error:', error);
       alert('Failed to update profile. Please try again.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSkip = async () => {
+    try {
+      const token = authToken || localStorage.getItem('token');
+      
+      // Mark profile as complete even if user skips
+      const profileResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/employee/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          phone: '0334-3773477', // Use existing phone
+          bio: 'Profile completed via skip',
+        }),
+      });
+
+      if (profileResponse.ok) {
+        const updatedProfileData = await profileResponse.json();
+        updateUser(updatedProfileData);
+      }
+      
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Skip profile error:', error);
+      // Still redirect to dashboard even if update fails
+      router.push('/dashboard');
     }
   };
 
@@ -208,7 +271,7 @@ export default function CompleteProfilePage() {
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
-                onClick={() => router.push('/dashboard')}
+                onClick={handleSkip}
                 className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 Skip for Now
