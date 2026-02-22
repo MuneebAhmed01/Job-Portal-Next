@@ -17,7 +17,7 @@ export class LinkedInService {
     private readonly configService: ConfigService,
   ) {}
 
-  async validateLinkedInUser(profile: LinkedInProfileDto): Promise<any> {
+  async validateLinkedInUser(profile: LinkedInProfileDto & { role?: string }): Promise<any> {
     const {
       id,
       email,
@@ -26,7 +26,11 @@ export class LinkedInService {
       profilePicture,
       headline,
       summary,
+      role = 'employee', // Default to employee if not specified
     } = profile;
+
+    console.log('🔍 LinkedIn Service - Role:', role, '(will write to', role === 'employer' ? 'employers' : 'employees', 'table)');
+    console.log('🔍 LinkedIn Service - Profile:', { id, email, firstName, lastName });
 
     if (!id) {
       throw new BadRequestException('LinkedIn ID is required');
@@ -106,22 +110,49 @@ export class LinkedInService {
 
         return this.generateToken(employer, 'employer');
       } else {
-        // Create new user - default to employee
-        employee = await this.prisma.employee.create({
-          data: {
-            name: fullName,
-            email,
-            linkedinId: id,
-            profilePicture,
-            bio,
-            provider: 'linkedin',
-            isProfileComplete: false,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        });
+        // Create new user based on role parameter
+        console.log('🔍 Creating new LinkedIn user with role:', role);
+        
+        if (role === 'employer') {
+          console.log('🔍 Creating new employer profile');
+          // Create new employer
+          employer = await this.prisma.employer.create({
+            data: {
+              name: fullName,
+              email,
+              linkedinId: id,
+              profilePicture,
+              bio,
+              provider: 'linkedin',
+              companyName: `${fullName}'s Company`, // Default company name for LinkedIn signup
+              isProfileComplete: true, // Employers don't need to complete profile
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          });
 
-        return this.generateToken(employee, 'employee');
+          console.log('✅ Employer created:', { id: employer.id, name: employer.name, email: employer.email });
+          return this.generateToken(employer, 'employer');
+        } else {
+          console.log('🔍 Creating new employee profile');
+          // Create new employee (default behavior)
+          employee = await this.prisma.employee.create({
+            data: {
+              name: fullName,
+              email,
+              linkedinId: id,
+              profilePicture,
+              bio,
+              provider: 'linkedin',
+              isProfileComplete: true, // LinkedIn users don't need to complete profile
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          });
+
+          console.log('✅ Employee created:', { id: employee.id, name: employee.name, email: employee.email });
+          return this.generateToken(employee, 'employee');
+        }
       }
     } else {
       throw new BadRequestException(

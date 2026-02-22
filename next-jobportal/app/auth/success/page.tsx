@@ -43,11 +43,9 @@ export default function AuthSuccessPage() {
 
       login(normalizedUser as any, token);
 
-      // Redirect based on user role and profile completion
+      // Redirect: same /dashboard for both roles; dashboard page is role-based (EmployerDashboard vs EmployeeDashboard)
       setTimeout(() => {
-        if (normalizedUser.userType === 'employer') {
-          router.push('/employer/dashboard');
-        } else if (!normalizedUser.isProfileComplete) {
+        if (!normalizedUser.isProfileComplete && normalizedUser.userType !== 'employer') {
           router.push('/complete-profile');
         } else {
           router.push('/dashboard');

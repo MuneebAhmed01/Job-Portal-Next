@@ -14,80 +14,61 @@ import { AuthGuard } from '@nestjs/passport';
 export class LinkedInController {
   constructor(private readonly configService: ConfigService) {}
 
-  // 1. Initiate Login
-  // Passport automatically generates the 'state' and redirects to LinkedIn
+  // 1. Employee Login
   @Get()
   @UseGuards(AuthGuard('linkedin'))
   async linkedinAuth() {
-    // This body is empty; the Guard handles the redirect.
+    // Passport handles the redirect to LinkedIn
   }
 
-  // 2. Handle Callback
-  // Passport automatically verifies the 'state' and 'code' from the URL
+  // 2. Single callback — redirect by role (employee vs employer)
   @Get('callback')
   @UseGuards(AuthGuard('linkedin'))
   async linkedinCallback(@Req() req: any, @Res() res: Response) {
+    return this.handleLinkedInCallback(req, res, 'callback');
+  }
+
+  // 3. Employer Login — uses linkedin-employer strategy (fixed employer callback URL)
+  @Get('employer')
+  @UseGuards(AuthGuard('linkedin-employer'))
+  async linkedinEmployerAuth() {
+    // Passport redirects to LinkedIn with redirect_uri=.../auth/linkedin/employer/callback
+  }
+
+  // 4. Employer callback — must be whitelisted in LinkedIn app; always creates/updates Employer
+  @Get('employer/callback')
+  @UseGuards(AuthGuard('linkedin-employer'))
+  async linkedinEmployerCallback(@Req() req: any, @Res() res: Response) {
+    return this.handleLinkedInCallback(req, res, 'employer/callback');
+  }
+
+  /** Redirect both roles to /auth/success; frontend then sends to /dashboard (role-based UI) */
+  private handleLinkedInCallback(req: any, res: Response, from: string): void {
     try {
-      console.log('🔍 LinkedIn Callback hit');
-
       const authenticatedUser = req.user;
-
       if (!authenticatedUser) {
         console.error('❌ No user found on request object');
         throw new UnauthorizedException('Authentication failed');
       }
 
       const frontendUrl =
-        this.configService.get<string>('FRONTEND_URL') ||
-        'http://localhost:3000';
-
-      // Check if profile is complete - smarter check
-      const user = authenticatedUser.user;
-      const hasBasicProfile = user.phone && user.phone.trim().length > 0;
-      const hasResume = user.resumePath && user.resumePath.trim().length > 0;
-      const hasBio = user.bio && user.bio.trim().length > 0;
-      
-      // Consider profile complete if user has phone and either resume or bio
-      const isEffectivelyComplete = hasBasicProfile && (hasResume || hasBio);
-      
-      console.log('🔍 LinkedIn Profile Check:');
-      console.log('- User:', user.name, '(', user.email, ')');
-      console.log('- isProfileComplete flag:', user.isProfileComplete);
-      console.log('- Has phone:', hasBasicProfile, '(', user.phone, ')');
-      console.log('- Has resume:', hasResume, '(', user.resumePath, ')');
-      console.log('- Has bio:', hasBio, '(', user.bio, ')');
-      console.log('- Is effectively complete:', isEffectivelyComplete);
-      console.log('- Will redirect to complete-profile:', !user.isProfileComplete && !isEffectivelyComplete);
-      
-      if (!user.isProfileComplete && !isEffectivelyComplete) {
-        return res.redirect(
-          `${frontendUrl}/complete-profile?` +
-            `token=${encodeURIComponent(authenticatedUser.token)}&` +
-            `user=${encodeURIComponent(JSON.stringify(authenticatedUser.user))}`,
-        );
-      }
-
-      // Successful login redirect
+        this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+      // Same URL for both: /auth/success. Dashboard is role-based at /dashboard.
+      const redirectPath = '/auth/success';
       const redirectUrl =
-        `${frontendUrl}/auth/success?` +
+        `${frontendUrl}${redirectPath}?` +
         `token=${encodeURIComponent(authenticatedUser.token)}&` +
         `user=${encodeURIComponent(JSON.stringify(authenticatedUser.user))}`;
 
-      return res.redirect(redirectUrl);
+      console.log(
+        `🔍 LinkedIn auth successful (${from}), redirecting to ${redirectPath}`,
+      );
+      res.redirect(redirectUrl);
     } catch (error) {
-      console.error('❌ Callback error:', error);
+      console.error('❌ LinkedIn callback error:', error);
       const frontendUrl =
-        this.configService.get<string>('FRONTEND_URL') ||
-        'http://localhost:3000';
-      return res.redirect(`${frontendUrl}/auth/error?error=unauthorized`);
+        this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+      res.redirect(`${frontendUrl}/auth/error?error=unauthorized`);
     }
-  }
-
-  // 3. Employer Login (Using a custom property in the Strategy via state if needed)
-  @Get('employer')
-  @UseGuards(AuthGuard('linkedin'))
-  async linkedinEmployerAuth() {
-    // Note: To distinguish employer vs employee, you might need a separate strategy
-    // or to append a 'role' in the validate method.
   }
 }

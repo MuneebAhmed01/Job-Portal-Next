@@ -51,10 +51,8 @@ export default function LinkedInCallbackPage() {
 
       login(normalizedUser as any, token);
 
-      // Redirect based on user role and profile completion
-      if (normalizedUser.userType === 'employer') {
-        router.push('/employer/dashboard');
-      } else if (!normalizedUser.isProfileComplete) {
+      // Same /dashboard for both roles; dashboard is role-based (EmployerDashboard vs EmployeeDashboard)
+      if (!normalizedUser.isProfileComplete && normalizedUser.userType !== 'employer') {
         router.push('/complete-profile');
       } else {
         router.push('/dashboard');

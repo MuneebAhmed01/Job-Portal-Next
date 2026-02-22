@@ -5,22 +5,30 @@ import { ConfigService } from '@nestjs/config';
 import { LinkedInService } from './linkedin.service';
 
 /**
- * Employee LinkedIn strategy. Used for GET /auth/linkedin and GET /auth/linkedin/callback.
- * Employer flow uses LinkedInEmployerStrategy (linkedin-employer) and /auth/linkedin/employer/callback.
+ * Employer-only LinkedIn strategy. Uses a fixed employer callback URL so that
+ * when LinkedIn redirects back to /auth/linkedin/employer/callback, this strategy
+ * runs and we always create/update the Employer table (never Employee).
+ *
+ * Required: In LinkedIn Developer Console, add BOTH redirect URLs:
+ * - .../auth/linkedin/callback
+ * - .../auth/linkedin/employer/callback
  */
 @Injectable()
-export class LinkedInStrategy extends PassportStrategy(Strategy, 'linkedin') {
+export class LinkedInEmployerStrategy extends PassportStrategy(
+  Strategy,
+  'linkedin-employer',
+) {
   constructor(
     private readonly configService: ConfigService,
     private readonly linkedInService: LinkedInService,
   ) {
-    const callbackURL =
-      configService.get<string>('LINKEDIN_REDIRECT_URI') ||
-      'http://localhost:3002/auth/linkedin/callback';
+    const baseUrl = getBaseUrlFromConfig(configService);
+    const employerCallbackURL =
+      `${baseUrl}/auth/linkedin/employer/callback`;
     super({
       clientID: configService.get<string>('LINKEDIN_CLIENT_ID'),
       clientSecret: configService.get<string>('LINKEDIN_CLIENT_SECRET'),
-      callbackURL,
+      callbackURL: employerCallbackURL,
       scope: ['openid', 'profile', 'email'],
       state: true,
       passReqToCallback: true,
@@ -28,19 +36,12 @@ export class LinkedInStrategy extends PassportStrategy(Strategy, 'linkedin') {
   }
 
   userProfile(accessToken: string, done: (err?: any, profile?: any) => void) {
-    console.log(
-      '🔑 Received Access Token:',
-      accessToken ? 'YES (Hidden for security)' : 'MISSING',
-    );
     (this as any)._oauth2.useAuthorizationHeaderforGET(true);
     (this as any)._oauth2.get(
       'https://api.linkedin.com/v2/userinfo',
       accessToken,
       (err, body) => {
-        if (err) {
-          console.error('DEBUG: LinkedIn API Error Body:', err.data);
-          return done(new Error('Failed to fetch user profile'));
-        }
+        if (err) return done(new Error('Failed to fetch user profile'));
         try {
           const json = JSON.parse(body);
           done(null, {
@@ -70,7 +71,7 @@ export class LinkedInStrategy extends PassportStrategy(Strategy, 'linkedin') {
   ): Promise<any> {
     try {
       const profileData = profile._json;
-      console.log('✅ [EMPLOYEE] LinkedIn Profile identified:', profileData.sub);
+      console.log('✅ [EMPLOYER] LinkedIn Profile identified:', profileData.sub);
 
       const linkedInProfile = {
         id: profileData.sub || '',
@@ -78,14 +79,14 @@ export class LinkedInStrategy extends PassportStrategy(Strategy, 'linkedin') {
         lastName: profileData.family_name || '',
         email: profileData.email || '',
         profilePicture: profileData.picture || '',
-        role: 'employee' as const,
+        role: 'employer' as const,
       };
 
       const validatedUser =
         await this.linkedInService.validateLinkedInUser(linkedInProfile);
 
       console.log(
-        '🔍 [EMPLOYEE] LinkedIn Auth Role: employee (strategy: linkedin), userType:',
+        '🔍 [EMPLOYER] LinkedIn Auth Role: employer (strategy: linkedin-employer), userType:',
         validatedUser.user?.userType,
       );
       return {
@@ -93,8 +94,14 @@ export class LinkedInStrategy extends PassportStrategy(Strategy, 'linkedin') {
         token: validatedUser.token,
       };
     } catch (error) {
-      console.error('❌ [EMPLOYEE] Strategy validation error:', error);
+      console.error('❌ [EMPLOYER] Strategy validation error:', error);
       throw error;
     }
   }
+}
+
+function getBaseUrlFromConfig(config: ConfigService): string {
+  const uri = config.get<string>('LINKEDIN_REDIRECT_URI') || '';
+  const match = uri.match(/^(https?:\/\/[^/]+)/);
+  return match ? match[1] : config.get<string>('BACKEND_URL') || 'http://localhost:3002';
 }

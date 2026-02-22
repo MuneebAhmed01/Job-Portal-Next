@@ -5,6 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 import { LinkedInController } from './linkedin.controller';
 import { LinkedInService } from './linkedin.service';
 import { LinkedInStrategy } from './linkedin.strategy';
+import { LinkedInEmployerStrategy } from './linkedin-employer.strategy';
 import { LinkedInAuthGuard } from './guards/linkedin-auth.guard';
 import { PrismaModule } from '../../lib/prisma/prisma.module';
 
@@ -19,7 +20,7 @@ import { PrismaModule } from '../../lib/prisma/prisma.module';
     PrismaModule,
   ],
   controllers: [LinkedInController],
-  providers: [LinkedInService, LinkedInStrategy, LinkedInAuthGuard],
+  providers: [LinkedInService, LinkedInStrategy, LinkedInEmployerStrategy, LinkedInAuthGuard],
   exports: [LinkedInService],
 })
 export class LinkedInModule {}
