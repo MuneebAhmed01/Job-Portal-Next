@@ -65,12 +65,18 @@ export class LinkedInEmployerStrategy extends PassportStrategy(
       const profileData = profile._json;
       console.log('✅ [EMPLOYER] LinkedIn Profile identified:', profileData.sub);
 
+      const pictureUrl =
+        profileData.picture ??
+        profileData.profile_picture ??
+        (profile.photos && profile.photos[0] && profile.photos[0].value) ??
+        '';
+
       const linkedInProfile = {
         id: profileData.sub || '',
         firstName: profileData.given_name || '',
         lastName: profileData.family_name || '',
         email: profileData.email || '',
-        profilePicture: profileData.picture || '',
+        profilePicture: pictureUrl,
         role: 'employer' as const,
       };
 

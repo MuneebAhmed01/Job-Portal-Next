@@ -42,7 +42,7 @@ export class UsersService {
 
   async updateEmployee(
     id: string,
-    data: { name?: string; phone?: string; bio?: string; resumePath?: string },
+    data: { name?: string; phone?: string; bio?: string; resumePath?: string; profilePicture?: string },
   ) {
     // Set isProfileComplete to true if phone is provided (key profile completion indicator)
     const updateData = {
@@ -104,7 +104,7 @@ export class UsersService {
 
   async updateEmployer(
     id: string,
-    data: { name?: string; phone?: string; companyName?: string; bio?: string },
+    data: { name?: string; phone?: string; companyName?: string; bio?: string; profilePicture?: string },
   ) {
     // Set isProfileComplete to true if phone and companyName are provided (key profile completion indicators for employers)
     const updateData = {

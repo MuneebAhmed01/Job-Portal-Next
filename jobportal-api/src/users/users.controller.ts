@@ -15,6 +15,8 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { Response } from 'express';
+import { Res } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
@@ -26,6 +28,9 @@ import {
 } from './dto/update-profile.dto';
 import * as path from 'path';
 import * as fs from 'fs';
+
+const AVATAR_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const AVATAR_MAX_SIZE = 2 * 1024 * 1024; // 2MB
 
 @Controller('users')
 export class UsersController {
@@ -101,6 +106,105 @@ export class UsersController {
     });
     const { password, ...result } = employee;
     return result;
+  }
+
+  @Post('employee/avatar')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      storage: diskStorage({
+        destination: (req, file, cb) => {
+          const uploadPath = path.join(process.cwd(), 'uploads', 'avatars');
+          if (!fs.existsSync(uploadPath))
+            fs.mkdirSync(uploadPath, { recursive: true });
+          cb(null, uploadPath);
+        },
+        filename: (req, file, cb) => {
+          const ext = path.extname(file.originalname) || '.jpg';
+          cb(
+            null,
+            `avatar-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`,
+          );
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        if (AVATAR_MIME_TYPES.includes(file.mimetype)) cb(null, true);
+        else cb(new Error('Only JPEG, PNG, GIF, or WebP images are allowed'), false);
+      },
+      limits: { fileSize: AVATAR_MAX_SIZE },
+    }),
+  )
+  async uploadEmployeeAvatar(
+    @Request() req: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestException('Please upload an image');
+    const employeeId = req.user.sub;
+    const employee = await this.usersService.updateEmployee(employeeId, {
+      profilePicture: file.path,
+    });
+    const { password, ...result } = employee;
+    return result;
+  }
+
+  @Post('employer/avatar')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      storage: diskStorage({
+        destination: (req, file, cb) => {
+          const uploadPath = path.join(process.cwd(), 'uploads', 'avatars');
+          if (!fs.existsSync(uploadPath))
+            fs.mkdirSync(uploadPath, { recursive: true });
+          cb(null, uploadPath);
+        },
+        filename: (req, file, cb) => {
+          const ext = path.extname(file.originalname) || '.jpg';
+          cb(
+            null,
+            `avatar-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`,
+          );
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        if (AVATAR_MIME_TYPES.includes(file.mimetype)) cb(null, true);
+        else cb(new Error('Only JPEG, PNG, GIF, or WebP images are allowed'), false);
+      },
+      limits: { fileSize: AVATAR_MAX_SIZE },
+    }),
+  )
+  async uploadEmployerAvatar(
+    @Request() req: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestException('Please upload an image');
+    const employerId = req.user.sub;
+    const employer = await this.usersService.updateEmployer(employerId, {
+      profilePicture: file.path,
+    });
+    const { password, ...result } = employer;
+    return result;
+  }
+
+  @Get('avatar')
+  @UseGuards(JwtAuthGuard)
+  async getAvatar(@Request() req: any, @Res() res: Response) {
+    const userId = req.user.sub;
+    let user = await this.usersService.findEmployeeById(userId) ?? await this.usersService.findEmployerById(userId);
+    if (!user || !user.profilePicture) {
+      throw new NotFoundException('Profile picture not found');
+    }
+    const absolutePath = path.isAbsolute(user.profilePicture)
+      ? user.profilePicture
+      : path.join(process.cwd(), user.profilePicture);
+    if (!fs.existsSync(absolutePath)) {
+      throw new NotFoundException('Profile picture file not found');
+    }
+    const ext = path.extname(absolutePath).toLowerCase();
+    const mime = ext === '.png' ? 'image/png' : ext === '.gif' ? 'image/gif' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
+    res.setHeader('Content-Type', mime);
+    res.setHeader('Cache-Control', 'private, max-age=3600');
+    return res.sendFile(absolutePath);
   }
 
   @Put('employer/profile')

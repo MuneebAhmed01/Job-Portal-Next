@@ -52,7 +52,7 @@ export class LinkedInController {
 
       const frontendUrl =
         this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
-      // Same URL for both: /auth/success. Dashboard is role-based at /dashboard.
+   
       const redirectPath = '/auth/success';
       const redirectUrl =
         `${frontendUrl}${redirectPath}?` +

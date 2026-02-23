@@ -10,6 +10,7 @@ interface User {
   userType: 'employee' | 'employer' | 'admin';
   bio?: string;
   resumePath?: string;
+  profilePicture?: string;
   companyName?: string; // For employers
 }
 

@@ -8,6 +8,8 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../lib/prisma/prisma.service';
 import { LinkedInProfileDto } from './dto/linkedin-profile.dto';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class LinkedInService {
@@ -17,8 +19,37 @@ export class LinkedInService {
     private readonly configService: ConfigService,
   ) {}
 
+  /** Download LinkedIn profile image and save to uploads/avatars; returns local path or null. */
+  private async downloadAndSaveProfilePicture(profilePictureUrl: string): Promise<string | null> {
+    if (!profilePictureUrl || !profilePictureUrl.startsWith('http')) return null;
+    try {
+      const response = await fetch(profilePictureUrl, {
+        redirect: 'follow',
+        headers: { 'User-Agent': 'JobPortal/1.0 (Profile Picture Sync)' },
+      });
+      if (!response.ok) {
+        console.warn('LinkedIn picture download failed:', response.status, profilePictureUrl.slice(0, 60));
+        return null;
+      }
+      const buffer = Buffer.from(await response.arrayBuffer());
+      if (buffer.length === 0) return null;
+      const ext = path.extname(new URL(profilePictureUrl).pathname) || '.jpg';
+      const safeExt = ['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext.toLowerCase()) ? ext : '.jpg';
+      const uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
+      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+      const filename = `linkedin-${Date.now()}-${Math.round(Math.random() * 1e9)}${safeExt}`;
+      const filePath = path.join(uploadDir, filename);
+      fs.writeFileSync(filePath, buffer);
+      console.log('✅ LinkedIn profile picture saved:', filename);
+      return filePath;
+    } catch (e) {
+      console.warn('LinkedIn picture download error:', e instanceof Error ? e.message : e);
+      return null;
+    }
+  }
+
   async validateLinkedInUser(profile: LinkedInProfileDto & { role?: string }): Promise<any> {
-    const {
+    let {
       id,
       email,
       firstName,
@@ -26,15 +57,24 @@ export class LinkedInService {
       profilePicture,
       headline,
       summary,
-      role = 'employee', 
+      role = 'employee',
     } = profile;
 
     console.log('🔍 LinkedIn Service - Role:', role, '(will write to', role === 'employer' ? 'employers' : 'employees', 'table)');
-    console.log('🔍 LinkedIn Service - Profile:', { id, email, firstName, lastName });
+    console.log('🔍 LinkedIn Service - Profile:', { id, email, firstName, lastName, hasPicture: !!profilePicture });
 
     if (!id) {
       throw new BadRequestException('LinkedIn ID is required');
     }
+
+    // Download and persist LinkedIn profile image if it's a URL (every login = fresh fetch)
+    if (profilePicture && profilePicture.startsWith('http')) {
+      const localPath = await this.downloadAndSaveProfilePicture(profilePicture);
+      if (localPath) profilePicture = localPath;
+    }
+
+    // Security: only ever use the picture from THIS LinkedIn login — never keep a previous account's picture
+    const pictureToStore = profilePicture && profilePicture.trim() !== '' ? profilePicture : null;
 
     const fullName = `${firstName} ${lastName}`.trim();
     const bio = headline || summary || '';
@@ -48,12 +88,12 @@ export class LinkedInService {
     });
 
     if (employee) {
-      // Update existing LinkedIn employee
+      // Update existing LinkedIn employee — always overwrite with this login's picture
       employee = await this.prisma.employee.update({
         where: { id: employee.id },
         data: {
           name: fullName,
-          profilePicture: profilePicture || employee.profilePicture,
+          profilePicture: pictureToStore,
           bio: bio || employee.bio,
           updatedAt: new Date(),
         },
@@ -61,12 +101,12 @@ export class LinkedInService {
 
       return this.generateToken(employee, 'employee');
     } else if (employer) {
-      // Update existing LinkedIn employer
+      // Update existing LinkedIn employer — always overwrite with this login's picture
       employer = await this.prisma.employer.update({
         where: { id: employer.id },
         data: {
           name: fullName,
-          profilePicture: profilePicture || employer.profilePicture,
+          profilePicture: pictureToStore,
           bio: bio || employer.bio,
           updatedAt: new Date(),
         },
@@ -84,12 +124,12 @@ export class LinkedInService {
       });
 
       if (employee) {
-        // Link LinkedIn to existing employee
+        // Link LinkedIn to existing employee — use this login's LinkedIn picture only
         employee = await this.prisma.employee.update({
           where: { id: employee.id },
           data: {
             linkedinId: id,
-            profilePicture: profilePicture || employee.profilePicture,
+            profilePicture: pictureToStore,
             bio: bio || employee.bio,
             updatedAt: new Date(),
           },
@@ -97,12 +137,12 @@ export class LinkedInService {
 
         return this.generateToken(employee, 'employee');
       } else if (employer) {
-        // Link LinkedIn to existing employer
+        // Link LinkedIn to existing employer — use this login's LinkedIn picture only
         employer = await this.prisma.employer.update({
           where: { id: employer.id },
           data: {
             linkedinId: id,
-            profilePicture: profilePicture || employer.profilePicture,
+            profilePicture: pictureToStore,
             bio: bio || employer.bio,
             updatedAt: new Date(),
           },
@@ -121,7 +161,7 @@ export class LinkedInService {
               name: fullName,
               email,
               linkedinId: id,
-              profilePicture,
+              profilePicture: pictureToStore,
               bio,
               provider: 'linkedin',
               companyName: `${fullName}'s Company`, // Default company name for LinkedIn signup
@@ -141,10 +181,10 @@ export class LinkedInService {
               name: fullName,
               email,
               linkedinId: id,
-              profilePicture,
+              profilePicture: pictureToStore,
               bio,
               provider: 'linkedin',
-              isProfileComplete: true, // LinkedIn users don't need to complete profile
+              isProfileComplete: true,
               createdAt: new Date(),
               updatedAt: new Date(),
             },
@@ -179,6 +219,7 @@ export class LinkedInService {
     };
 
     if (user.phone) baseUser.phone = user.phone;
+    if (user.profilePicture) baseUser.profilePicture = user.profilePicture;
     if (role === 'employee' && user.resumePath)
       baseUser.resumePath = user.resumePath;
     if (role === 'employer' && user.companyName)

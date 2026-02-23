@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, User, LogOut, FileText, Plus, Briefcase, ChevronLeft, MapPin, IndianRupee, Users, Loader2, Edit3, Save, Phone, Mail, Building2, FileUser, Upload } from 'lucide-react';
+import { X, User, LogOut, FileText, Plus, Briefcase, ChevronLeft, MapPin, IndianRupee, Users, Loader2, Edit3, Save, Phone, Mail, Building2, FileUser, Upload, Camera } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { createJobSchema, updateEmployeeProfileSchema, updateEmployerProfileSchema, getZodErrors } from '@/lib/validations';
 
@@ -20,6 +20,39 @@ interface Job {
 interface ProfileOverlayProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+/** Returns a URL suitable for <img src> for the current user's profile picture (handles auth). */
+function useProfileImageUrl(profilePicture: string | undefined, token: string | null) {
+  const [url, setUrl] = useState<string | null>(null);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  useEffect(() => {
+    if (!profilePicture || !token || !apiUrl) {
+      setUrl(null);
+      return;
+    }
+    if (profilePicture.startsWith('http')) {
+      setUrl(profilePicture);
+      return;
+    }
+    let revoked = false;
+    let blobUrl: string | null = null;
+    fetch(`${apiUrl}/users/avatar`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => (res.ok ? res.blob() : null))
+      .then((blob) => {
+        if (revoked || !blob) return;
+        blobUrl = URL.createObjectURL(blob);
+        setUrl(blobUrl);
+      })
+      .catch(() => setUrl(null));
+    return () => {
+      revoked = true;
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    };
+  }, [profilePicture, token, apiUrl]);
+
+  return url;
 }
 
 export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps) {
@@ -50,6 +83,11 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [uploadingResume, setUploadingResume] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
+
+  const profileImageUrl = useProfileImageUrl(user?.profilePicture, token);
+  const displayAvatarUrl = avatarPreviewUrl ?? profileImageUrl ?? null;
 
   // Initialize edit form when user changes or editing starts
   useEffect(() => {
@@ -207,7 +245,7 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
     try {
       const formData = new FormData();
       formData.append('resume', file);
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/employee/profile`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/employee/resume`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData,
@@ -226,6 +264,48 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
       setUploadingResume(false);
       e.target.value = '';
     }
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      setError('Please choose a JPEG, PNG, GIF, or WebP image (max 2MB).');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Image must be 2MB or smaller.');
+      return;
+    }
+    setError('');
+    setAvatarPreviewUrl(URL.createObjectURL(file));
+    setUploadingAvatar(true);
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const endpoint = isEmployer
+      ? `${process.env.NEXT_PUBLIC_API_URL}/users/employer/avatar`
+      : `${process.env.NEXT_PUBLIC_API_URL}/users/employee/avatar`;
+    fetch(endpoint, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    })
+      .then((res) => {
+        if (!res.ok) return res.json().then((d) => { throw new Error(d.message || 'Upload failed'); });
+        return res.json();
+      })
+      .then((data) => {
+        updateUser({ profilePicture: data.profilePicture });
+        setSuccess('Profile picture updated.');
+        setTimeout(() => setSuccess(''), 3000);
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to upload image'))
+      .finally(() => {
+        setUploadingAvatar(false);
+        setAvatarPreviewUrl(null);
+        e.target.value = '';
+      });
   };
 
   const handleCancelEdit = () => {
@@ -260,8 +340,12 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
                 <ChevronLeft className="text-gray-400" size={20} />
               </button>
             )}
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#F54900' }}>
-              <User className="text-white" size={20} />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0 border-2 border-orange-500/50" style={{ backgroundColor: displayAvatarUrl ? 'transparent' : '#F54900' }}>
+              {displayAvatarUrl ? (
+                <img src={displayAvatarUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <User className="text-white" size={20} />
+              )}
             </div>
             <h2 className="text-xl font-bold text-white">
               {activeTab === 'profile' && 'My Profile'}
@@ -308,9 +392,30 @@ export default function ProfileOverlay({ isOpen, onClose }: ProfileOverlayProps)
 
               {/* Profile Header */}
               <div className="text-center">
-                <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-orange-500/30" style={{ backgroundColor: '#F54900' }}>
-                  <User className="text-white" size={48} />
+                <div className="relative inline-block mb-4">
+                  <div className="w-24 h-24 rounded-full flex items-center justify-center border-4 border-orange-500/30 overflow-hidden bg-gray-700" style={{ backgroundColor: displayAvatarUrl ? 'transparent' : '#F54900' }}>
+                    {displayAvatarUrl ? (
+                      <img src={displayAvatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="text-white" size={48} />
+                    )}
+                  </div>
+                  <label className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                      disabled={uploadingAvatar}
+                    />
+                    {uploadingAvatar ? (
+                      <Loader2 className="w-8 h-8 text-white animate-spin" />
+                    ) : (
+                      <Camera className="w-8 h-8 text-white" />
+                    )}
+                  </label>
                 </div>
+               
                 {isEditing ? (
                   <>
                     <input

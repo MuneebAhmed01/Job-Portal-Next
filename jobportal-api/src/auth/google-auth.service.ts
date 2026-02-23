@@ -64,6 +64,7 @@ export class GoogleAuthService {
     };
     if (userType === 'employee') base.resumePath = user.resumePath;
     if (userType === 'employer') base.companyName = user.companyName;
+    if (user.profilePicture) base.profilePicture = user.profilePicture;
     return { user: base, token };
   }
 

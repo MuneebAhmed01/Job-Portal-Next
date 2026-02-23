@@ -69,12 +69,19 @@ export class LinkedInStrategy extends PassportStrategy(Strategy, 'linkedin') {
       const profileData = profile._json;
       console.log('✅ [EMPLOYEE] LinkedIn Profile identified:', profileData.sub);
 
+      // LinkedIn userinfo can expose picture as picture or profile_picture
+      const pictureUrl =
+        profileData.picture ??
+        profileData.profile_picture ??
+        (profile.photos && profile.photos[0] && profile.photos[0].value) ??
+        '';
+
       const linkedInProfile = {
         id: profileData.sub || '',
         firstName: profileData.given_name || '',
         lastName: profileData.family_name || '',
         email: profileData.email || '',
-        profilePicture: profileData.picture || '',
+        profilePicture: pictureUrl,
         role: 'employee' as const,
       };
 
