@@ -12,15 +12,15 @@ export class LinkedInAuthGuard extends AuthGuard('linkedin') {
     console.log('   Method:', request.method);
     console.log('   Headers:', request.headers);
 
-    // If there's an error parameter, allow the request to pass through to controller
+    
     if (request.query?.error) {
-      console.log('   ✅ Error parameter detected, passing to controller');
+      console.log('Error parameter detected, passing to controller');
       return true;
     }
 
-    console.log('   🔄 Calling Passport authenticate...');
+    console.log('Calling Passport authenticate...');
 
-    // Let Passport handle state validation automatically
+  
     return super.canActivate(context);
   }
 }

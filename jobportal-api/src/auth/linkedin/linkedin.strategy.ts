@@ -4,10 +4,7 @@ import { Strategy } from 'passport-linkedin-oauth2';
 import { ConfigService } from '@nestjs/config';
 import { LinkedInService } from './linkedin.service';
 
-/**
- * Employee LinkedIn strategy. Used for GET /auth/linkedin and GET /auth/linkedin/callback.
- * Employer flow uses LinkedInEmployerStrategy (linkedin-employer) and /auth/linkedin/employer/callback.
- */
+
 @Injectable()
 export class LinkedInStrategy extends PassportStrategy(Strategy, 'linkedin') {
   constructor(

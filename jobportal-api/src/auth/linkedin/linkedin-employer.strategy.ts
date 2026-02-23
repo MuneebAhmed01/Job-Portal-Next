@@ -4,15 +4,7 @@ import { Strategy } from 'passport-linkedin-oauth2';
 import { ConfigService } from '@nestjs/config';
 import { LinkedInService } from './linkedin.service';
 
-/**
- * Employer-only LinkedIn strategy. Uses a fixed employer callback URL so that
- * when LinkedIn redirects back to /auth/linkedin/employer/callback, this strategy
- * runs and we always create/update the Employer table (never Employee).
- *
- * Required: In LinkedIn Developer Console, add BOTH redirect URLs:
- * - .../auth/linkedin/callback
- * - .../auth/linkedin/employer/callback
- */
+
 @Injectable()
 export class LinkedInEmployerStrategy extends PassportStrategy(
   Strategy,

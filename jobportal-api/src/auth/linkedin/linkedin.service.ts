@@ -26,7 +26,7 @@ export class LinkedInService {
       profilePicture,
       headline,
       summary,
-      role = 'employee', // Default to employee if not specified
+      role = 'employee', 
     } = profile;
 
     console.log('🔍 LinkedIn Service - Role:', role, '(will write to', role === 'employer' ? 'employers' : 'employees', 'table)');

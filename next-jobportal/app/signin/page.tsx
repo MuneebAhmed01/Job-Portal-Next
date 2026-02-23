@@ -154,7 +154,7 @@ export default function SigninPage() {
       </div>
       
       {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex flex-col bg-slate-900 relative">
+      <div className="w-full lg:w-1/2 flex flex-col bg-slate-900 relative overflow-y-auto">
         {/* Admin Shield - Top Right */}
         <button
           onClick={toggleAdminMode}
@@ -174,7 +174,7 @@ export default function SigninPage() {
           </button>
         </div>
         
-        <div className="flex-1 flex items-center justify-center px-6 pb-6 sm:px-12 sm:pb-12 lg:pt-6">
+        <div className="flex-1 flex items-start justify-center px-6 py-6 sm:px-12 sm:py-12 lg:pt-6 lg:pb-8 min-h-full">
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-6">
@@ -311,7 +311,7 @@ export default function SigninPage() {
           
           {/* Sign Up Link - Only for non-admin */}
           {!isAdminMode && (
-            <p className="mt-6 text-center text-gray-400">
+            <p className="mt-8 text-center text-gray-400">
               Don&apos;t have an account?{' '}
               <Link href="/signup" className="text-orange-500 hover:text-orange-400 font-medium transition-colors">
                 Sign Up
@@ -323,7 +323,7 @@ export default function SigninPage() {
           {isAdminMode && (
             <button
               onClick={toggleAdminMode}
-              className="mt-6 w-full text-center text-gray-500 hover:text-gray-300 text-sm transition-colors"
+              className="mt-8 w-full text-center text-gray-500 hover:text-gray-300 text-sm transition-colors"
             >
               ← Back to User Sign In
             </button>

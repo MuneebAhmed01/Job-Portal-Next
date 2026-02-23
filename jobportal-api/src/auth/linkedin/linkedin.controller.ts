@@ -14,7 +14,6 @@ import { AuthGuard } from '@nestjs/passport';
 export class LinkedInController {
   constructor(private readonly configService: ConfigService) {}
 
-  // 1. Employee Login
   @Get()
   @UseGuards(AuthGuard('linkedin'))
   async linkedinAuth() {
